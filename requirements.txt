@@ -1,0 +1,6 @@
+loguru~=0.6.0
+pip~=23.1
+httpx~=0.24.0
+aiofiles~=23.1.0
+numpy~=1.24.3
+pandas~=2.0.0
