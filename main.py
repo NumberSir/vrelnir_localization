@@ -33,10 +33,10 @@ class Localization:
         self._matched_rules = {}
         return self
 
-    async def init_dirs(self):
+    async def init_dirs(self, version: str):
         """创建目标文件夹"""
-        await aos.makedirs(DIR_RAW_DICTS / "json", exist_ok=True)
-        await aos.makedirs(DIR_RAW_DICTS / "csv", exist_ok=True)
+        await aos.makedirs(DIR_RAW_DICTS / version / "json", exist_ok=True)
+        await aos.makedirs(DIR_RAW_DICTS / version / "csv", exist_ok=True)
 
     async def fetch_latest_repository(self):
         """获取最新仓库内容"""
@@ -44,6 +44,7 @@ class Localization:
         async with httpx.AsyncClient() as client:
             response = await client.get("https://gitgud.io/Vrelnir/degrees-of-lewdity/-/raw/master/version")
             logger.info(f"当前仓库最新版本: {response.text}")
+            await self.init_dirs(response.text)
             filesize = int((await client.head(REPOSITORY_ZIP_URL, timeout=60)).headers["Content-Length"])
             chunks = await self._divide_chunks(filesize)
 
@@ -145,9 +146,6 @@ class Localization:
                   newline="") as fp:
             csv.writer(fp).writerows(results_lines_csv)
         logger.info(f"\t- {target_file} 处理完毕 ({idx + 1} / {len(self._matched_rules)})")
-
-    async def update_dict(self):
-        """更新字典"""
 
     @staticmethod
     async def _divide_chunks(filesize: int, chunk: int = 32) -> List[List[int]]:
@@ -332,6 +330,7 @@ async def main():
     ln = await Localization().async_init()
     await ln.fetch_latest_repository()
     await ln.unzip_latest_repository()
+    await ln.init_dirs()
     await ln.create_dicts()
 
 
