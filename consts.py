@@ -2,7 +2,7 @@ from pathlib import Path
 
 
 """汉化仓库"""
-PARATRANZ_TOKEN = "5fc8dac08a8b55f8cf07110d5c84c6a3"  # 必填，在个人设置里
+PARATRANZ_TOKEN = ""  # 必填，在个人设置里
 PARATRANZ_BASE_URL = "https://paratranz.cn/api"
 PARATRANZ_HEADERS = {"Authorization": PARATRANZ_TOKEN}
 PARATRANZ_PROJECT_ID = 4780  # DOL 项目 ID
