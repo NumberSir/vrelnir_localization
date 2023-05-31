@@ -2,7 +2,7 @@ from pathlib import Path
 
 
 """汉化仓库"""
-PARATRANZ_TOKEN = ""  # 要手动填，在设置里找
+PARATRANZ_TOKEN = "5fc8dac08a8b55f8cf07110d5c84c6a3"  # 必填，在个人设置里
 PARATRANZ_BASE_URL = "https://paratranz.cn/api"
 PARATRANZ_HEADERS = {"Authorization": PARATRANZ_TOKEN}
 PARATRANZ_PROJECT_ID = 4780  # DOL 项目 ID
@@ -18,6 +18,7 @@ DIR_ROOT = Path(__file__).parent
 DIR_DATA_ROOT = DIR_ROOT / "data"
 
 DIR_GAME_ROOT_COMMON = DIR_ROOT / "degrees-of-lewdity-master"
+# DIR_GAME_ROOT_COMMON = Path("D:\Joy\Butter").absolute() / "degrees-of-lewdity-master"
 DIR_GAME_TEXTS_COMMON = DIR_GAME_ROOT_COMMON / "game"
 DIR_GAME_ROOT_DEV = DIR_ROOT / "degrees-of-lewdity-dev"
 DIR_GAME_TEXTS_DEV = DIR_GAME_ROOT_DEV / "game"
@@ -29,7 +30,7 @@ DIR_PARATRANZ = DIR_ROOT / "paratranz"
 
 """文件"""
 FILE_REPOSITORY_ZIP = DIR_ROOT / "dol.zip"
-FILE_PARATRANZ_ZIP = DIR_ROOT / "汉化包.zip"
+FILE_PARATRANZ_ZIP = DIR_ROOT / "paratranz_export.zip"
 
 SUFFIX_TEXTS = ".twee"
 

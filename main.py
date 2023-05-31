@@ -35,8 +35,11 @@ import csv
 import json
 import os
 import re
+import shutil
+import subprocess
 from pathlib import Path
 from typing import List
+import webbrowser
 from zipfile import ZipFile
 
 import httpx
@@ -44,9 +47,10 @@ from aiofiles import open as aopen, os as aos
 
 from consts import *
 from log import logger
+import time
 
 
-async def divide_chunks(filesize: int, chunk: int = 32) -> List[List[int]]:
+async def divide_chunks(filesize: int, chunk: int = 2) -> List[List[int]]:
     """给大文件切片"""
     step = filesize // chunk
     arr = range(0, filesize, step)
@@ -55,6 +59,7 @@ async def divide_chunks(filesize: int, chunk: int = 32) -> List[List[int]]:
         for i in range(len(arr) - 1)
     ]
     result[-1][-1] = filesize - 1
+    # logger.info(f"chunks: {result}")
     return result
 
 
@@ -62,9 +67,9 @@ async def chunk_download(url: str, client: httpx.AsyncClient, start: int, end: i
     """切片下载"""
     if not save_path.exists():
         async with aopen(save_path, "wb") as fp:
-            pass
+            ...
     headers = {"Range": f"bytes={start}-{end}"}
-    response = await client.get(url, headers=headers)
+    response = await client.get(url, headers=headers, follow_redirects=True)
     async with aopen(save_path, "rb+") as fp:
         await fp.seek(start)
         await fp.write(response.content)
@@ -75,10 +80,14 @@ class ProjectDOL:
     """本地化主类"""
 
     def __init__(self):
-        self._type: str = None
-        self._rules: dict = None
-        self._ignores: List[str] = None
-        self._version: str = None
+        self._type: str = ...
+        self._rules: dict = ...
+        self._ignores: List[str] = ...
+        self._version: str = ...
+
+        self._paratranz_file_lists: List[Path] = None
+        self._raw_dicts_file_lists: List[Path] = None
+        self._game_texts_file_lists: List[Path] = None
 
     async def async_init(self, type_: str = "common") -> "ProjectDOL":
         async with aopen(DIR_DATA_ROOT / "rules.json", "r", encoding="utf-8") as fp:
@@ -88,84 +97,95 @@ class ProjectDOL:
         self._type = type_
         return self
 
-    async def _init_dirs(self, version: str):
+    @staticmethod
+    async def _init_dirs(version: str):
         """创建目标文件夹"""
         await aos.makedirs(DIR_RAW_DICTS / version / "json", exist_ok=True)
         await aos.makedirs(DIR_RAW_DICTS / version / "csv", exist_ok=True)
         await aos.makedirs(DIR_FINE_DICTS, exist_ok=True)
 
-    """生成字典"""
-    async def fetch_latest_repository(self):
-        """获取最新仓库内容"""
-        logger.info("===== 开始获取最新仓库内容 ...")
+    async def fetch_latest_version(self):
         async with httpx.AsyncClient() as client:
             url = f"{REPOSITORY_URL_COMMON}/-/raw/master/version" if self._type == "common" else f"{REPOSITORY_URL_DEV}/-/raw/dev/version"
             response = await client.get(url)
             logger.info(f"当前仓库最新版本: {response.text}")
             self._version = response.text
+
+    """生成字典"""
+    async def download_from_gitgud(self):
+        """从 gitgud 下载源仓库文件"""
+        await self.fetch_latest_repository()
+        await self.unzip_latest_repository()
+
+    async def fetch_latest_repository(self):
+        """获取最新仓库内容"""
+        logger.info("===== 开始获取最新仓库内容 ...")
+        async with httpx.AsyncClient() as client:
             await self._init_dirs(self._version)
             zip_url = REPOSITORY_ZIP_URL_COMMON if self._type == "common" else REPOSITORY_ZIP_URL_DEV
-            filesize = int((await client.head(zip_url, timeout=60)).headers["Content-Length"])
-            chunks = await divide_chunks(filesize)
+            response = await client.head(zip_url, timeout=60, follow_redirects=True)
+            # logger.info(f"headers: {response.headers}")
+            filesize = int(response.headers["Content-Length"])
+            chunks = await divide_chunks(filesize, 64)
 
             tasks = [
                 chunk_download(zip_url, client, start, end, idx, len(chunks), FILE_REPOSITORY_ZIP)
                 for idx, (start, end) in enumerate(chunks)
             ]
             await asyncio.gather(*tasks)
-        logger.info("##### 最新仓库内容已获取! ")
+            # response = await client.get(zip_url)
+            # async with aopen(FILE_REPOSITORY_ZIP, "wb") as fp:
+            #     await fp.write(response.content)
+        logger.info("##### 最新仓库内容已获取! \n")
 
-    async def unzip_latest_repository(self):
+    @staticmethod
+    async def unzip_latest_repository():
         """解压到本地"""
         logger.info("===== 开始解压最新仓库内容 ...")
         with ZipFile(FILE_REPOSITORY_ZIP) as zfp:
-            zfp.extractall(DIR_ROOT)
-        logger.info("##### 最新仓库内容已解压! ")
+            zfp.extractall(DIR_GAME_ROOT_COMMON.parent)
+        logger.info("##### 最新仓库内容已解压! \n")
 
     async def create_dicts(self):
         """创建字典"""
-        all_texts_files: List[Path] = await self._fetch_all_text_files()
-        await self._create_all_text_files_dir(all_texts_files)
-        await self._process_texts(all_texts_files)
+        await self._fetch_all_text_files()
+        await self._create_all_text_files_dir()
+        await self._process_texts()
 
     async def _fetch_all_text_files(self):
         """获取所有文本文件"""
         logger.info("===== 开始获取所有文本文件位置 ...")
-        all_text_files = []
+        self._game_texts_file_lists = []
         texts_dir = DIR_GAME_TEXTS_COMMON if self._type == "common" else DIR_GAME_TEXTS_DEV
         for root, dir_list, file_list in os.walk(texts_dir):
             for file in file_list:
                 if not file.endswith(SUFFIX_TEXTS):
                     continue
-                if any(keyword in file for keyword in self._ignores):
-                    logger.debug(f"\t\t- 跳过 {Path(root).absolute() / file}")
-                    continue
-                all_text_files.append(Path(root).absolute() / file)
-                logger.debug(f"\t- {Path(root).absolute() / file}")
-        logger.info("##### 所有文本文件位置已获取 !")
-        return all_text_files
+                if all(keyword not in file for keyword in self._ignores):
+                    self._game_texts_file_lists.append(Path(root).absolute() / file)
+        logger.info("##### 所有文本文件位置已获取 !\n")
 
-    async def _create_all_text_files_dir(self, all_texts_files: List[Path]):
+    async def _create_all_text_files_dir(self):
         """创建目录防报错"""
-        for file in all_texts_files:
+        for file in self._game_texts_file_lists:
             target_dir = (file.parent.__str__()).split("degrees-of-lewdity-master\\")[1]
-            target_dir_json = DIR_RAW_DICTS / self._version / "json" / target_dir
+            # target_dir_json = DIR_RAW_DICTS / self._version / "json" / target_dir
             target_dir_csv = DIR_RAW_DICTS / self._version / "csv" / target_dir
-            if not target_dir_json.exists() or not target_dir_csv.exists():
-                await aos.makedirs(target_dir_json, exist_ok=True)
+            if not target_dir_csv.exists():
+                # await aos.makedirs(target_dir_json, exist_ok=True)
                 await aos.makedirs(target_dir_csv, exist_ok=True)
 
-    async def _process_texts(self, all_text_files: List[Path]):
+    async def _process_texts(self):
         """处理翻译文本为键值对"""
         logger.info("===== 开始处理翻译文本为键值对 ...")
         tasks = [
-            self._process_for_gather(idx, file, all_text_files)
-            for idx, file in enumerate(all_text_files)
+            self._process_for_gather(idx, file)
+            for idx, file in enumerate(self._game_texts_file_lists)
         ]
         await asyncio.gather(*tasks)
-        logger.info("===== 翻译文本已处理为键值对 ! ")
+        logger.info("##### 翻译文本已处理为键值对 ! \n")
 
-    async def _process_for_gather(self, idx: int, file: Path, all_text_files: List[Path]):
+    async def _process_for_gather(self, idx: int, file: Path):
         target_file = file.__str__().split("game\\")[1].replace(SUFFIX_TEXTS, "")
 
         async with aopen(file, "r", encoding="utf-8") as fp:
@@ -177,21 +197,23 @@ class ProjectDOL:
 
         if not able_lines:
             logger.warning(f"\t- ***** 文件 {file} 无有效翻译行 !")
-        results_lines_json = [
-            {
-                "key": idx_ + 1,
-                "original": _.strip(),
-                "translation": ""
-            } for idx_, _ in enumerate(lines) if able_lines[idx_]
-        ]
+        # results_lines_json = [
+        #     {
+        #         "key": f"{idx_ + 1}_{'_'.join(self._version.split('.'))}",
+        #         "original": _.strip(),
+        #         "translation": ""
+        #     } for idx_, _ in enumerate(lines) if able_lines[idx_]
+        # ]
         results_lines_csv = [
-            (idx_ + 1, _.strip()) for idx_, _ in enumerate(lines) if able_lines[idx_]
+            (f"{idx_ + 1}_{'_'.join(self._version.split('.'))}", _.strip()) for idx_, _ in enumerate(lines) if
+            able_lines[idx_]
         ]
-        with open(DIR_RAW_DICTS / self._version / "json" / "game" / f"{target_file}.json", "w", encoding="utf-8") as fp:
-            json.dump(results_lines_json, fp, ensure_ascii=False, indent=2)
-        with open(DIR_RAW_DICTS / self._version / "csv" / "game" / f"{target_file}.csv", "w", encoding="utf-8", newline="") as fp:
+        # with open(DIR_RAW_DICTS / self._version / "json" / "game" / f"{target_file}.json", "w", encoding="utf-8") as fp:
+        #     json.dump(results_lines_json, fp, ensure_ascii=False, indent=2)
+        with open(DIR_RAW_DICTS / self._version / "csv" / "game" / f"{target_file}.csv", "w", encoding="utf-8",
+                  newline="") as fp:
             csv.writer(fp).writerows(results_lines_csv)
-        logger.info(f"\t- {target_file} 处理完毕 ({idx + 1} / {len(all_text_files)})")
+        # logger.info(f"\t- ({idx + 1} / {len(self._game_texts_file_lists)}) {target_file} 处理完毕")
 
     async def _match_rules(self, file: Path):
         """匹配规则"""
@@ -199,18 +221,71 @@ class ProjectDOL:
 
     """更新字典"""
     async def update_dicts(self):
-        """TODO 更新字典"""
+        """更新字典"""
+        logger.info("===== 开始更新字典 ...")
+        file_mapping: dict = {}
+        for root, dir_list, file_list in os.walk(DIR_PARATRANZ / "utf8"):  # 导出的旧字典
+            if "失效词条" in root:
+                continue
+            for file in file_list:
+                file_mapping[Path(root).absolute() / file] = DIR_RAW_DICTS / self._version / "csv" / "game" / Path(root).relative_to(DIR_PARATRANZ / "utf8") / file
+
+        tasks = [
+            self._update_for_gather(old_file, new_file, idx, len(file_mapping))
+            for idx, (old_file, new_file) in enumerate(file_mapping.items())
+        ]
+        await asyncio.gather(*tasks)
+        logger.info("##### 字典更新完毕 !\n")
+
+    async def _update_for_gather(self, old_file: Path, new_file: Path, idx: int, full: int):
+        """gather 用"""
+        with open(old_file, "r", encoding="utf-8") as fp:
+            old_data: List = list(csv.reader(fp))
+        old_ens: dict = {
+            row[-2] if len(row) > 2 else row[1]: idx_
+            for idx_, row in enumerate(old_data)
+        }  # 旧英文: 旧英文行键
+
+        with open(new_file, "r", encoding="utf-8") as fp:
+            new_data: List = list(csv.reader(fp))
+
+        for idx_, row in enumerate(new_data):
+            if row[-1] in old_ens:
+                new_data[idx_][0] = self.process_bad_key(old_data[old_ens[row[-1]]][0])
+                if len(old_data[old_ens[row[-1]]]) >= 3:
+                    new_data[idx_].append(old_data[old_ens[row[-1]]][-1].strip())
+
+        with open(new_file, "w", encoding="utf-8", newline="") as fp:
+            csv.writer(fp).writerows(new_data)
+        # logger.info(f"\t- ({idx + 1} / {full}) {new_file.__str__().split('game')[1]} 更新完毕")
+
+    @staticmethod
+    def process_bad_key(key: str):
+        """有些行键因为不知道什么原因有些乱七八糟的字符"""
+        if "﻿" in key:
+            key = key.replace("﻿", "", -1).strip()
+        if " " in key:
+            key = key.replace(" ", "", -1).strip()
+        if "," in key:
+            key = key.split(",")[0].strip()
+        if "|" in key:
+            key = key.replace("|", "")
+        return key.strip()
 
     """应用字典"""
-    async def apply_dicts(self):
-        """导入字典"""
+    async def apply_dicts(self, blacklist_dirs: List[str] = None, blacklist_files: List[str] = None):
+        """汉化覆写游戏文件"""
         DIR_GAME_TEXTS = DIR_GAME_TEXTS_COMMON if self._type == "common" else DIR_GAME_TEXTS_DEV
         logger.info("===== 开始覆写汉化 ...")
         file_mapping: dict = {}
         for root, dir_list, file_list in os.walk(DIR_PARATRANZ / "utf8"):
+            # if blacklist_dirs and any(_ in root for _ in blacklist_dirs):
+            #     continue
             if "失效词条" in root:
                 continue
             for file in file_list:
+                # if blacklist_files and f"{file.split('.')[0]}.twee" in blacklist_files:
+                #     continue
                 file_mapping[Path(root).absolute() / file] = DIR_GAME_TEXTS / Path(root).relative_to(DIR_PARATRANZ / "utf8") / f"{file.split('.')[0]}.twee"
 
         tasks = [
@@ -218,41 +293,81 @@ class ProjectDOL:
             for idx, (file, target_file) in enumerate(file_mapping.items())
         ]
         await asyncio.gather(*tasks)
-        logger.info("##### 汉化覆写完毕 !")
+        logger.info("##### 汉化覆写完毕 !\n")
 
-    async def _apply_for_gather(self, file: Path, target_file: Path, idx: int, full: int):
+    @staticmethod
+    async def _apply_for_gather(file: Path, target_file: Path, idx: int, full: int):
         """gather 用"""
         with open(target_file, "r", encoding="utf-8") as fp:
             raw_targets: List[str] = fp.readlines()
         with open(file, "r", encoding="utf-8") as fp:
             reader = csv.reader(fp)
             for row in reader:
-                if len(row) < 3:
-                    continue
-                if len(row) == 3:
-                    row, en, zh = row
-                else:
-                    row, _, en, zh = row
-                if "﻿" in row or " " in row:
-                    row = row.replace("﻿", "").replace(" ", "")
-                if "_" in row:
-                    row = row.split("_")[0]
-                if "," in row:
-                    row = row.split(",")[0]
-                row = int(row.strip().replace(" ", "").replace('"', ""))
-                with contextlib.suppress(IndexError):
-                    raw_targets[row - 1] = raw_targets[row - 1].replace(en, zh)
+                en, zh = row[-2:]
+                for idx_, target_row in enumerate(raw_targets):
+                    if en == target_row.strip() and zh.strip():
+                        raw_targets[idx_] = target_row.replace(en, zh)
+                        break
         with open(target_file, "w", encoding="utf-8") as fp:
             fp.writelines(raw_targets)
-        logger.info(f"\t- {target_file} 已应用汉化 ({idx} / {full})")
+        # logger.info(f"\t- ({idx + 1} / {full}) {target_file.__str__().split('game')[1]} 覆写完毕")
+
+    """ 删删删 """
+    async def drop_all_dirs(self):
+        """恢复到最初时的样子"""
+        logger.warning("===== 开始删库跑路 ...")
+        await self._drop_game()
+        await self._drop_dict()
+        await self._drop_paratranz()
+        logger.warning("##### 删库跑路完毕 !\n")
+
+    async def _drop_game(self):
+        """删掉游戏库"""
+        game_dir = DIR_GAME_ROOT_COMMON if self._type == "common" else DIR_GAME_ROOT_DEV
+        shutil.rmtree(game_dir, ignore_errors=True)
+        logger.warning("\t- 游戏目录已删除")
+
+    async def _drop_dict(self):
+        """删掉生成的字典"""
+        shutil.rmtree(DIR_RAW_DICTS, ignore_errors=True)
+        logger.info("\t- 字典目录已删除")
+
+    async def _drop_paratranz(self):
+        """删掉下载的汉化包"""
+        shutil.rmtree(DIR_PARATRANZ, ignore_errors=True)
+        logger.info("\t- 汉化目录已删除")
+
+    """ 编译游戏 """
+    def compile(self):
+        """编译游戏"""
+        logger.info("===== 开始编译游戏 ...")
+        self._compile_for_windows()
+        logger.info("##### 游戏编译完毕 !")
+
+    def _compile_for_windows(self):
+        """win"""
+        subprocess.Popen(DIR_GAME_ROOT_COMMON / "compile.bat")
+        time.sleep(5)
+        logger.info("\t- Windows 游戏编译完成")
+
+    def _compile_for_linux(self):
+        """linux"""
+
+    def _compile_for_mobile(self):
+        """android"""
+
+    """ 在浏览器中启动 """
+    def run(self):
+        webbrowser.open(DIR_GAME_ROOT_COMMON / "Degrees of Lewdity VERSION.html")
 
 
 class ParseText:
     """提取出要翻译的文本"""
+
     def __init__(self):
-        self._high_rates: List[str] = None
-        self._type: str = None
-        self._lines: List[str] = None
+        self._high_rates: List[str] = ...
+        self._type: str = ...
+        self._lines: List[str] = ...
 
     async def async_init(self, lines: List[str], type_: str = None, high_rates: List[str] = None) -> "ParseText":
         self._lines = lines
@@ -311,9 +426,7 @@ class ParseText:
         results = []
         for line in self._lines:
             line = line.strip()
-            if not line or self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
-                results.append(False)
-            elif "[[" in line and self.is_high_rate_link(line):
+            if not line or self.is_comment(line) or self.is_event(line) or self.is_only_marks(line) or ("[[" in line and self.is_high_rate_link(line)):
                 results.append(False)
             elif "[[" in line or self.is_assignment(line) or self.is_option(line):
                 results.append(True)
@@ -374,8 +487,8 @@ class ParseText:
         if "$" not in line:
             return (not line.strip()) or ParseText.is_comment(line.strip()) or False
 
-        vars = {_ for _ in re.findall(r"(\$[A-z])]", line) if _}
-        for v in vars:
+        vars_ = {_ for _ in re.findall(r"(\$[A-z])]", line) if _}
+        for v in vars_:
             line = line.replace(v, "", -1)
         return (not line.strip()) or ParseText.is_comment(line.strip()) or False
 
@@ -392,10 +505,13 @@ class ParseText:
 
 class Paratranz:
     """下载汉化包相关"""
+
     @classmethod
     async def download_from_paratranz(cls):
+        """从 paratranz 下载汉化包"""
         await aos.makedirs(DIR_PARATRANZ, exist_ok=True)
-        await cls.trigger_export()
+        with contextlib.suppress(httpx.TimeoutException):
+            await cls.trigger_export()
         await cls.download_export()
         await cls.unzip_export()
 
@@ -405,23 +521,29 @@ class Paratranz:
         logger.info("===== 开始导出汉化文件 ...")
         url = f"{PARATRANZ_BASE_URL}/projects/{PARATRANZ_PROJECT_ID}/artifacts"
         httpx.post(url, headers=PARATRANZ_HEADERS)
-        logger.info("##### 汉化文件已导出 !")
+        logger.info("##### 汉化文件已导出 !\n")
 
     @classmethod
     async def download_export(cls):
         """下载文件"""
         logger.info("===== 开始下载汉化文件 ...")
+        url = f"{PARATRANZ_BASE_URL}/projects/{PARATRANZ_PROJECT_ID}/artifacts/download"
         async with httpx.AsyncClient() as client:
-            url = f"{PARATRANZ_BASE_URL}/projects/{PARATRANZ_PROJECT_ID}/artifacts/download"
-            filesize = int((await client.head(url)).headers["Content-Length"])
-            chunks = await divide_chunks(filesize, 16)
+            content = (await client.get(url, headers=PARATRANZ_HEADERS, follow_redirects=True)).content
+            # logger.info(f"content: {content}")
+        with open(FILE_PARATRANZ_ZIP, "wb") as fp:
+            fp.write(content)
+        #async with httpx.AsyncClient(timeout=60, headers=PARATRANZ_HEADERS) as client:
+            #url = f"{PARATRANZ_BASE_URL}/projects/{PARATRANZ_PROJECT_ID}/artifacts/download"
+            #filesize = int((await client.head(url, timeout=60, follow_redirects=True)).headers["Content-Length"])
+            #chunks = await divide_chunks(filesize, 8)
 
-            tasks = [
-                chunk_download(url, client, start, end, idx, len(chunks), FILE_PARATRANZ_ZIP)
-                for idx, (start, end) in enumerate(chunks)
-            ]
-            await asyncio.gather(*tasks)
-        logger.info("##### 汉化文件已下载 !")
+            #tasks = [
+                #chunk_download(url, client, start, end, idx, len(chunks), FILE_PARATRANZ_ZIP)
+                #for idx, (start, end) in enumerate(chunks)
+            #]
+            #await asyncio.gather(*tasks)
+        logger.info("##### 汉化文件已下载 !\n")
 
     @classmethod
     async def unzip_export(cls):
@@ -429,26 +551,42 @@ class Paratranz:
         logger.info("===== 开始解压汉化文件 ...")
         with ZipFile(FILE_PARATRANZ_ZIP) as zfp:
             zfp.extractall(DIR_PARATRANZ)
-        logger.info("##### 汉化文件已解压 !")
+        logger.info("##### 汉化文件已解压 !\n")
 
 
 async def main():
+    start = time.time()
+    # =====
     dol = await ProjectDOL().async_init(type_="common")  # 改成 “dev” 则下载最新开发版分支的内容
     pt = Paratranz()
 
-    """ 下载解压源仓库 """
-    await dol.fetch_latest_repository()
-    await dol.unzip_latest_repository()
+    """ 删库跑路 """
+    await dol.drop_all_dirs()
 
-    """ 提取文字 """
+    """ 获取最新版本 """
+    await dol.fetch_latest_version()
+
+    """ 提取键值 """
+    await dol.download_from_gitgud()
     await dol.create_dicts()
 
-    """ 应用已有字典 """
+    """ 更新导出的字典 """
     await pt.download_from_paratranz()  # 如果下载，需要在 consts 里填上管理员的 token, 在网站个人设置里找
-    await dol.apply_dicts()
+    await dol.update_dicts()
 
-    """ TODO 更新当前字典 """
+    """ 覆写汉化 """
+    await dol.apply_dicts()
+    # error = []
+
+    """ 编译成游戏 """
+    dol.compile()
+    dol.run()
+    # =====
+    end = time.time()
+    return end-start
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    last = asyncio.run(main())
+    logger.info(f"===== 总耗时 {last}s =====")
+ 
