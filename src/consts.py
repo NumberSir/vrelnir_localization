@@ -2,11 +2,10 @@ from pathlib import Path
 
 
 """汉化仓库"""
-PARATRANZ_TOKEN = ""  # 必填，在个人设置里
+PARATRANZ_TOKEN = "84f5b1350b9d607d00312111a5afdfc9"  # 必填，在个人设置里
 PARATRANZ_BASE_URL = "https://paratranz.cn/api"
 PARATRANZ_HEADERS = {"Authorization": PARATRANZ_TOKEN}
 PARATRANZ_PROJECT_ID = 4780  # DOL 项目 ID
-
 """源代码仓库"""
 REPOSITORY_URL_COMMON = "https://gitgud.io/Vrelnir/degrees-of-lewdity"
 REPOSITORY_ZIP_URL_COMMON = "https://gitgud.io/Vrelnir/degrees-of-lewdity/-/archive/master/degrees-of-lewdity-master.zip"
@@ -14,13 +13,17 @@ REPOSITORY_URL_DEV = "https://gitgud.io/Vrelnir/degrees-of-lewdity"
 REPOSITORY_ZIP_URL_DEV = "https://gitgud.io/Vrelnir/degrees-of-lewdity/-/archive/dev/degrees-of-lewdity-dev.zip"
 
 """本地目录"""
-DIR_ROOT = Path(__file__).parent
+DIR_ROOT = Path(__file__).parent.parent
 DIR_DATA_ROOT = DIR_ROOT / "data"
+DIR_TEMP_ROOT = DIR_ROOT / "temp"
 
-DIR_GAME_ROOT_COMMON = DIR_ROOT / "degrees-of-lewdity-master"
+DIR_GAME_ROOT_COMMON_NAME = "degrees-of-lewdity-master"
+DIR_GAME_ROOT_COMMON = DIR_ROOT / DIR_GAME_ROOT_COMMON_NAME
 # DIR_GAME_ROOT_COMMON = Path("D:\Joy\Butter").absolute() / "degrees-of-lewdity-master"
 DIR_GAME_TEXTS_COMMON = DIR_GAME_ROOT_COMMON / "game"
-DIR_GAME_ROOT_DEV = DIR_ROOT / "degrees-of-lewdity-dev"
+
+DIR_GAME_ROOT_DEV_NAME = "degrees-of-lewdity-dev"
+DIR_GAME_ROOT_DEV = DIR_ROOT / DIR_GAME_ROOT_DEV_NAME
 DIR_GAME_TEXTS_DEV = DIR_GAME_ROOT_DEV / "game"
 
 DIR_RAW_DICTS = DIR_ROOT / "raw_dicts"
@@ -29,8 +32,8 @@ DIR_FINE_DICTS = DIR_ROOT / "fine_dicts"
 DIR_PARATRANZ = DIR_ROOT / "paratranz"
 
 """文件"""
-FILE_REPOSITORY_ZIP = DIR_ROOT / "dol.zip"
-FILE_PARATRANZ_ZIP = DIR_ROOT / "paratranz_export.zip"
+FILE_REPOSITORY_ZIP = DIR_TEMP_ROOT / "dol.zip"
+FILE_PARATRANZ_ZIP = DIR_TEMP_ROOT / "paratranz_export.zip"
 
 SUFFIX_TEXTS = ".twee"
 
@@ -48,8 +51,11 @@ __all__ = [
 
     "DIR_ROOT",
     "DIR_DATA_ROOT",
+    "DIR_TEMP_ROOT",
+    "DIR_GAME_ROOT_COMMON_NAME",
     "DIR_GAME_ROOT_COMMON",
     "DIR_GAME_TEXTS_COMMON",
+    "DIR_GAME_ROOT_DEV_NAME",
     "DIR_GAME_ROOT_DEV",
     "DIR_GAME_TEXTS_DEV",
     "DIR_RAW_DICTS",
