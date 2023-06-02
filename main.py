@@ -34,7 +34,8 @@ import time
 from src import (
     logger,
     Paratranz,
-    ProjectDOL
+    ProjectDOL,
+    PARATRANZ_TOKEN
 )
 
 
@@ -43,6 +44,8 @@ async def main():
     # =====
     dol = await ProjectDOL().async_init(type_="common")  # 改成 “dev” 则下载最新开发版分支的内容
     pt = Paratranz()
+    if not PARATRANZ_TOKEN:
+        logger.error("未填写 PARATRANZ_TOKEN, 汉化包下载可能失败，请前往 https://paratranz.cn/users/my 的设置栏中查看自己的 token")
 
     """ 删库跑路 """
     await dol.drop_all_dirs()
@@ -73,4 +76,3 @@ async def main():
 if __name__ == '__main__':
     last = asyncio.run(main())
     logger.info(f"===== 总耗时 {last}s =====")
- 
