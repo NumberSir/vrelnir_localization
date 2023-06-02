@@ -54,11 +54,11 @@ async def main():
     await dol.download_from_gitgud()
     await dol.create_dicts()
 
-    """ 更新导出的字典 """
+    """ 更新导出的字典 成品在 `raw_dicts` 文件夹里 """
     await pt.download_from_paratranz()  # 如果下载，需要在 consts 里填上管理员的 token, 在网站个人设置里找
     await dol.update_dicts()
 
-    """ 覆写汉化 """
+    """ 覆写汉化 用的是 `paratranz` 文件夹里的内容覆写 """
     await dol.apply_dicts()
     error = []
 

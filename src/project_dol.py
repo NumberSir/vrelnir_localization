@@ -1,3 +1,5 @@
+import re
+
 from aiocsv import AsyncReader, AsyncWriter
 from aiofiles import open as aopen, os as aos
 from pathlib import Path
@@ -5,7 +7,6 @@ from typing import List
 from zipfile import ZipFile
 
 import asyncio
-import csv
 import json
 import httpx
 import os
@@ -150,6 +151,7 @@ class ProjectDOL:
         """匹配规则"""
         return next((v for k, v in self._rules.items() if k in file.name), None)
 
+
     """更新字典"""
     async def update_dicts(self):
         """更新字典"""
@@ -222,19 +224,6 @@ class ProjectDOL:
         shutil.copytree(DIR_PARATRANZ / "utf8" / "失效词条", DIR_RAW_DICTS / self._version / "csv/game/失效词条")
         logger.info("\t- 失效词条目录已迁移")
 
-    # @staticmethod
-    # def process_bad_key(key: str):
-    #     """有些行键因为不知道什么原因有些乱七八糟的字符"""
-    #     if "﻿" in key:
-    #         key = key.replace("﻿", "", -1).strip()
-    #     if " " in key:
-    #         key = key.replace(" ", "", -1).strip()
-    #     if "," in key:
-    #         key = key.split(",")[0].strip()
-    #     if "|" in key:
-    #         key = key.replace("|", "")
-    #     return key.strip()
-
     """应用字典"""
     async def apply_dicts(self, blacklist_dirs: List[str] = None, blacklist_files: List[str] = None):
         """汉化覆写游戏文件"""
@@ -254,14 +243,17 @@ class ProjectDOL:
         await asyncio.gather(*tasks)
         logger.info("##### 汉化覆写完毕 !\n")
 
-    @staticmethod
-    async def _apply_for_gather(file: Path, target_file: Path, idx: int, full: int):
+    async def _apply_for_gather(self, file: Path, target_file: Path, idx: int, full: int):
         """gather 用"""
         async with aopen(target_file, "r", encoding="utf-8") as fp:
             raw_targets: List[str] = await fp.readlines()
         async with aopen(file, "r", encoding="utf-8") as fp:
             async for row in AsyncReader(fp):
                 en, zh = row[-2:]
+                if self._is_full_comma(zh):
+                    logger.warning(f"\t!!! 可能的全角逗号错误：{file.relative_to(DIR_PARATRANZ/'utf8')} | {row[0]} | {zh}")
+                if self._is_lack_angle(zh):
+                    logger.warning(f"\t!!! 可能的尖括号数量错误：{file.relative_to(DIR_PARATRANZ/'utf8')} | {row[0]} | {zh}")
                 for idx_, target_row in enumerate(raw_targets):
                     if en == target_row.strip() and zh.strip():
                         raw_targets[idx_] = target_row.replace(en, zh)
@@ -269,6 +261,28 @@ class ProjectDOL:
         async with aopen(target_file, "w", encoding="utf-8") as fp:
             await fp.writelines(raw_targets)
         # logger.info(f"\t- ({idx + 1} / {full}) {target_file.__str__().split('game')[1]} 覆写完毕")
+
+    @staticmethod
+    def _is_full_comma(line: str):
+        """全角逗号"""
+        return line.endswith('"，')
+
+    @staticmethod
+    def _is_lack_angle(line: str):
+        """<<> 缺一个 >"""
+        left_angle_single = re.findall(r"(<)", line)
+        right_angle_single = re.findall(r"(>)", line)
+        left_angle_double = re.findall(r"(<<)", line)
+        right_arrow = re.findall(r"(=>)", line)
+        return (
+            len(left_angle_double) == len(right_angle_single)   # 形如 << >
+
+            and len(right_angle_single) != 0                    # 形如 <<
+            and (len(left_angle_single) - len(right_angle_single)) / 2 != len(left_angle_double)  # 形如 < > << >>
+            and len(right_angle_single) != len(right_arrow)         # 形如 << >> =>
+            and len(right_angle_single) % 2 != 0                    # 形如 << >> <<
+            and len(left_angle_single) != len(right_angle_single)   # 形如 < >
+        )
 
     """ 删删删 """
     async def drop_all_dirs(self):
@@ -320,7 +334,6 @@ class ProjectDOL:
 
     def _compile_for_mobile(self):
         """android"""
-
 
     """ 在浏览器中启动 """
     def run(self):
