@@ -69,9 +69,9 @@ class ParseText:
             line = line.strip()
             if not line or self.is_comment(line) or self.is_event(line) or self.is_only_marks(line) or ("[[" in line and self.is_high_rate_link(line)):
                 results.append(False)
-            elif "[[" in line or self.is_assignment(line) or self.is_option(line):
+            elif "[[" in line or self.is_assignment(line):
                 results.append(True)
-            elif self.is_single_widget(line) or self.is_half_widget(line):
+            elif self.is_single_widget(line):
                 results.append(False)
             else:
                 results.append(True)
@@ -80,7 +80,7 @@ class ParseText:
     @staticmethod
     def is_high_rate_link(line: str) -> bool:
         """高频选项"""
-        return bool(re.findall(r"<<link\s\[\[(Next)|(Leave)|(Refuse)|(Return)", line))
+        return bool(re.findall(r"<<link\s\[\[(Next\||Next\s\||Leave\||Refuse\||Return\|)", line))
 
     @staticmethod
     def is_only_marks(line: str) -> bool:
@@ -95,19 +95,19 @@ class ParseText:
     @staticmethod
     def is_comment(line: str) -> bool:
         """注释"""
-        return any(line.startswith(_) for _ in {"//", "/*", "<!--", "*/", "*"})
+        return any(line.startswith(_) for _ in {"/*", "<!--", "*/", "*"})
 
     @staticmethod
     def is_assignment(line: str) -> bool:
-        """专指 <<set>> 可能出现的特殊情况"""
-        set_to = re.findall(r'<<set.*?to\s\"', line)
-        return bool(set_to)
-
-    @staticmethod
-    def is_option(line: str) -> bool:
-        """专指 <<option>> 可能出现的特殊情况"""
-        set_to = re.findall(r'<<option\s\"', line)
-        return bool(set_to)
+        """专指 <<>>, < > 可能出现的特殊情况"""
+        set_to = re.findall(r'<<set.*?[\"`\']', line)
+        note = re.findall(r"<<note\s\"", line)
+        link = re.findall(r"<<link\s[\"`]", line)
+        action = re.findall(r"<<actionstentacleadvcheckbox\s[\"`]", line)
+        option = re.findall(r'<<option\s\"', line)
+        button = re.findall(r'<<button\s', line)
+        input_ = re.findall(r'<input.*?value=\"', line)
+        return any((set_to, note, link, action, option, button, input_))
 
     @staticmethod
     def is_single_widget(line: str) -> bool:
@@ -115,7 +115,7 @@ class ParseText:
         if "<" not in line and "$" not in line:
             return False
 
-        widgets = {_ for _ in re.findall(r"(<<.*[^\[\n].*?>>)", line) if _}
+        widgets = {_ for _ in re.findall(r"(<<[^\[\n<>]*?>>)", line) if _}
         for w in widgets:
             line = line.replace(w, "", -1)
 

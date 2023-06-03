@@ -24,7 +24,7 @@ async def chunk_download(url: str, client: httpx.AsyncClient, start: int, end: i
         async with aopen(save_path, "wb") as fp:
             ...
     headers = {"Range": f"bytes={start}-{end}"}
-    response = await client.get(url, headers=headers, follow_redirects=True)
+    response = await client.get(url, headers=headers, follow_redirects=True, timeout=60)
     async with aopen(save_path, "rb+") as fp:
         await fp.seek(start)
         await fp.write(response.content)

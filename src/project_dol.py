@@ -156,7 +156,7 @@ class ProjectDOL:
     async def update_dicts(self):
         """更新字典"""
         logger.info("===== 开始更新字典 ...")
-        await self._create_unavailable_files_dir()
+        # await self._create_unavailable_files_dir()
         file_mapping: dict = {}
         for root, dir_list, file_list in os.walk(DIR_PARATRANZ / "utf8"):  # 导出的旧字典
             if "失效词条" in root:
@@ -200,29 +200,35 @@ class ProjectDOL:
         for idx_, row in enumerate(old_data):
             old_en = row[-2] if len(row) > 2 else row[-1]
             if old_en not in new_ens:
+                # logger.info(f"\t- old: {old_en}")
                 unavailables.append(old_data[idx_])
         unavailable_file = DIR_RAW_DICTS / self._version / "csv/game/失效词条" / old_file.__str__().split("utf8\\")[1] if unavailables else None
 
         async with aopen(new_file, "w", encoding="utf-8-sig", newline="") as fp:
             await AsyncWriter(fp).writerows(new_data)
 
+        # if unavailable_file:
+        #     if not unavailable_file.exists():
+        #         await aos.makedirs(unavailable_file.parent, exist_ok=True)
+        #         async with aopen(unavailable_file, "w", encoding="utf-8-sig", newline="") as fp:
+        #             await AsyncWriter(fp).writerows(unavailables)
+        #     else:
+        #         async with aopen(unavailable_file, "r", encoding="utf-8-sig") as fp:
+        #             old_unavailable_data = [row async for row in AsyncReader(fp)]
+        #         async with aopen(unavailable_file, "w", encoding="utf-8-sig", newline="") as fp:
+        #             await AsyncWriter(fp).writerows(old_unavailable_data + unavailables)
+
         if unavailable_file:
-            if not unavailable_file.exists():
-                await aos.makedirs(unavailable_file.parent, exist_ok=True)
-                async with aopen(unavailable_file, "w", encoding="utf-8-sig", newline="") as fp:
-                    await AsyncWriter(fp).writerows(unavailables)
-            else:
-                async with aopen(unavailable_file, "r", encoding="utf-8-sig") as fp:
-                    old_unavailable_data = [row async for row in AsyncReader(fp)]
-                async with aopen(unavailable_file, "w", encoding="utf-8-sig", newline="") as fp:
-                    await AsyncWriter(fp).writerows(old_unavailable_data + unavailables)
+            await aos.makedirs(unavailable_file.parent, exist_ok=True)
+            async with aopen(unavailable_file, "w", encoding="utf-8-sig", newline="") as fp:
+                await AsyncWriter(fp).writerows(unavailables)
 
         # logger.info(f"\t- ({idx + 1} / {full}) {new_file.__str__().split('game')[1]} 更新完毕")
 
-    async def _create_unavailable_files_dir(self):
-        """创建失效词条目录"""
-        shutil.copytree(DIR_PARATRANZ / "utf8" / "失效词条", DIR_RAW_DICTS / self._version / "csv/game/失效词条")
-        logger.info("\t- 失效词条目录已迁移")
+    # async def _create_unavailable_files_dir(self):
+    #     """创建失效词条目录"""
+    #     shutil.copytree(DIR_PARATRANZ / "utf8" / "失效词条", DIR_RAW_DICTS / self._version / "csv/game/失效词条")
+    #     logger.info("\t- 失效词条目录已迁移")
 
     """应用字典"""
     async def apply_dicts(self, blacklist_dirs: List[str] = None, blacklist_files: List[str] = None):
@@ -230,11 +236,12 @@ class ProjectDOL:
         DIR_GAME_TEXTS = DIR_GAME_TEXTS_COMMON if self._type == "common" else DIR_GAME_TEXTS_DEV
         logger.info("===== 开始覆写汉化 ...")
         file_mapping: dict = {}
-        for root, dir_list, file_list in os.walk(DIR_PARATRANZ / "utf8"):
+        # for root, dir_list, file_list in os.walk(DIR_PARATRANZ / "utf8"):
+        for root, dir_list, file_list in os.walk(DIR_RAW_DICTS / self._version / "csv"):
             if "失效词条" in root:
                 continue
             for file in file_list:
-                file_mapping[Path(root).absolute() / file] = DIR_GAME_TEXTS / Path(root).relative_to(DIR_PARATRANZ / "utf8") / f"{file.split('.')[0]}.twee"
+                file_mapping[Path(root).absolute() / file] = DIR_GAME_TEXTS / Path(root).relative_to(DIR_RAW_DICTS / self._version / "csv" / "game") / f"{file.split('.')[0]}.twee"
 
         tasks = [
             self._apply_for_gather(file, target_file, idx, len(file_mapping))
@@ -249,14 +256,19 @@ class ProjectDOL:
             raw_targets: List[str] = await fp.readlines()
         async with aopen(file, "r", encoding="utf-8") as fp:
             async for row in AsyncReader(fp):
+                if len(row) < 3:
+                    continue
                 en, zh = row[-2:]
                 if self._is_full_comma(zh):
-                    logger.warning(f"\t!!! 可能的全角逗号错误：{file.relative_to(DIR_PARATRANZ/'utf8')} | {row[0]} | {zh}")
+                    logger.warning(f"\t!!! 可能的全角逗号错误：{file.relative_to(DIR_RAW_DICTS / self._version / 'csv' / 'game')} | {row[0]} | {zh}")
                 if self._is_lack_angle(zh):
-                    logger.warning(f"\t!!! 可能的尖括号数量错误：{file.relative_to(DIR_PARATRANZ/'utf8')} | {row[0]} | {zh}")
+                    logger.warning(f"\t!!! 可能的尖括号数量错误：{file.relative_to(DIR_RAW_DICTS / self._version / 'csv' / 'game')} | {row[0]} | {zh}")
                 for idx_, target_row in enumerate(raw_targets):
                     if en == target_row.strip() and zh.strip():
                         raw_targets[idx_] = target_row.replace(en, zh)
+                        break
+                    if re.findall(r"<<link\s\[\[(Next\||Next\s\||Leave\||Refuse\||Return\|)", target_row):
+                        raw_targets[idx_] = target_row.replace("[[Next", "[[继续").replace("[[Leave", "[[离开").replace("[[Refuse", "[[拒绝").replace("[[Return", "返回")
                         break
         async with aopen(target_file, "w", encoding="utf-8") as fp:
             await fp.writelines(raw_targets)
@@ -327,7 +339,7 @@ class ProjectDOL:
         game_dir = DIR_GAME_ROOT_COMMON if self._type == "common" else DIR_GAME_ROOT_DEV
         subprocess.Popen(game_dir / "compile.bat")
         time.sleep(5)
-        logger.info("\t- Windows 游戏编译完成")
+        logger.info(f"\t- Windows 游戏编译完成，位于 {game_dir / 'Degrees of Lewdity VERSION.html'}")
 
     def _compile_for_linux(self):
         """linux"""
