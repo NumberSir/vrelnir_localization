@@ -1,7 +1,7 @@
-# vrelnir_localization
+# vrelnir_localization([Degrees of Lewdity](https://gitgud.io/Vrelnir/degrees-of-lewdity))
 
 
-黄油翻译小工具 0v0
+[黄油翻译小工具 0v0](https://github.com/NumberSir/vrelnir_localization)
 1. 获取原仓库最新内容下载到本地
 2. 生成对应版本的字典，放在 `raw_dict` 文件夹里
 3. 从 `paratranz` 下载最新汉化包 (可能要在 `src/consts.py` 里填你的 `token`, 在个人设置里找)
