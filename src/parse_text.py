@@ -24,6 +24,18 @@ class ParseText:
             return await self.parse_plant()
         elif self._type == "trait":
             return await self.parse_trait()
+        elif self._type == "option":
+            return await self.parse_option()
+        elif self._type == "canvas":
+            return await self.parse_canvas()
+        elif self._type == "image":
+            return await self.parse_image()
+        elif self._type == "init":
+            return await self.parse_init()
+        elif self._type == "generation":
+            return await self.parse_generation()
+        elif self._type == "name":
+            return await self.parse_name()
         return await self.parse_normal()
 
     async def parse_cloth(self) -> List[bool]:
@@ -50,9 +62,16 @@ class ParseText:
     async def parse_option(self) -> List[bool]:
         """设置"""
         results = []
+        multirow_comment_flag = False
         for line in self._lines:
             line = line.strip()
-            if not line:
+            """偶尔会出现的跨行注释"""
+            if line in ["/*", "<!--"] or (any(line.startswith(_) for _ in {"/*", "<!--"}) and all(_ not in line for _ in {"*/", "-->"})):
+                multirow_comment_flag = True
+            elif line in ["*/", "-->"] or any(line.endswith(_) for _ in {"*/", "-->"}):
+                multirow_comment_flag = False
+
+            if multirow_comment_flag or not line:
                 results.append(False)
             elif any((_ in line for _ in {"<<link", "<<option", "description", "<span class", "<div class"})):
                 results.append(True)
@@ -62,12 +81,68 @@ class ParseText:
                 results.append(True)
         return results
 
+    async def parse_canvas(self) -> List[bool]:
+        """壁纸吗"""
+        return [
+            "<<link" in line.strip()
+            for line in self._lines
+        ]
+
+    async def parse_image(self) -> List[bool]:
+        """图片显示"""
+        return [
+            "<<error {" in line.strip() or "<span" in line.strip()
+            for line in self._lines
+        ]
+
+    async def parse_init(self) -> List[bool]:
+        """初始设置"""
+        results = []
+        multirow_comment_flag = False
+        for line in self._lines:
+            line = line.strip()
+            """偶尔会出现的跨行注释"""
+            if not multirow_comment_flag and line in ["/*", "<!--"] or (any(line.startswith(_) for _ in {"/*", "<!--"}) and all(_ not in line for _ in {"*/", "-->"})):
+                multirow_comment_flag = True
+            elif multirow_comment_flag and line in ["*/", "-->"] or any(line.endswith(_) for _ in {"*/", "-->"}):
+                multirow_comment_flag = False
+
+            if multirow_comment_flag or not line or self.is_comment(line) or self.is_event(line) or self.is_only_marks(line) or ("[[" in line and self.is_high_rate_link(line)) or self.is_single_widget(line):
+                results.append(False)
+            elif "desc" in line or "<span" in line:
+                results.append(True)
+            else:
+                results.append(True)
+
+        return results
+
+    async def parse_generation(self) -> List[bool]:
+        """生成"""
+        return [
+            "<span" in line.strip()
+            for line in self._lines
+        ]
+
+    async def parse_name(self) -> List[bool]:
+        """名称"""
+        return [
+            '"' in line.strip()
+            for line in self._lines
+        ]
+
     async def parse_normal(self) -> List[bool]:
         """常规"""
         results = []
+        multirow_comment_flag = False
         for line in self._lines:
             line = line.strip()
-            if not line or self.is_comment(line) or self.is_event(line) or self.is_only_marks(line) or ("[[" in line and self.is_high_rate_link(line)):
+            """偶尔会出现的跨行注释"""
+            if line in ["/*", "<!--"] or (any(line.startswith(_) for _ in {"/*", "<!--"}) and all(_ not in line for _ in {"*/", "-->"})):
+                multirow_comment_flag = True
+            elif line in ["*/", "-->"] or any(line.endswith(_) for _ in {"*/", "-->"}):
+                multirow_comment_flag = False
+
+            if multirow_comment_flag or not line or self.is_comment(line) or self.is_event(line) or self.is_only_marks(line) or ("[[" in line and self.is_high_rate_link(line)):
                 results.append(False)
             elif "[[" in line or self.is_assignment(line):
                 results.append(True)
@@ -115,9 +190,10 @@ class ParseText:
         if "<" not in line and "$" not in line:
             return False
 
-        widgets = {_ for _ in re.findall(r"(<<[^\[\n<>]*?>>)", line) if _}
+        widgets = {_ for _ in re.findall(r"(<<[^\n<>]*?>>)", line) if _}
         for w in widgets:
-            line = line.replace(w, "", -1)
+            if "[[" not in w or ("[" in w and '"' not in w and "'" not in w and "`" not in w):
+                line = line.replace(w, "", -1)
 
         if "<" not in line and "$" not in line:
             return (not line.strip()) or ParseText.is_comment(line.strip()) or False

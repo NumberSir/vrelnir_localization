@@ -1,13 +1,7 @@
 [
-  "canvas",
-  "images",
-  "init",
   "lighting",
   "update",
-  "-generation",
   "dynamicRendering",
   "location",
-  "name-list",
-  "physicalAdjustments",
-  "radio"
+  "physicalAdjustments"
 ]

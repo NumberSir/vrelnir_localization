@@ -140,17 +140,18 @@ class ProjectDOL:
         if not able_lines:
             logger.warning(f"\t- ***** 文件 {file} 无有效翻译行 !")
         results_lines_csv = [
-            (f"{idx_ + 1}_{'_'.join(self._version[2:].split('.'))}|", _.strip()) for idx_, _ in enumerate(lines) if
-            able_lines[idx_]
+            (f"{idx_ + 1}_{'_'.join(self._version[2:].split('.'))}|", _.strip())
+            for idx_, _ in enumerate(lines)
+            if able_lines[idx_]
         ]
-        async with aopen(DIR_RAW_DICTS / self._version / "csv" / "game" / f"{target_file}.csv", "w", encoding="utf-8", newline="") as fp:
-            await AsyncWriter(fp).writerows(results_lines_csv)
+        if results_lines_csv:
+            async with aopen(DIR_RAW_DICTS / self._version / "csv" / "game" / f"{target_file}.csv", "w", encoding="utf-8", newline="") as fp:
+                await AsyncWriter(fp).writerows(results_lines_csv)
         # logger.info(f"\t- ({idx + 1} / {len(self._game_texts_file_lists)}) {target_file} 处理完毕")
 
     async def _match_rules(self, file: Path):
         """匹配规则"""
         return next((v for k, v in self._rules.items() if k in file.name), None)
-
 
     """更新字典"""
     async def update_dicts(self):
