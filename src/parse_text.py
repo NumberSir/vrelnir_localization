@@ -2,6 +2,59 @@ from typing import List
 import re
 
 
+# TODO
+REGEX_PATTERNS = {
+    "macro": r"""<<(/)?([A-Za-z][\w-]*|[=-])(?:\s*)((?:(?:/\*[^*]*\*+(?:[^/*][^*]*\*+)*/)|(?://.*\n)|(?:`(?:\\.|[^`\\\n])*?`)|(?:"(?:\\.|[^"\\\n])*?")|(?:'(?:\\.|[^'\\\n])*?')|(?:\[(?:[<>]?[Ii][Mm][Gg])?\[[^\r\n]*?\]\]+)|[^>]|(?:>(?!>)))*?)(/)?>>""",
+    "tag": r"""(?<!\<)<(?:/)?[a-zA-Z]+.*?>(?:[\s\S]*?)""",
+    "variable": r"""(?:(\$|_)(?:[A-Za-z_\$][A-Za-z0-9_\$]*))((?:\.[A-Za-z_\$][A-Za-z0-9_\$]*)*)\b""",
+    "comment": r""""""
+}
+
+
+# TODO
+# class ParseText:
+#     def __init__(self):
+#         self._high_rates: List[str] = ...
+#         self._type: str = ...
+#         self._lines: List[str] = ...
+#
+#     async def async_init(self, lines: List[str], type_: str = None, high_rates: List[str] = None) -> "ParseText":
+#         self._lines = lines
+#         self._type = type_
+#         self._high_rates = high_rates
+#         return self
+#
+#     async def parse(self):
+#         ...
+#
+#     def find_macros(self, line: str):
+#         """提出 <<MACROS>> """
+#         macros = re.findall(REGEX_PATTERNS["macro"], line)
+#
+#     def _macro_script(self):
+#         """<<script>> 通常不翻译"""
+#
+#     def _macro_link(self):
+#         """<<link>> 通常要翻译"""
+#
+#     def _macro_set(self):
+#         """<<set>> 通常要翻译"""
+#
+#     def find_tags(self, line: str):
+#         """提出 <TAGS> """
+#         tags = re.findall(REGEX_PATTERNS["tag"], line)
+#
+#     def _tag_span(self):
+#         """<span> 通常要翻译"""
+#
+#     def find_variables(self, line: str):
+#         """提出 $VARS """
+#         vars = re.findall(REGEX_PATTERNS["variable"], line)
+#
+#     def find_comments(self):
+#         """提出 //C /*C*/ <!--C--> """
+
+
 class ParseText:
     """提取出要翻译的文本"""
 

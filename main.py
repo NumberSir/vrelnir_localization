@@ -9,9 +9,15 @@
 
 特殊:
 <<if>>ANY<<elseif>>ANY<<else>>ANY<</if>>
+
 <<switch>>ANY<<case>>ANY<</switch>>
-<<link [[TEXT]]>>
-<<link [[TEXT|EVENT]]>>
+
+<<link [[TEXT]]>></link<>>
+<<link [[TEXT|EVENT]]>></link<>>
+
+<<set $VAR to KEYWORD>>
+<<set $VAR to "VAR">>
+<<set $VAR to "STRING">>
 
 $VAR                | 变量
 $VAR.FUNC(PARAM)    | 调用函数
@@ -21,9 +27,16 @@ STRING                  | 文本
 <CHAR_1>ANY</CHAR_1>    | 有闭合的
 <CHAR_0>                | 无闭合的
 
+<span class="VAR">TEXT</span>
+
 //COMMENT       | 注释
-/*COMMENT*/     | 注释
-<!--COMMENT-->  | 注释
+/*COMMENT*/     | 注释(可跨行)
+    /* COMMENT
+     * COMMENT
+     * COMMENT */
+<!--COMMENT-->  | 注释(可跨行)
+    <!-- COMMENT
+    COMMENT -->
 
 要翻译的：
 TEXT, STRING

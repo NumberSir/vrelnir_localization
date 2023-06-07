@@ -33,8 +33,10 @@ class Paratranz:
         """下载文件"""
         logger.info("===== 开始下载汉化文件 ...")
         url = f"{PARATRANZ_BASE_URL}/projects/{PARATRANZ_PROJECT_ID}/artifacts/download"
+        headers = PARATRANZ_HEADERS
+        headers["User-Agent"] = "NSScript/1.0 (+https://github.com/NumberSir/vrelnir_localization)"
         async with httpx.AsyncClient() as client:
-            content = (await client.get(url, headers=PARATRANZ_HEADERS, follow_redirects=True)).content
+            content = (await client.get(url, headers=headers, follow_redirects=True)).content
         async with aopen(FILE_PARATRANZ_ZIP, "wb") as fp:
             await fp.write(content)
         logger.info("##### 汉化文件已下载 !\n")
@@ -51,3 +53,8 @@ class Paratranz:
 __all__ = [
     "Paratranz"
 ]
+
+
+if __name__ == '__main__':
+    import asyncio
+    asyncio.run(Paratranz.download_export())

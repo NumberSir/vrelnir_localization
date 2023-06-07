@@ -264,6 +264,9 @@ class ProjectDOL:
                     logger.warning(f"\t!!! 可能的全角逗号错误：{file.relative_to(DIR_RAW_DICTS / self._version / 'csv' / 'game')} | {row[0]} | {zh}")
                 if self._is_lack_angle(zh):
                     logger.warning(f"\t!!! 可能的尖括号数量错误：{file.relative_to(DIR_RAW_DICTS / self._version / 'csv' / 'game')} | {row[0]} | {zh}")
+                if self._is_different_event(zh, en):
+                    logger.warning(f"\t!!! 可能的错译额外内容：{file.relative_to(DIR_RAW_DICTS / self._version / 'csv' / 'game')} | {row[0]} | {zh}")
+
                 for idx_, target_row in enumerate(raw_targets):
                     if en == target_row.strip() and zh.strip():
                         raw_targets[idx_] = target_row.replace(en, zh)
@@ -290,12 +293,22 @@ class ProjectDOL:
         return (
             len(left_angle_double) == len(right_angle_single)   # 形如 << >
 
-            and len(right_angle_single) != 0                    # 形如 <<
+            and len(right_angle_single) % 2 != 0                    # 形如 << >> <<
             and (len(left_angle_single) - len(right_angle_single)) / 2 != len(left_angle_double)  # 形如 < > << >>
             and len(right_angle_single) != len(right_arrow)         # 形如 << >> =>
-            and len(right_angle_single) % 2 != 0                    # 形如 << >> <<
             and len(left_angle_single) != len(right_angle_single)   # 形如 < >
         )
+
+    @staticmethod
+    def _is_different_event(line_zh: str, line_en: str):
+        """<<link [[TEXT|EVENT]]>> 中 EVENT 打错了"""
+        if "<<link [[" not in line_en or "|" not in line_en or not line_zh:
+            return False
+        event_en = re.findall(r"<<link\s\[\[.*?\|(.*?)\]\]", line_en)
+        if not event_en:
+            return False
+        event_zh = re.findall(r"<<link\s\[\[.*?\|(.*?)\]\]", line_zh)
+        return event_en != event_zh
 
     """ 删删删 """
     async def drop_all_dirs(self):
