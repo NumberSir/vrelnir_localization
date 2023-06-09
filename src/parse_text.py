@@ -257,7 +257,7 @@ class ParseText:
         if "$" not in line:
             return (not line.strip()) or ParseText.is_comment(line.strip()) or False
 
-        vars_ = {_ for _ in re.findall(r"(\$[A-z])]", line) if _}
+        vars_ = {_ for _ in re.findall(r"(\$[A-z\._\(\)]*)", line) if _}
         for v in vars_:
             line = line.replace(v, "", -1)
         return (not line.strip()) or ParseText.is_comment(line.strip()) or False
@@ -276,3 +276,12 @@ class ParseText:
 __all__ = [
     "ParseText"
 ]
+
+if __name__ == '__main__':
+    import asyncio
+    async def main():
+        lines = ["""<span class="red">Your <<genitalsintegrity>> $worn.genitals.name <<if playerChastity("anus")>>with an anal shield<</if>> gives you no comfort.</span>"""]
+        return await (await ParseText().async_init(lines=lines)).parse()
+
+    print(asyncio.run(main()))
+
