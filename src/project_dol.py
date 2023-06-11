@@ -287,10 +287,10 @@ class ProjectDOL:
                             ...
                         raw_targets[idx_] = target_row.replace(en, zh)
                         break
-                    if re.findall(r"<<link\s\[\[(Next\||Next\s\||Leave\||Refuse\||Return\|)", target_row):
+                    if re.findall(r"<<link\s\[\[(Next\||Next\s\||Leave\||Refuse\||Return\|)", target_row):  # 高频词
                         raw_targets[idx_] = target_row.replace("[[Next", "[[继续").replace("[[Leave", "[[离开").replace("[[Refuse", "[[拒绝").replace("[[Return", "[[返回")
                         break
-                    if target_row.strip() == "].select($_rng)>>":
+                    if target_row.strip() == "].select($_rng)>>":  # 怪东西
                         raw_targets[idx_] = ""
                         break
         async with aopen(target_file, "w", encoding="utf-8") as fp:

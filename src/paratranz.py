@@ -30,8 +30,10 @@ class Paratranz:
                     flag = True
                     break
 
-        if not flag:
-            logger.error("***** 无法正常下载 Paratranz 汉化包！请检查网络连接情况，以及是否填写了正确的 TOKEN！")
+            if not flag:
+                logger.error("***** 无法正常下载 Paratranz 汉化包！请检查网络连接情况，以及是否填写了正确的 TOKEN！\n")
+                return False
+            return True
 
     @classmethod
     async def trigger_export(cls):
