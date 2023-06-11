@@ -1,5 +1,6 @@
 # Vrelnir Localization([Degrees of Lewdity](https://gitgud.io/Vrelnir/degrees-of-lewdity))
-
+<a href='https://gitee.com/Number_Sir/vrelnir_localization/stargazers'><img src='https://gitee.com/Number_Sir/vrelnir_localization/badge/star.svg?theme=dark' alt='star'></img></a>
+![GitHub stars](https://img.shields.io/github/stars/NumberSir/vrelnir_localization?style=social)
 
 ## 简介
 [黄油翻译小工具 0v0](https://github.com/NumberSir/vrelnir_localization)
