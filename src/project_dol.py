@@ -68,10 +68,20 @@ class ProjectDOL:
         async with httpx.AsyncClient() as client:
             await self._init_dirs(self._version)
             zip_url = REPOSITORY_ZIP_URL_COMMON if self._type == "common" else REPOSITORY_ZIP_URL_DEV
-            response = await client.head(zip_url, timeout=60, follow_redirects=True)
-            filesize = int(response.headers["Content-Length"])
-            chunks = await chunk_split(filesize, 64)
+            flag = False
+            for _ in range(3):
+                try:
+                    response = await client.head(zip_url, timeout=60, follow_redirects=True)
+                    filesize = int(response.headers["Content-Length"])
+                    chunks = await chunk_split(filesize, 64)
+                except (httpx.ConnectError, KeyError) as e:
+                    continue
+                else:
+                    flag = True
+                    break
 
+            if not flag:
+                logger.error("***** 无法正常下载最新仓库源码！请检查你的网络连接是否正常！")
             tasks = [
                 chunk_download(zip_url, client, start, end, idx, len(chunks), FILE_REPOSITORY_ZIP)
                 for idx, (start, end) in enumerate(chunks)
@@ -269,10 +279,19 @@ class ProjectDOL:
 
                 for idx_, target_row in enumerate(raw_targets):
                     if en == target_row.strip() and zh.strip():
+                        if "name_cn_cap" in zh.strip():  # 衣服
+                            zh = zh.replace("name_cn_cap", "name_cap")
+                            raw_targets[idx_] = target_row.replace(en, zh)
+                            break
+                        if "writ_cn" in zh.strip():  # 纹身
+                            ...
                         raw_targets[idx_] = target_row.replace(en, zh)
                         break
                     if re.findall(r"<<link\s\[\[(Next\||Next\s\||Leave\||Refuse\||Return\|)", target_row):
-                        raw_targets[idx_] = target_row.replace("[[Next", "[[继续").replace("[[Leave", "[[离开").replace("[[Refuse", "[[拒绝").replace("[[Return", "返回")
+                        raw_targets[idx_] = target_row.replace("[[Next", "[[继续").replace("[[Leave", "[[离开").replace("[[Refuse", "[[拒绝").replace("[[Return", "[[返回")
+                        break
+                    if target_row.strip() == "].select($_rng)>>":
+                        raw_targets[idx_] = ""
                         break
         async with aopen(target_file, "w", encoding="utf-8") as fp:
             await fp.writelines(raw_targets)
