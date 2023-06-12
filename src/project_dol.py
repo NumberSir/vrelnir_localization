@@ -5,6 +5,7 @@ from aiofiles import open as aopen, os as aos
 from pathlib import Path
 from typing import List
 from zipfile import ZipFile
+from urllib.parse import quote
 
 import asyncio
 import json
@@ -271,11 +272,14 @@ class ProjectDOL:
                     continue
                 en, zh = row[-2:]
                 if self._is_full_comma(zh):
-                    logger.warning(f"\t!!! 可能的全角逗号错误：{file.relative_to(DIR_RAW_DICTS / self._version / 'csv' / 'game')} | {row[0]} | {zh}")
-                if self._is_lack_angle(zh):
-                    logger.warning(f"\t!!! 可能的尖括号数量错误：{file.relative_to(DIR_RAW_DICTS / self._version / 'csv' / 'game')} | {row[0]} | {zh}")
+                    # logger.warning(f"\t!!! 可能的全角逗号错误：{file.relative_to(DIR_RAW_DICTS / self._version / 'csv' / 'game')} | {row[0]} | {zh}")
+                    logger.warning(f"\t!!! 可能的全角逗号错误：https://paratranz.cn/projects/4780/strings?text={quote(zh)}")
+                if self._is_lack_angle(zh, en):
+                    # logger.warning(f"\t!!! 可能的尖括号数量错误：{file.relative_to(DIR_RAW_DICTS / self._version / 'csv' / 'game')} | {row[0]} | {zh}")
+                    logger.warning(f"\t!!! 可能的尖括号数量错误：https://paratranz.cn/projects/4780/strings?text={quote(zh)}")
                 if self._is_different_event(zh, en):
-                    logger.warning(f"\t!!! 可能的错译额外内容：{file.relative_to(DIR_RAW_DICTS / self._version / 'csv' / 'game')} | {row[0]} | {zh}")
+                    # logger.warning(f"\t!!! 可能的错译额外内容：{file.relative_to(DIR_RAW_DICTS / self._version / 'csv' / 'game')} | {row[0]} | {zh}")
+                    logger.warning(f"\t!!! 可能的错译额外内容：https://paratranz.cn/projects/4780/strings?text={quote(zh)}")
 
                 for idx_, target_row in enumerate(raw_targets):
                     if en == target_row.strip() and zh.strip():
@@ -303,20 +307,33 @@ class ProjectDOL:
         return line.endswith('"，')
 
     @staticmethod
-    def _is_lack_angle(line: str):
+    def _is_lack_angle(line_zh: str, line_en: str):
         """<<> 缺一个 >"""
-        left_angle_single = re.findall(r"(<)", line)
-        right_angle_single = re.findall(r"(>)", line)
-        left_angle_double = re.findall(r"(<<)", line)
-        right_arrow = re.findall(r"(=>)", line)
-        return (
-            len(left_angle_double) == len(right_angle_single)   # 形如 << >
+        if ("<" not in line_en and ">" not in line_en) or ParseText.is_only_marks(line_en):
+            return False
 
-            and len(right_angle_single) % 2 != 0                    # 形如 << >> <<
-            and (len(left_angle_single) - len(right_angle_single)) / 2 != len(left_angle_double)  # 形如 < > << >>
-            and len(right_angle_single) != len(right_arrow)         # 形如 << >> =>
-            and len(left_angle_single) != len(right_angle_single)   # 形如 < >
-        )
+        left_angle_single_zh = re.findall(r"[^<>=](<|>)[^<>=]", line_zh)
+        right_angle_single_zh = re.findall(r"[^<>=](<|>)[^<>=]", line_zh)
+        if "<<" not in line_en and ">>" not in line_en:
+            if len(left_angle_single_zh) == len(right_angle_single_zh):
+                return False
+            left_angle_single_en = re.findall(r"[^<>=](<|>)[^<>=]", line_en)
+            right_angle_single_en = re.findall(r"[^<>=](<|>)[^<>=]", line_en)
+            return (
+                len(left_angle_single_en) != len(left_angle_single_zh)
+                or len(right_angle_single_en) != len(right_angle_single_zh)
+            )  # 形如 < > <, 也只有这一种情况
+
+        left_angle_double_zh = re.findall(r"(<<)", line_zh)
+        right_angle_double_zh = re.findall(r"(>>)", line_zh)
+        if len(left_angle_double_zh) == len(right_angle_double_zh):
+            return False
+        left_angle_double_en = re.findall(r"(<<)", line_en)
+        right_angle_double_en = re.findall(r"(>>)", line_en)
+        return (
+            len(left_angle_double_en) != len(left_angle_double_zh)
+            or len(right_angle_double_en) != len(right_angle_double_zh)
+        )  # 形如 << >> <<
 
     @staticmethod
     def _is_different_event(line_zh: str, line_en: str):

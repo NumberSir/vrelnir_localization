@@ -1,6 +1,7 @@
 from aiofiles import os as aos, open as aopen
 from zipfile import ZipFile, BadZipfile
 
+import asyncio
 import contextlib
 import httpx
 
@@ -17,6 +18,7 @@ class Paratranz:
         await aos.makedirs(DIR_PARATRANZ, exist_ok=True)
         with contextlib.suppress(httpx.TimeoutException):
             await cls.trigger_export()
+            await asyncio.sleep(5)
 
         async with httpx.AsyncClient() as client:
             flag = False
