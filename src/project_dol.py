@@ -219,28 +219,12 @@ class ProjectDOL:
         async with aopen(new_file, "w", encoding="utf-8-sig", newline="") as fp:
             await AsyncWriter(fp).writerows(new_data)
 
-        # if unavailable_file:
-        #     if not unavailable_file.exists():
-        #         await aos.makedirs(unavailable_file.parent, exist_ok=True)
-        #         async with aopen(unavailable_file, "w", encoding="utf-8-sig", newline="") as fp:
-        #             await AsyncWriter(fp).writerows(unavailables)
-        #     else:
-        #         async with aopen(unavailable_file, "r", encoding="utf-8-sig") as fp:
-        #             old_unavailable_data = [row async for row in AsyncReader(fp)]
-        #         async with aopen(unavailable_file, "w", encoding="utf-8-sig", newline="") as fp:
-        #             await AsyncWriter(fp).writerows(old_unavailable_data + unavailables)
-
         if unavailable_file:
             await aos.makedirs(unavailable_file.parent, exist_ok=True)
             async with aopen(unavailable_file, "w", encoding="utf-8-sig", newline="") as fp:
                 await AsyncWriter(fp).writerows(unavailables)
 
         # logger.info(f"\t- ({idx + 1} / {full}) {new_file.__str__().split('game')[1]} 更新完毕")
-
-    # async def _create_unavailable_files_dir(self):
-    #     """创建失效词条目录"""
-    #     shutil.copytree(DIR_PARATRANZ / "utf8" / "失效词条", DIR_RAW_DICTS / self._version / "csv/game/失效词条")
-    #     logger.info("\t- 失效词条目录已迁移")
 
     """应用字典"""
     async def apply_dicts(self, blacklist_dirs: List[str] = None, blacklist_files: List[str] = None):
@@ -256,48 +240,51 @@ class ProjectDOL:
                 file_mapping[Path(root).absolute() / file] = DIR_GAME_TEXTS / Path(root).relative_to(DIR_RAW_DICTS / self._version / "csv" / "game") / f"{file.split('.')[0]}.twee"
 
         tasks = [
-            self._apply_for_gather(file, target_file, idx, len(file_mapping))
-            for idx, (file, target_file) in enumerate(file_mapping.items())
+            self._apply_for_gather(csv_file, twee_file, idx, len(file_mapping))
+            for idx, (csv_file, twee_file) in enumerate(file_mapping.items())
         ]
         await asyncio.gather(*tasks)
         logger.info("##### 汉化覆写完毕 !\n")
 
-    async def _apply_for_gather(self, file: Path, target_file: Path, idx: int, full: int):
+    async def _apply_for_gather(self, csv_file: Path, twee_file: Path, idx: int, full: int):
         """gather 用"""
-        async with aopen(target_file, "r", encoding="utf-8") as fp:
+        async with aopen(twee_file, "r", encoding="utf-8") as fp:
             raw_targets: List[str] = await fp.readlines()
-        async with aopen(file, "r", encoding="utf-8") as fp:
+        async with aopen(csv_file, "r", encoding="utf-8") as fp:
             async for row in AsyncReader(fp):
                 if len(row) < 3:
                     continue
                 en, zh = row[-2:]
+                en, zh = en.strip(), zh.strip()
+                if not zh:
+                    continue
                 if self._is_full_comma(zh):
-                    # logger.warning(f"\t!!! 可能的全角逗号错误：{file.relative_to(DIR_RAW_DICTS / self._version / 'csv' / 'game')} | {row[0]} | {zh}")
-                    logger.warning(f"\t!!! 可能的全角逗号错误：https://paratranz.cn/projects/4780/strings?text={quote(zh)}")
+                    logger.warning(f"\t!!! 可能的全角逗号错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(zh)}")
                 if self._is_lack_angle(zh, en):
-                    # logger.warning(f"\t!!! 可能的尖括号数量错误：{file.relative_to(DIR_RAW_DICTS / self._version / 'csv' / 'game')} | {row[0]} | {zh}")
-                    logger.warning(f"\t!!! 可能的尖括号数量错误：https://paratranz.cn/projects/4780/strings?text={quote(zh)}")
+                    logger.warning(f"\t!!! 可能的尖括号数量错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(zh)}")
                 if self._is_different_event(zh, en):
-                    # logger.warning(f"\t!!! 可能的错译额外内容：{file.relative_to(DIR_RAW_DICTS / self._version / 'csv' / 'game')} | {row[0]} | {zh}")
-                    logger.warning(f"\t!!! 可能的错译额外内容：https://paratranz.cn/projects/4780/strings?text={quote(zh)}")
+                    logger.warning(f"\t!!! 可能的错译额外内容：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(zh)}")
 
                 for idx_, target_row in enumerate(raw_targets):
-                    if en == target_row.strip() and zh.strip():
-                        if "name_cn_cap" in zh.strip():  # 衣服
-                            zh = zh.replace("name_cn_cap", "name_cap")
-                            raw_targets[idx_] = target_row.replace(en, zh)
-                            break
-                        if "writ_cn" in zh.strip():  # 纹身
-                            ...
+                    if en == target_row.strip():
                         raw_targets[idx_] = target_row.replace(en, zh)
+                        if re.findall(r"<<print.*?\.writing>>", zh):
+                            raw_targets[idx_] = raw_targets[idx_].replace("writing>>", "writ_cn>>")
+                        elif re.findall(r"<<link.*?\.name_cap>>", zh):
+                            raw_targets[idx_] = raw_targets[idx_].replace("name_cap>>", "name_cn_cap>>")
                         break
-                    if re.findall(r"<<link\s\[\[(Next\||Next\s\||Leave\||Refuse\||Return\|)", target_row):  # 高频词
+                    elif re.findall(r"<<link\s\[\[(Next\||Next\s\||Leave\||Refuse\||Return\|)", target_row):  # 高频词
                         raw_targets[idx_] = target_row.replace("[[Next", "[[继续").replace("[[Leave", "[[离开").replace("[[Refuse", "[[拒绝").replace("[[Return", "[[返回")
-                        break
-                    if target_row.strip() == "].select($_rng)>>":  # 怪东西
+                    elif target_row.strip() == "].select($_rng)>>":  # 怪东西
                         raw_targets[idx_] = ""
-                        break
-        async with aopen(target_file, "w", encoding="utf-8") as fp:
+                    elif re.findall(r"<<print.*?\.writing>>", zh):
+                        raw_targets[idx_] = raw_targets[idx_].replace("writing>>", "writ_cn>>")
+                    elif re.findall(r"<<link.*?\.name_cap>>", zh):
+                        raw_targets[idx_] = raw_targets[idx_].replace("name_cap>>", "name_cn_cap>>")
+
+                else:
+                    logger.warning(f"\t!!! 找不到替换的行: {zh} | {csv_file.relative_to(DIR_RAW_DICTS / self._version / 'csv' / 'game')}")
+        async with aopen(twee_file, "w", encoding="utf-8") as fp:
             await fp.writelines(raw_targets)
         # logger.info(f"\t- ({idx + 1} / {full}) {target_file.__str__().split('game')[1]} 覆写完毕")
 
