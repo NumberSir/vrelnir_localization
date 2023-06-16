@@ -1,7 +1,51 @@
-[
-  "lighting",
-  "update",
-  "dynamicRendering",
-  "location",
-  "physicalAdjustments"
-]
+{
+  "04-Variables": [
+    "npcList.twee",
+    "npcNamed.twee",
+    "pregnancyVar.twee",
+    "variables-passageHeader.twee",
+    "variables-start.twee",
+    "variables-start2.twee",
+    "variables-static.twee"
+  ],
+
+  "base-clothing": [
+    "canvas.twee",
+    "canvasmodel.twee",
+    "canvasmodel-img.twee",
+    "lighting.twee",
+    "update.twee"
+  ],
+  "base-combat": [
+    "beast-images.twee",
+    "close-images.twee",
+    "images.twee",
+    "consensual.twee",
+    "doggy-images.twee",
+    "missionary-images.twee"
+  ],
+  "machine": [
+    "state.twee"
+  ],
+  "tentacles": [
+    "tentacle-images.twee"
+  ],
+  "base-debug": [],
+  "base-system": [
+    "physicalAdjustments.twee",
+    "bdsm.twee",
+    "clamp.twee",
+    "disable.twee",
+    "fame.twee",
+    "feats.twee",
+    "location.twee",
+    "parasites.twee",
+    "persistent-npcs.twee",
+    "physicalAdjustments.twee",
+    "pubic-hair.twee",
+    "weather.twee"
+  ],
+  "tools": [
+    "dynamicRendering.twee"
+  ]
+}

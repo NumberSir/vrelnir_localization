@@ -1,5 +1,5 @@
-from aiofiles import open as aopen
 from pathlib import Path
+from aiofiles import open as aopen
 from typing import List
 import httpx
 
@@ -21,8 +21,8 @@ async def chunk_split(filesize: int, chunk: int = 2) -> List[List[int]]:
 async def chunk_download(url: str, client: httpx.AsyncClient, start: int, end: int, idx: int, full: int, save_path: Path):
     """切片下载"""
     if not save_path.exists():
-        async with aopen(save_path, "wb") as fp:
-            ...
+        with open(save_path, "wb") as fp:
+            pass
     headers = {"Range": f"bytes={start}-{end}"}
     response = await client.get(url, headers=headers, follow_redirects=True, timeout=60)
     async with aopen(save_path, "rb+") as fp:

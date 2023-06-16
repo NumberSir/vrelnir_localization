@@ -11,51 +11,7 @@ REGEX_PATTERNS = {
 }
 
 
-# TODO
-# class ParseText:
-#     def __init__(self):
-#         self._high_rates: List[str] = ...
-#         self._type: str = ...
-#         self._lines: List[str] = ...
-#
-#     async def async_init(self, lines: List[str], type_: str = None, high_rates: List[str] = None) -> "ParseText":
-#         self._lines = lines
-#         self._type = type_
-#         self._high_rates = high_rates
-#         return self
-#
-#     async def parse(self):
-#         ...
-#
-#     def find_macros(self, line: str):
-#         """提出 <<MACROS>> """
-#         macros = re.findall(REGEX_PATTERNS["macro"], line)
-#
-#     def _macro_script(self):
-#         """<<script>> 通常不翻译"""
-#
-#     def _macro_link(self):
-#         """<<link>> 通常要翻译"""
-#
-#     def _macro_set(self):
-#         """<<set>> 通常要翻译"""
-#
-#     def find_tags(self, line: str):
-#         """提出 <TAGS> """
-#         tags = re.findall(REGEX_PATTERNS["tag"], line)
-#
-#     def _tag_span(self):
-#         """<span> 通常要翻译"""
-#
-#     def find_variables(self, line: str):
-#         """提出 $VARS """
-#         vars = re.findall(REGEX_PATTERNS["variable"], line)
-#
-#     def find_comments(self):
-#         """提出 //C /*C*/ <!--C--> """
-
-
-class ParseText:
+class ParseTextTwee:
     """提取出要翻译的文本"""
 
     def __init__(self):
@@ -63,7 +19,7 @@ class ParseText:
         self._type: str = ...
         self._lines: List[str] = ...
 
-    async def async_init(self, lines: List[str], type_: str = None, high_rates: List[str] = None) -> "ParseText":
+    async def async_init(self, lines: List[str], type_: str = None, high_rates: List[str] = None) -> "ParseTextTwee":
         self._lines = lines
         self._type = type_
         self._high_rates = high_rates
@@ -190,12 +146,25 @@ class ParseText:
         for line in self._lines:
             line = line.strip()
             """偶尔会出现的跨行注释"""
-            if line in ["/*", "<!--"] or (any(line.startswith(_) for _ in {"/*", "<!--"}) and all(_ not in line for _ in {"*/", "-->"})):
+            if (
+                line in ["/*", "<!--"]
+                or (
+                    any(line.startswith(_) for _ in {"/*", "<!--"})
+                    and all(_ not in line for _ in {"*/", "-->"})
+                )
+            ):
                 multirow_comment_flag = True
             elif line in ["*/", "-->"] or any(line.endswith(_) for _ in {"*/", "-->"}):
                 multirow_comment_flag = False
 
-            if multirow_comment_flag or not line or self.is_comment(line) or self.is_event(line) or self.is_only_marks(line) or ("[[" in line and self.is_high_rate_link(line)):
+            if (
+                multirow_comment_flag
+                or not line
+                or self.is_comment(line)
+                or self.is_event(line)
+                or self.is_only_marks(line)
+                or ("[[" in line and self.is_high_rate_link(line))
+            ):
                 results.append(False)
             elif "[[" in line or self.is_assignment(line):
                 results.append(True)
@@ -213,7 +182,7 @@ class ParseText:
     @staticmethod
     def is_only_marks(line: str) -> bool:
         """只有符号没字母数字"""
-        return not any(re.findall(r"([A-z\d]*)", line))
+        return not any(re.findall(r"([A-z\d]+)", line))
 
     @staticmethod
     def is_event(line: str) -> bool:
@@ -235,7 +204,8 @@ class ParseText:
         option = re.findall(r'<<option\s\"', line)
         button = re.findall(r'<<button\s', line)
         input_ = re.findall(r'<input.*?value=\"', line)
-        return any((set_to, note, link, action, option, button, input_))
+        print_either = re.findall(r"<<print either", line)
+        return any((set_to, note, link, action, option, button, input_, print_either))
 
     @staticmethod
     def is_single_widget(line: str) -> bool:
@@ -249,18 +219,18 @@ class ParseText:
                 line = line.replace(w, "", -1)
 
         if "<" not in line and "$" not in line:
-            return (not line.strip()) or ParseText.is_comment(line.strip()) or False
+            return (not line.strip()) or ParseTextTwee.is_comment(line.strip()) or False
         tags = {_ for _ in re.findall(r"(<[/\sA-z\"=]*>)", line) if _}
         for t in tags:
             line = line.replace(t, "", -1)
 
         if "$" not in line:
-            return (not line.strip()) or ParseText.is_comment(line.strip()) or False
+            return (not line.strip()) or ParseTextTwee.is_comment(line.strip()) or False
 
         vars_ = {_ for _ in re.findall(r"(\$[A-z\._\(\)]*)", line) if _}
         for v in vars_:
             line = line.replace(v, "", -1)
-        return (not line.strip()) or ParseText.is_comment(line.strip()) or False
+        return (not line.strip()) or ParseTextTwee.is_comment(line.strip()) or False
 
     @staticmethod
     def is_half_widget(line: str) -> bool:
@@ -274,14 +244,14 @@ class ParseText:
 
 
 __all__ = [
-    "ParseText"
+    "ParseTextTwee"
 ]
 
 if __name__ == '__main__':
     import asyncio
     async def main():
         lines = ["""<span class="red">Your <<genitalsintegrity>> $worn.genitals.name <<if playerChastity("anus")>>with an anal shield<</if>> gives you no comfort.</span>"""]
-        return await (await ParseText().async_init(lines=lines)).parse()
+        return await (await ParseTextTwee().async_init(lines=lines)).parse()
 
     print(asyncio.run(main()))
 

@@ -1,7 +1,7 @@
-from aiofiles import os as aos, open as aopen
 from zipfile import ZipFile, BadZipfile
-
 import asyncio
+
+import os
 import contextlib
 import httpx
 
@@ -15,7 +15,7 @@ class Paratranz:
     @classmethod
     async def download_from_paratranz(cls):
         """从 paratranz 下载汉化包"""
-        await aos.makedirs(DIR_PARATRANZ, exist_ok=True)
+        os.makedirs(DIR_PARATRANZ, exist_ok=True)
         with contextlib.suppress(httpx.TimeoutException):
             await cls.trigger_export()
             await asyncio.sleep(5)
@@ -31,12 +31,10 @@ class Paratranz:
                 else:
                     flag = True
                     break
-
             if not flag:
                 logger.error("***** 无法正常下载 Paratranz 汉化包！请检查网络连接情况，以及是否填写了正确的 TOKEN！\n")
                 return False
             return True
-
     @classmethod
     async def trigger_export(cls):
         """触发导出"""
@@ -52,8 +50,8 @@ class Paratranz:
         url = f"{PARATRANZ_BASE_URL}/projects/{PARATRANZ_PROJECT_ID}/artifacts/download"
         headers = PARATRANZ_HEADERS
         content = (await client.get(url, headers=headers, follow_redirects=True)).content
-        async with aopen(FILE_PARATRANZ_ZIP, "wb") as fp:
-            await fp.write(content)
+        with open(FILE_PARATRANZ_ZIP, "wb") as fp:
+            fp.write(content)
         logger.info("##### 汉化文件已下载 !\n")
 
     @classmethod
