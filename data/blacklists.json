@@ -37,15 +37,29 @@
     "clamp.twee",
     "disable.twee",
     "fame.twee",
-    "feats.twee",
     "location.twee",
     "parasites.twee",
     "persistent-npcs.twee",
     "physicalAdjustments.twee",
     "pubic-hair.twee",
-    "weather.twee"
+    "weather.twee",
+
+    "clamp.js",
+    "skinColor.js",
+    "text.js",
+    "widgets.js"
+  ],
+  "time": [
+    "dateTime.js",
+    "time.js",
+    "timeMacros.js"
   ],
   "tools": [
-    "dynamicRendering.twee"
+    "dynamicRendering.twee",
+
+    "dynamicRendering.js"
+  ],
+  "sprcial-masturbation": [
+    "macros-masturbation.js"
   ]
 }

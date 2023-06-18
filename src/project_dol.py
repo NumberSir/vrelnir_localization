@@ -25,8 +25,10 @@ class ProjectDOL:
     """本地化主类"""
 
     def __init__(self, type_: str = "common"):
-        with open(DIR_DATA_ROOT / "ignores.json", "r", encoding="utf-8") as fp:
-            self._ignores: Dict[str, List] = json.load(fp)
+        with open(DIR_DATA_ROOT / "blacklists.json", "r", encoding="utf-8") as fp:
+            self._blacklists: Dict[str, List] = json.load(fp)
+        with open(DIR_DATA_ROOT / "whitelists.json", "r", encoding="utf-8") as fp:
+            self._whitelists: Dict[str, List] = json.load(fp)
         self._type: str = type_
         self._version: str = None
 
@@ -67,7 +69,7 @@ class ProjectDOL:
                 try:
                     response = await client.head(zip_url, timeout=60, follow_redirects=True)
                     filesize = int(response.headers["Content-Length"])
-                    chunks = await chunk_split(filesize, 16)
+                    chunks = await chunk_split(filesize, 32)
                 except (httpx.ConnectError, KeyError) as e:
                     continue
                 else:
@@ -106,11 +108,19 @@ class ProjectDOL:
             dir_name = root.split("\\")[-1]
             for file in file_list:
                 if not file.endswith(SUFFIX_TWEE):
+                    if not file.endswith(SUFFIX_JS):
+                        continue
+
+                    if dir_name in self._whitelists and file in self._whitelists[dir_name]:
+                        self._game_texts_file_lists.append(Path(root).absolute() / file)
                     continue
 
-                if dir_name not in self._ignores:
+                if dir_name not in self._blacklists:
                     self._game_texts_file_lists.append(Path(root).absolute() / file)
-                elif not self._ignores[dir_name] or file in self._ignores[dir_name]:
+                elif (
+                    not self._blacklists[dir_name]
+                    or file in self._blacklists[dir_name]
+                ):
                     continue
                 else:
                     self._game_texts_file_lists.append(Path(root).absolute() / file)
@@ -139,14 +149,17 @@ class ProjectDOL:
         logger.info("##### 翻译文本已处理为键值对 ! \n")
 
     async def _process_for_gather(self, idx: int, file: Path):
-        target_file = file.__str__().split("game\\")[1].replace(SUFFIX_TWEE, "")
-        if target_file.endswith(".js"):
-            target_file = target_file.replace(".js", "")
+        target_file = file.__str__().split("game\\")[1].replace(SUFFIX_JS, "").replace(SUFFIX_TWEE, "")
 
         with open(file, "r", encoding="utf-8") as fp:
             lines = fp.readlines()
-
-        pt = ParseTextTwee(lines, file)
+        if file.name.endswith(SUFFIX_TWEE):
+            pt = ParseTextTwee(lines, file)
+        elif file.name.endswith(SUFFIX_JS):
+            pt = ParseTextJS(lines, file)
+            target_file = f"{target_file}.js"
+        else:
+            return
         able_lines = pt.parse()
 
         if not any(able_lines):
@@ -250,7 +263,10 @@ class ProjectDOL:
             if "失效词条" in root:
                 continue
             for file in file_list:
-                file_mapping[Path(root).absolute() / file] = DIR_GAME_TEXTS / Path(root).relative_to(DIR_RAW_DICTS / self._version / "csv" / "game") / f"{file.split('.')[0]}.twee"
+                if file.endswith(".js.csv"):
+                    file_mapping[Path(root).absolute() / file] = DIR_GAME_TEXTS / Path(root).relative_to(DIR_RAW_DICTS / self._version / "csv" / "game") / f"{file.split('.')[0]}.js"
+                else:
+                    file_mapping[Path(root).absolute() / file] = DIR_GAME_TEXTS / Path(root).relative_to(DIR_RAW_DICTS / self._version / "csv" / "game") / f"{file.split('.')[0]}.twee"
 
         tasks = [
             self._apply_for_gather(csv_file, twee_file, idx, len(file_mapping))
@@ -259,10 +275,11 @@ class ProjectDOL:
         await asyncio.gather(*tasks)
         logger.info("##### 汉化覆写完毕 !\n")
 
-    async def _apply_for_gather(self, csv_file: Path, twee_file: Path, idx: int, full: int):
+    async def _apply_for_gather(self, csv_file: Path, target_file: Path, idx: int, full: int):
         """gather 用"""
-        with open(twee_file, "r", encoding="utf-8") as fp:
+        with open(target_file, "r", encoding="utf-8") as fp:
             raw_targets: List[str] = fp.readlines()
+
         with open(csv_file, "r", encoding="utf-8") as fp:
             for row in csv.reader(fp):
                 if len(row) < 3:  # 没汉化
@@ -281,27 +298,34 @@ class ProjectDOL:
                 for idx_, target_row in enumerate(raw_targets):
                     if en == target_row.strip():
                         raw_targets[idx_] = target_row.replace(en, zh)
-                        if re.findall(r"<<print.*?\.writing>>", zh):
+                        if "<<print" in target_row and re.findall(r"<<print.*?\.writing>>", zh):
                             raw_targets[idx_] = raw_targets[idx_].replace("writing>>", "writ_cn>>")
-                        elif re.findall(r"<<link.*?\.name_cap>>", zh):
+                        elif "name_cap" not in target_row:
+                            continue
+
+                        if "<<link " in target_row and re.findall(r"<<link.*?\.name_cap>>", zh):
                             raw_targets[idx_] = raw_targets[idx_].replace("name_cap>>", "name_cn_cap>>")
-                        elif re.findall(r"<<clothingicon.*?\.name_cap", zh):
+                        elif "<<clothingicon" in target_row and re.findall(r"<<clothingicon.*?\.name_cap", zh):
                             raw_targets[idx_] = raw_targets[idx_].replace("name_cap", "name_cn_cap")
                         break
-                    elif re.findall(r"<<link\s\[\[(Next\||Next\s\||Leave\||Refuse\||Return\|)", target_row):  # 高频词
-                        raw_targets[idx_] = target_row.replace("[[Next", "[[继续").replace("[[Leave", "[[离开").replace("[[Refuse", "[[拒绝").replace("[[Return", "[[返回")
-                    elif target_row.strip() == "].select($_rng)>>":  # 怪东西
-                        raw_targets[idx_] = ""
-                    elif re.findall(r"<<print.*?\.writing>>", target_row):
-                        raw_targets[idx_] = raw_targets[idx_].replace("writing>>", "writ_cn>>")
-                    elif re.findall(r"<<link.*?\.name_cap>>", target_row):
-                        raw_targets[idx_] = raw_targets[idx_].replace("name_cap>>", "name_cn_cap>>")
-                    elif re.findall(r"<<clothingicon.*?\.name_cap", target_row):
-                        raw_targets[idx_] = raw_targets[idx_].replace("name_cap", "name_cn_cap")
+                    elif "<" in target_row:
+                        if "<<link [[" in target_row and re.findall(r"<<link \[\[(Next\||Next\s\||Leave\||Refuse\||Return\|)", target_row):  # 高频词
+                            raw_targets[idx_] = target_row.replace("[[Next", "[[继续").replace("[[Leave", "[[离开").replace("[[Refuse", "[[拒绝").replace("[[Return", "[[返回")
+                        elif target_row.strip() == "].select($_rng)>>":  # 怪东西
+                            raw_targets[idx_] = ""
+                        elif "<<print" in target_row and re.findall(r"<<print.*?\.writing>>", target_row):
+                            raw_targets[idx_] = raw_targets[idx_].replace("writing>>", "writ_cn>>")
+                        elif "name_cap" not in target_row:
+                            continue
 
-                else:
-                    logger.warning(f"\t!!! 找不到替换的行: {zh} | {csv_file.relative_to(DIR_RAW_DICTS / self._version / 'csv' / 'game')}")
-        with open(twee_file, "w", encoding="utf-8-sig") as fp:
+                        if "<<link " in target_row and re.findall(r"<<link.*?\.name_cap>>", target_row):
+                            raw_targets[idx_] = raw_targets[idx_].replace("name_cap>>", "name_cn_cap>>")
+                        elif "<<clothingicon" in target_row and re.findall(r"<<clothingicon.*?\.name_cap", target_row):
+                            raw_targets[idx_] = raw_targets[idx_].replace("name_cap", "name_cn_cap")
+
+                # else:
+                #     logger.warning(f"\t!!! 找不到替换的行: {zh} | {csv_file.relative_to(DIR_RAW_DICTS / self._version / 'csv' / 'game')}")
+        with open(target_file, "w", encoding="utf-8") as fp:
             fp.writelines(raw_targets)
         # logger.info(f"\t- ({idx + 1} / {full}) {target_file.__str__().split('game')[1]} 覆写完毕")
 

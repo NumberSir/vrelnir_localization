@@ -1,0 +1,21 @@
+{
+  "03-JavaScript": [
+    "bedroomPills.js",
+    "debugMenu.js",
+    "eyesRelated.js",
+    "furniture.js",
+    "idb_backend.js",
+    "sexShopMenu.js",
+    "sexToysInventory.js",
+    "UI.js"
+  ],
+  "04-Variables": [
+    "colour.js",
+    "feats.js"
+  ],
+  "special-masturbation": [
+    "actions.js",
+    "effects.js",
+    "slimeControl.js"
+  ]
+}

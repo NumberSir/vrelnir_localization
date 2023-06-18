@@ -2,6 +2,3 @@ loguru~=0.6.0
 httpx~=0.24.0
 numpy~=1.24.3
 pandas~=2.0.0
-aiocsv~=1.2.4
-PySide6~=6.5.1.1
-qasync~=0.24.0

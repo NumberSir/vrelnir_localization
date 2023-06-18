@@ -15,7 +15,7 @@ REPOSITORY_URL_DEV = "https://gitgud.io/Vrelnir/degrees-of-lewdity"
 REPOSITORY_ZIP_URL_DEV = "https://gitgud.io/Vrelnir/degrees-of-lewdity/-/archive/dev/degrees-of-lewdity-dev.zip"
 
 """本地目录"""
-DIR_ROOT = Path(__file__).parent.parent.parent
+DIR_ROOT = Path(__file__).parent.parent
 DIR_DATA_ROOT = DIR_ROOT / "data"
 DIR_TEMP_ROOT = DIR_ROOT / "temp"
 
@@ -41,7 +41,7 @@ SUFFIX_TWEE = ".twee"
 SUFFIX_JS = ".js"
 
 
-class DirNames(Enum):
+class DirNamesTwee(Enum):
     """特殊的目录名"""
     FRAMEWORK = "00-framework-tools"
     CONFIG = "01-config"
@@ -50,7 +50,9 @@ class DirNames(Enum):
     BASE_CLOTHING = "base-clothing"
     BASE_COMBAT = "base-combat"
     BASE_DEBUG = "base-debug"
+    BASE_HAIR = "base-hair"
     BASE_SYSTEM = "base-system"
+    FLAVOUR_TEXT_GENERATORS = "flavour-text-generators"
 
     OVERWORLD = "overworld-"
     LOCATION = "loc-"
@@ -58,7 +60,7 @@ class DirNames(Enum):
     NORMAL = OVERWORLD or LOCATION or SPECIAL
 
 
-class FileNames(Enum):
+class FileNamesTwee(Enum):
     """特殊的文件名"""
     """ 00-framework-tools """
     WAITING_ROOM_FULL = "waiting-room.twee"  # FULL 代表这就是文件名
@@ -97,6 +99,9 @@ class FileNames(Enum):
     SWARM_EFFECTS_FULL = "swarm-effects.twee"
     COMBAT_WIDGETS_FULL = "widgets.twee"
 
+    """ base-hair """
+    HAIR_STYLES_FULL = "hair-styles.twee"
+
     """ base-system """
     CHARACTERISTICS_FULL = "characteristics.twee"
     SOCIAL_FULL = "social.twee"
@@ -105,7 +110,8 @@ class FileNames(Enum):
     BODYWRITING_OBJECTS_FULL = "bodywriting-objects.twee"
     CAPTION_FULL = "caption.twee"
     DEVIANCY_FULL = "deviancy.twee"
-    EXHIBITIONISM_FULL = "exhibitionism.twee"
+    SYSTEM_EXHIBITIONISM_FULL = "exhibitionism.twee"
+    FEATS_FULL = "feats.twee"
     MOBILE_STATS_FULL = "mobileStats.twee"
     NAME_LIST_FULL = "name-list.twee"
     NAMED_NPCS_FULL = "named-npcs.twee"
@@ -123,6 +129,51 @@ class FileNames(Enum):
     TIPS_FULL = "tips.twee"
     TRANSFORMATIONS_FULL = "transformations.twee"
     SYSTEM_WIDGETS_FULL = "widgets.twee"
+
+    """ flavour-text-generators """
+    BODY_COMMENTS_FULL = "body-comments.csv"
+    EXHIBITIONISM_FULL = "exhibitionism.twee"
+    EZ_THESAURUS_FULL = "ez-thesaurus.twee"
+
+
+class DirNamesJS(Enum):
+    """要抓的 JS 目录"""
+    JAVASCRIPT = "03-JavaScript"
+    VARIABLES = "04-Variables"
+    SPECIAL_MASTURBATION = "special-masturbation"
+
+
+class FileNamesJS(Enum):
+    """要抓的 JS 文件"""
+    """ 03-JavaScript """
+    BEDROOM_PILLS_FULL = "bedroomPills.js"
+    DEBUG_MENU_FULL = "debugMenu.js"
+    EYES_RELATED = "eyesRelated.js"
+    FURNITURE_FULL = "furniture.js"
+    IDB_BACKEND_FULL = "idb_backend.js"
+    SEXSHOP_MENU_FULL = "sexShopMenu.js"
+    SEXTOY_INVENTORY_FULL = "sexToysInventory.js"
+    UI_FULL = "UI.js"
+
+    """ 04-variables """
+    COLOUR_FULL = "colour.js"
+    FEATS_FULL = "feats.js"
+
+    """ special-masturbation """
+    ACTIONS_FULL = "actions.js"
+
+
+HIGH_RATE_LINKS = {
+    r"Next\|": "继续",
+    r"Next \|": "继续",
+    r"Leave\|": "离开",
+    r"Refuse\|": "拒绝",
+    r"Return\|": "返回",
+    r"Resume\|": "返回",
+    r"Confirm\|": "确认",
+    r"Continue\|": "继续",
+    r"Stop\|": "停止"
+}
 
 
 __all__ = [
@@ -155,6 +206,10 @@ __all__ = [
     "SUFFIX_TWEE",
     "SUFFIX_JS",
 
-    "DirNames",
-    "FileNames"
+    "DirNamesTwee",
+    "FileNamesTwee",
+    "DirNamesJS",
+    "FileNamesJS",
+
+    "HIGH_RATE_LINKS"
 ]
