@@ -1,4 +1,5 @@
 from zipfile import ZipFile, BadZipfile
+import asyncio
 
 import os
 import contextlib

@@ -62,13 +62,13 @@ async def main():
         return
 
     """ 删库跑路 """
-    await dol.drop_all_dirs()
+    # await dol.drop_all_dirs()
 
     """ 获取最新版本 """
     await dol.fetch_latest_version()
 
     """ 提取键值 """
-    await dol.download_from_gitgud()
+    # await dol.download_from_gitgud()
     await dol.create_dicts()
 
     """ 更新导出的字典 成品在 `raw_dicts` 文件夹里 """

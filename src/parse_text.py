@@ -1595,16 +1595,14 @@ class ParseTextJS:
     """ 03-JavaScript """
     def parse_javascript(self) -> List[bool]:
         """ 03-JavaScript """
-        if ...:
-            return ...
-        elif FileNamesJS.BEDROOM_PILLS_FULL.value == self._filename:
+        if FileNamesJS.BEDROOM_PILLS_FULL.value == self._filename:
             return self._parse_bedroom_pills()
         elif FileNamesJS.DEBUG_MENU_FULL.value == self._filename:
             return self._parse_debug_menu()
         elif FileNamesJS.FURNITURE_FULL.value == self._filename:
-            return self._parse_eyes_related()
-        elif FileNamesJS.EYES_RELATED.value == self._filename:
             return self._parse_furniture()
+        elif FileNamesJS.EYES_RELATED.value == self._filename:
+            return self._parse_eyes_related()
         elif FileNamesJS.SEXSHOP_MENU_FULL.value == self._filename:
             return self._parse_sexshop_menu()
         elif FileNamesJS.SEXTOY_INVENTORY_FULL.value == self._filename:
@@ -1687,7 +1685,7 @@ class ParseTextJS:
 
     def _parse_eyes_related(self):
         """怪东西"""
-        return self.parse_type_only({'"sentence += "'})
+        return self.parse_type_only({'sentence += "'})
 
     def _parse_furniture(self):
         """json"""

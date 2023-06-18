@@ -49,6 +49,7 @@ class ProjectDOL:
             response = await client.get(url)
             logger.info(f"当前仓库最新版本: {response.text}")
             self._version = response.text
+        self._init_dirs(self._version)
 
     """生成字典"""
     async def download_from_gitgud(self):
@@ -61,7 +62,6 @@ class ProjectDOL:
     async def fetch_latest_repository(self):
         """获取最新仓库内容"""
         logger.info("===== 开始获取最新仓库内容 ...")
-        self._init_dirs(self._version)
         async with httpx.AsyncClient() as client:
             zip_url = REPOSITORY_ZIP_URL_COMMON if self._type == "common" else REPOSITORY_ZIP_URL_DEV
             flag = False
@@ -69,7 +69,7 @@ class ProjectDOL:
                 try:
                     response = await client.head(zip_url, timeout=60, follow_redirects=True)
                     filesize = int(response.headers["Content-Length"])
-                    chunks = await chunk_split(filesize, 32)
+                    chunks = await chunk_split(filesize, 64)
                 except (httpx.ConnectError, KeyError) as e:
                     continue
                 else:
@@ -304,13 +304,21 @@ class ProjectDOL:
                             continue
 
                         if "<<link " in target_row and re.findall(r"<<link.*?\.name_cap>>", zh):
-                            raw_targets[idx_] = raw_targets[idx_].replace("name_cap>>", "name_cn_cap>>")
+                            raw_targets[idx_] = raw_targets[idx_].replace("name_cap>>", "cn_name_cap>>")
                         elif "<<clothingicon" in target_row and re.findall(r"<<clothingicon.*?\.name_cap", zh):
-                            raw_targets[idx_] = raw_targets[idx_].replace("name_cap", "name_cn_cap")
+                            raw_targets[idx_] = raw_targets[idx_].replace("name_cap", "cn_name_cap")
                         break
                     elif "<" in target_row:
-                        if "<<link [[" in target_row and re.findall(r"<<link \[\[(Next\||Next\s\||Leave\||Refuse\||Return\|)", target_row):  # 高频词
-                            raw_targets[idx_] = target_row.replace("[[Next", "[[继续").replace("[[Leave", "[[离开").replace("[[Refuse", "[[拒绝").replace("[[Return", "[[返回")
+                        if "<<link [[" in target_row and re.findall(r"<<link \[\[(Next\||Next\s\||Leave\||Refuse\||Return\|Resume\||Confirm\||Continue\||Stop\|)", target_row):  # 高频词
+                            raw_targets[idx_] = target_row\
+                                .replace("[[Next", "[[继续")\
+                                .replace("[[Leave", "[[离开")\
+                                .replace("[[Refuse", "[[拒绝")\
+                                .replace("[[Return", "[[返回")\
+                                .replace("[[Resume", "[[返回")\
+                                .replace("[[Confirm", "[[确认")\
+                                .replace("[[Continue", "[[继续")\
+                                .replace("[[Stop", "[[停止")
                         elif target_row.strip() == "].select($_rng)>>":  # 怪东西
                             raw_targets[idx_] = ""
                         elif "<<print" in target_row and re.findall(r"<<print.*?\.writing>>", target_row):
@@ -319,9 +327,9 @@ class ProjectDOL:
                             continue
 
                         if "<<link " in target_row and re.findall(r"<<link.*?\.name_cap>>", target_row):
-                            raw_targets[idx_] = raw_targets[idx_].replace("name_cap>>", "name_cn_cap>>")
+                            raw_targets[idx_] = raw_targets[idx_].replace("name_cap>>", "cn_name_cap>>")
                         elif "<<clothingicon" in target_row and re.findall(r"<<clothingicon.*?\.name_cap", target_row):
-                            raw_targets[idx_] = raw_targets[idx_].replace("name_cap", "name_cn_cap")
+                            raw_targets[idx_] = raw_targets[idx_].replace("name_cap", "cn_name_cap")
 
                 # else:
                 #     logger.warning(f"\t!!! 找不到替换的行: {zh} | {csv_file.relative_to(DIR_RAW_DICTS / self._version / 'csv' / 'game')}")
