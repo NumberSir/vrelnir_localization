@@ -287,9 +287,11 @@ class ParseTextTwee:
                 results.append(False)
             elif (
                 self.is_tag_span(line)
+                or '<<wearlink_norefresh "' in line
                 or self.is_tag_label(line)
                 or self.is_widget_option(line)
                 or (self.is_widget_link(line) and not self.is_widget_high_rate_link(line))
+                or self.is_widget_set_to(line, {r"\$_text_output"})
             ):
                 results.append(True)
             elif self.is_only_widgets(line) or self.is_json_line(line):
@@ -772,7 +774,7 @@ class ParseTextTwee:
                 or self.is_widget_set_to(line, {
                     "_trimester",  "_vaginaWetnessTextConfig",
                     "_childType", r"\$_pregnancyRisk", r"\$_number",
-                    "_milkCapacityTextConfig"
+                    "_milkCapacityTextConfig", r"\$_heatRutDisplay"
                 })
             ):
                 results.append(True)
@@ -796,16 +798,16 @@ class ParseTextTwee:
                 continue
 
             if (
-                    self.is_comment(line)
-                    or self.is_event(line)
-                    or self.is_only_marks(line)
+                self.is_comment(line)
+                or self.is_event(line)
+                or self.is_only_marks(line)
             ):
                 results.append(False)
-            elif "description: '" in line or self.is_tag_span(line):
+            elif "description: '" in line or self.is_tag_span(line) or "preText: " in line:
                 results.append(True)
             elif (
-                    self.is_json_line(line)
-                    or self.is_only_widgets(line)
+                self.is_json_line(line)
+                or self.is_only_widgets(line)
             ):
                 results.append(False)
             else:
@@ -1234,6 +1236,9 @@ class ParseTextTwee:
                 self.is_tag_span(line)
                 or self.is_tag_label(line)
                 or self.is_widget_print(line)
+                or self.is_widget_set_to(line, {r"\$_text_output"})
+                or "<<print either(" in line and ">>" in line
+                or 'name: "' in line or 'name : "' in line
                 or (self.is_widget_link(line) and not self.is_widget_high_rate_link(line))
             ):
                 results.append(True)
@@ -1291,6 +1296,8 @@ class ParseTextTwee:
         multirow_run_flag = False
         multirow_if_flag = False
         maybe_json_flag = False
+
+        shop_clothes_hint_flag = False  # 草
         for line in self._lines:
             line = line.strip()
             if not line:
@@ -1355,6 +1362,19 @@ class ParseTextTwee:
             elif maybe_json_flag and ">>" in line:
                 maybe_json_flag = False
 
+            """就这个特殊"""
+            if line == "<<set _specialClothesHint to {":
+                shop_clothes_hint_flag = True
+                results.append(False)
+                continue
+            elif shop_clothes_hint_flag and line == "}>>":
+                shop_clothes_hint_flag = False
+                results.append(False)
+                continue
+            elif shop_clothes_hint_flag:
+                results.append(True)
+                continue
+
             if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
                 results.append(False)
             elif (
@@ -1367,7 +1387,8 @@ class ParseTextTwee:
                     or self.is_widget_option(line)
                     or (self.is_widget_link(line) and not self.is_widget_high_rate_link(line))
                     or ("<<set " in line and self.is_widget_set_to(line, {
-                        r"\$_strings", r"\$_text_output", "_text_output", r"\$_customertype", r"\$_theboy"
+                        r"\$_strings", r"\$_text_output", "_text_output",
+                        r"\$_customertype", r"\$_theboy", "_clothesDesc"
                     }))
                     or any(re.findall(r"<<set (?:(?:\$|_)[^_][#;\w\.\(\)\[\]\"\'`]*) to \[[\"\'`\w,\s]*\]>>", line))
                 )

@@ -42,24 +42,9 @@
     "persistent-npcs.twee",
     "physicalAdjustments.twee",
     "pubic-hair.twee",
-    "weather.twee",
-
-    "clamp.js",
-    "skinColor.js",
-    "text.js",
-    "widgets.js"
-  ],
-  "time": [
-    "dateTime.js",
-    "time.js",
-    "timeMacros.js"
+    "weather.twee"
   ],
   "tools": [
-    "dynamicRendering.twee",
-
-    "dynamicRendering.js"
-  ],
-  "sprcial-masturbation": [
-    "macros-masturbation.js"
+    "dynamicRendering.twee"
   ]
 }
