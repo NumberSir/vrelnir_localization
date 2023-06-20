@@ -236,7 +236,13 @@ class ProjectDOL:
         # 2. 不存在的英文移入失效词条
         unavailables = []
         for idx_, row in enumerate(old_data):
-            old_en = row[-2] if len(row) > 2 else row[-1]
+            if len(row) <= 2:  # 没翻译的，丢掉！
+                continue
+
+            if row[-2] == row[-1]:  # 不用翻译的，丢掉！
+                continue
+
+            old_en = row[-2]
             if old_en not in new_ens:
                 # logger.info(f"\t- old: {old_en}")
                 unavailables.append(old_data[idx_])

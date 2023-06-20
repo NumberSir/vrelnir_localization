@@ -291,7 +291,7 @@ class ParseTextTwee:
                 or self.is_tag_label(line)
                 or self.is_widget_option(line)
                 or (self.is_widget_link(line) and not self.is_widget_high_rate_link(line))
-                or self.is_widget_set_to(line, {r"\$_text_output"})
+                or self.is_widget_set_to(line, {r"\$_text_output", r"\$_output"})
             ):
                 results.append(True)
             elif self.is_only_widgets(line) or self.is_json_line(line):
@@ -770,6 +770,7 @@ class ParseTextTwee:
                 "description: " in line
                 or "{ name :" in line
                 or "preText: " in line
+                or line == '<<if $_number isnot "an unknown number of" and $_number isnot "more than one" and $_number gt 1>>'
                 or self.is_tag_span(line)
                 or self.is_widget_set_to(line, {
                     "_trimester",  "_vaginaWetnessTextConfig",
@@ -780,7 +781,7 @@ class ParseTextTwee:
                 results.append(True)
             elif (
                 self.is_only_widgets(line)
-                or ("<<set " in line and ">>" not in line)
+                or ("<<set " in line and ">>" not in line and "preText: " not in line)
                 or line == "states : ["
             ):
                 results.append(False)
@@ -843,7 +844,7 @@ class ParseTextTwee:
 
     def _parse_body_writing_objects(self):
         """half-json"""
-        return self.parse_type_only("writing")
+        return self.parse_type_only({"writing: ", "special: ", "sprites: "})
 
     def _parse_caption(self):
         """竟然还有css"""
