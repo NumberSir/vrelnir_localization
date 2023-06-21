@@ -63,20 +63,20 @@ async def main():
 
     """ 删库跑路 """
     await dol.drop_all_dirs()
-
+    
     """ 获取最新版本 """
     await dol.fetch_latest_version()
-
+    
     """ 提取键值 """
     await dol.download_from_gitgud()
     await dol.create_dicts()
-
+    
     """ 更新导出的字典 成品在 `raw_dicts` 文件夹里 """
     download_flag = await pt.download_from_paratranz()  # 如果下载，需要在 consts 里填上管理员的 token, 在网站个人设置里找
     if not download_flag:
         return
     await dol.update_dicts()
-
+    
     """ 覆写汉化 用的是 `paratranz` 文件夹里的内容覆写 """
     await dol.apply_dicts()
 

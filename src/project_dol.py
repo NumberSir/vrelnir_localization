@@ -325,8 +325,6 @@ class ProjectDOL:
                                 .replace("[[Confirm", "[[确认")\
                                 .replace("[[Continue", "[[继续")\
                                 .replace("[[Stop", "[[停止")
-                        elif target_row.strip() == "].select($_rng)>>":  # 怪东西
-                            raw_targets[idx_] = ""
                         elif "<<print" in target_row and re.findall(r"<<print.*?\.writing>>", target_row):
                             raw_targets[idx_] = raw_targets[idx_].replace("writing>>", "writ_cn>>")
                         elif "name_cap" not in target_row:
@@ -336,7 +334,8 @@ class ProjectDOL:
                             raw_targets[idx_] = raw_targets[idx_].replace("name_cap>>", "cn_name_cap>>")
                         elif "<<clothingicon" in target_row and re.findall(r"<<clothingicon.*?\.name_cap", target_row):
                             raw_targets[idx_] = raw_targets[idx_].replace("name_cap", "cn_name_cap")
-
+                    elif target_row.strip() == "].select($_rng)>>":  # 怪东西
+                        raw_targets[idx_] = ""
                 # else:
                 #     logger.warning(f"\t!!! 找不到替换的行: {zh} | {csv_file.relative_to(DIR_RAW_DICTS / self._version / 'csv' / 'game')}")
         with open(target_file, "w", encoding="utf-8") as fp:
@@ -411,7 +410,7 @@ class ProjectDOL:
 
     async def _drop_dict(self):
         """删掉生成的字典"""
-        shutil.rmtree(DIR_RAW_DICTS, ignore_errors=True)
+        shutil.rmtree(DIR_RAW_DICTS / self._version, ignore_errors=True)
         logger.warning("\t- 字典目录已删除")
 
     async def _drop_paratranz(self):
