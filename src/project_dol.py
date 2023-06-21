@@ -410,6 +410,8 @@ class ProjectDOL:
 
     async def _drop_dict(self):
         """删掉生成的字典"""
+        if not self._version:
+            await self.fetch_latest_version()
         shutil.rmtree(DIR_RAW_DICTS / self._version, ignore_errors=True)
         logger.warning("\t- 字典目录已删除")
 
