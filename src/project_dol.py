@@ -261,6 +261,8 @@ class ProjectDOL:
     """应用字典"""
     async def apply_dicts(self, blacklist_dirs: List[str] = None, blacklist_files: List[str] = None):
         """汉化覆写游戏文件"""
+        if not self._version:
+            await self.fetch_latest_version()
         DIR_GAME_TEXTS = DIR_GAME_TEXTS_COMMON if self._type == "common" else DIR_GAME_TEXTS_DEV
         logger.info("===== 开始覆写汉化 ...")
         file_mapping: dict = {}
@@ -283,17 +285,19 @@ class ProjectDOL:
 
     async def _apply_for_gather(self, csv_file: Path, target_file: Path, idx: int, full: int):
         """gather 用"""
+        vip_flag = target_file.name == "clothing-sets.twee"
         with open(target_file, "r", encoding="utf-8") as fp:
             raw_targets: List[str] = fp.readlines()
 
         with open(csv_file, "r", encoding="utf-8") as fp:
             for row in csv.reader(fp):
-                if len(row) < 3:  # 没汉化
+                if len(row) < 3 and not vip_flag:  # 没汉化
                     continue
                 en, zh = row[-2:]
                 en, zh = en.strip(), zh.strip()
-                if not zh:  # 没汉化/汉化为空
+                if not zh and not vip_flag:  # 没汉化/汉化为空
                     continue
+
                 if self._is_full_comma(zh):
                     logger.warning(f"\t!!! 可能的全角逗号错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(zh)}")
                 if self._is_lack_angle(zh, en):
@@ -302,6 +306,9 @@ class ProjectDOL:
                     logger.warning(f"\t!!! 可能的错译额外内容：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(zh)}")
 
                 for idx_, target_row in enumerate(raw_targets):
+                    if "replace(/[^a-zA-Z 0-9.!()]" in target_row.strip():
+                        raw_targets[idx_] = target_row.replace("replace(/[^a-zA-Z 0-9.!()]", "replace(/[^a-zA-Z\\u4e00-\\u9fa5 0-9.!()]")
+                        continue
                     if en == target_row.strip():
                         raw_targets[idx_] = target_row.replace(en, zh)
                         if "<<print" in target_row and re.findall(r"<<print.*?\.writing>>", zh):

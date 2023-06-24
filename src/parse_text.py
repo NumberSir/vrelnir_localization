@@ -2,6 +2,7 @@ import re
 from pathlib import Path
 from typing import List, Union, Set
 
+from . import logger
 from .consts import *
 
 
@@ -148,11 +149,11 @@ class ParseTextTwee:
             return self._parse_clothing()
         elif FileNamesTwee.CLOTHING_SETS_FULL.value == self._filename:
             return self._parse_clothing_sets()
-        elif FileNamesTwee.IMAGES_FULL.value in self._filename:
+        elif FileNamesTwee.IMAGES_FULL.value == self._filename:
             return self._parse_clothing_images()
-        elif FileNamesTwee.INIT_FULL.value in self._filename:
+        elif FileNamesTwee.INIT_FULL.value == self._filename:
             return self._parse_clothing_init()
-        elif FileNamesTwee.WARDROBES_FULL.value in self._filename:
+        elif FileNamesTwee.WARDROBES_FULL.value == self._filename:
             return self._parse_wardrobes()
         return self.parse_normal()
 
@@ -227,13 +228,18 @@ class ParseTextTwee:
                 continue
 
             """就为这一个单开一档，逆天"""
-            if line.startswith("<<run ") and "}>>" not in line:
+            if (line.startswith("<<run ") or line.startswith("<<set ")) and "}>>" not in line:
                 multirow_json_flag = True
                 results.append(False)
+                continue
             elif "}>>" in line:
                 multirow_json_flag = False
                 results.append(False)
-            elif multirow_json_flag and any(_ in line for _ in {'"start"', '"joiner"', '"end"'}):
+                continue
+            elif multirow_json_flag and any(_ in line for _ in {'"start"', '"joiner"', '"end"'}) and line != '"end": ".",':
+                results.append(True)
+                continue
+            elif multirow_json_flag:
                 results.append(False)
                 continue
 
@@ -987,10 +993,10 @@ class ParseTextTwee:
             if self.is_comment(line) or self.is_event(line):
                 results.append(False)
             elif (
-                    self.is_widget_link(line)
-                    or "<i>" in line
-                    or "<b>" in line
-                    or any(re.findall(r"^\"\w", line))
+                self.is_widget_link(line)
+                or "<i>" in line
+                or "<b>" in line
+                or any(re.findall(r"^\"\w", line))
             ):
                 results.append(True)
             else:
@@ -1113,9 +1119,9 @@ class ParseTextTwee:
             if self.is_comment(line) or self.is_event(line):
                 results.append(False)
             elif (
-                    "<span " in line
-                    or "<<link " in line
-                    or not line.startswith("<")
+                "<span " in line
+                or "<<link " in line
+                or not line.startswith("<")
             ):
                 results.append(True)
             else:
@@ -1649,10 +1655,9 @@ class ParseTextJS:
                 if line.endswith(":"):
                     next_flag = True
                     results.append(False)
-                    continue
                 else:
                     results.append(True)
-                    continue
+                continue
             elif next_flag:
                 next_flag = False
                 results.append(True)
