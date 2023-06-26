@@ -1764,7 +1764,7 @@ class ParseTextJS:
                 cursed_flag = True
                 results.append(False)
                 continue
-            elif a_flag and line == "return;":
+            elif cursed_flag and line == "return;":
                 cursed_flag = False
                 results.append(False)
                 continue
@@ -1776,7 +1776,7 @@ class ParseTextJS:
                 carry_flag = False
                 results.append(False)
                 continue
-            elif a_flag and line == "</div>`;":
+            elif carry_flag and line == "</div>`;":
                 carry_flag = False
                 results.append(False)
                 continue
@@ -1829,7 +1829,7 @@ class ParseTextJS:
             elif text_flag and line == "break;":
                 text_flag = False
                 results.append(False)
-            elif text_flag:
+            elif text_flag and not self.is_only_marks(line):
                 results.append(True)
             elif "text =" in line and "let text" not in line and "const text" not in line:
                 results.append(True)
