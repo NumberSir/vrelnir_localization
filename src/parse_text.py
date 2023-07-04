@@ -2,7 +2,6 @@ import re
 from pathlib import Path
 from typing import List, Union, Set
 
-from . import logger
 from .consts import *
 
 
@@ -270,6 +269,8 @@ class ParseTextTwee:
         """多了一个<<wearlink_norefresh " """
         results = []
         multirow_if_flag = False
+        multirow_set_flag = False
+        multirow_run_flag = False
         for line in self._lines:
             line = line.strip()
             if not line:
@@ -286,6 +287,32 @@ class ParseTextTwee:
                 results.append(False)
                 continue
             elif multirow_if_flag:
+                results.append(False)
+                continue
+
+            """跨行set，逆天"""
+            if (line.startswith("<<set _itemStats ") or line.startswith("<<set _sortedItemColors")) and ">>" not in line:
+                multirow_set_flag = True
+                results.append(False)
+                continue
+            elif multirow_set_flag and line in {"]>>", "})>>"}:
+                multirow_set_flag = False
+                results.append(False)
+                continue
+            elif multirow_set_flag:
+                results.append(False)
+                continue
+
+            """跨行run，逆天"""
+            if line.startswith("<<run ") and ">>" not in line:
+                multirow_run_flag = True
+                results.append(False)
+                continue
+            elif multirow_run_flag and line in {"]>>", "})>>"}:
+                multirow_run_flag = False
+                results.append(False)
+                continue
+            elif multirow_run_flag:
                 results.append(False)
                 continue
 
@@ -1302,6 +1329,7 @@ class ParseTextTwee:
         multirow_script_flag = False
         multirow_run_flag = False
         multirow_if_flag = False
+        multirow_error_flag = False
         maybe_json_flag = False
 
         shop_clothes_hint_flag = False  # 草
@@ -1360,6 +1388,19 @@ class ParseTextTwee:
                 results.append(False)
                 continue
             elif multirow_if_flag:
+                results.append(False)
+                continue
+
+            """跨行error，逆天"""
+            if line.startswith("<<error ") and ">>" not in line:
+                multirow_error_flag = True
+                results.append(False)
+                continue
+            elif multirow_error_flag and ">>" in line:
+                multirow_error_flag = False
+                results.append(False)
+                continue
+            elif multirow_error_flag:
                 results.append(False)
                 continue
 
@@ -1559,7 +1600,7 @@ class ParseTextTwee:
     @staticmethod
     def is_widget_link(line: str) -> bool:
         """<<link [[xxx|yyy]]>>, <<link "xxx">> """
-        return any(re.findall(r"<<link\s*(\[\[|\"\w)", line))
+        return any(re.findall(r"<<link\s*(\[\[|\"\w|`\w|\'\w|\"\(|`\(|\'\()", line))
 
     @staticmethod
     def is_widget_high_rate_link(line: str) -> bool:

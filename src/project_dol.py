@@ -10,6 +10,7 @@ import asyncio
 import json
 import httpx
 import os
+import platform
 import shutil
 import subprocess
 import time
@@ -266,11 +267,14 @@ class ProjectDOL:
         DIR_GAME_TEXTS = DIR_GAME_TEXTS_COMMON if self._type == "common" else DIR_GAME_TEXTS_DEV
         logger.info("===== 开始覆写汉化 ...")
         file_mapping: dict = {}
-        # for root, dir_list, file_list in os.walk(DIR_PARATRANZ / "utf8"):
         for root, dir_list, file_list in os.walk(DIR_RAW_DICTS / self._version / "csv"):
+            if any(_ in root for _ in blacklist_dirs):
+                continue
             if "失效词条" in root:
                 continue
             for file in file_list:
+                if any(_ in file for _ in blacklist_files):
+                    continue
                 if file.endswith(".js.csv"):
                     file_mapping[Path(root).absolute() / file] = DIR_GAME_TEXTS / Path(root).relative_to(DIR_RAW_DICTS / self._version / "csv" / "game") / f"{file.split('.')[0]}.js"
                 else:
@@ -288,6 +292,7 @@ class ProjectDOL:
         vip_flag = target_file.name == "clothing-sets.twee"
         with open(target_file, "r", encoding="utf-8") as fp:
             raw_targets: List[str] = fp.readlines()
+        raw_targets_temp = raw_targets.copy()
 
         with open(csv_file, "r", encoding="utf-8") as fp:
             for row in csv.reader(fp):
@@ -304,8 +309,13 @@ class ProjectDOL:
                     logger.warning(f"\t!!! 可能的尖括号数量错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(zh)}")
                 if self._is_different_event(zh, en):
                     logger.warning(f"\t!!! 可能的错译额外内容：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(zh)}")
+                if self._is_full_notation(zh, en):
+                    logger.warning(f"\t!!! 可能的全角引号错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(zh)}")
 
-                for idx_, target_row in enumerate(raw_targets):
+                for idx_, target_row in enumerate(raw_targets_temp):
+                    if not target_row.strip():
+                        continue
+
                     if "replace(/[^a-zA-Z 0-9.!()]" in target_row.strip():
                         raw_targets[idx_] = target_row.replace("replace(/[^a-zA-Z 0-9.!()]", "replace(/[^a-zA-Z\\u4e00-\\u9fa5 0-9.!()]")
                         continue
@@ -314,12 +324,14 @@ class ProjectDOL:
                         if "<<print" in target_row and re.findall(r"<<print.*?\.writing>>", zh):
                             raw_targets[idx_] = raw_targets[idx_].replace("writing>>", "writ_cn>>")
                         elif "name_cap" not in target_row:
+                            raw_targets_temp[idx_] = ""
                             continue
 
                         if "<<link " in target_row and re.findall(r"<<link.*?\.name_cap>>", zh):
                             raw_targets[idx_] = raw_targets[idx_].replace("name_cap>>", "cn_name_cap>>")
                         elif "<<clothingicon" in target_row and re.findall(r"<<clothingicon.*?\.name_cap", zh):
                             raw_targets[idx_] = raw_targets[idx_].replace("name_cap", "cn_name_cap")
+                        raw_targets_temp[idx_] = ""
                         break
                     elif "<" in target_row:
                         if "<<link [[" in target_row and re.findall(r"<<link \[\[(Next\||Next\s\||Leave\||Refuse\||Return\|Resume\||Confirm\||Continue\||Stop\|)", target_row):  # 高频词
@@ -341,6 +353,7 @@ class ProjectDOL:
                             raw_targets[idx_] = raw_targets[idx_].replace("name_cap>>", "cn_name_cap>>")
                         elif "<<clothingicon" in target_row and re.findall(r"<<clothingicon.*?\.name_cap", target_row):
                             raw_targets[idx_] = raw_targets[idx_].replace("name_cap", "cn_name_cap")
+                        break
                     elif target_row.strip() == "].select($_rng)>>":  # 怪东西
                         raw_targets[idx_] = ""
                 # else:
@@ -394,6 +407,14 @@ class ProjectDOL:
         event_zh = re.findall(r"<<link\s\[\[.*?\|(.*?)\]\]", line_zh)
         return event_en != event_zh
 
+    @staticmethod
+    def _is_full_notation(line_zh: str, line_en: str):
+        """单双引号打错了"""
+        if '",' in line_en and '”,' in line_zh:
+            return True
+
+        return ': "' in line_en and ': “' in line_zh
+
     """ 删删删 """
     async def drop_all_dirs(self):
         """恢复到最初时的样子"""
@@ -431,7 +452,12 @@ class ProjectDOL:
     def compile(self):
         """编译游戏"""
         logger.info("===== 开始编译游戏 ...")
-        self._compile_for_windows()
+        if platform.system() == "Windows":
+            self._compile_for_windows()
+        elif platform.system() == "Linux":
+            self._compile_for_linux()
+        else:
+            raise Exception("什么电脑系统啊？")
         logger.info("##### 游戏编译完毕 !")
 
     def _compile_for_windows(self):
@@ -443,6 +469,10 @@ class ProjectDOL:
 
     def _compile_for_linux(self):
         """linux"""
+        game_dir = DIR_GAME_ROOT_COMMON if self._type == "common" else DIR_GAME_ROOT_DEV
+        subprocess.Popen(f'bash {game_dir / "compile.sh"}')
+        time.sleep(5)
+        logger.info(f"\t- Linux 游戏编译完成，位于 {game_dir / 'Degrees of Lewdity VERSION.html'}")
 
     def _compile_for_mobile(self):
         """android"""
