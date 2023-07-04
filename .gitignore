@@ -3,3 +3,7 @@
 *.xml
 *.iml
 *.zip
+.env
+
+__pycache__
+dol

@@ -15,6 +15,7 @@ import shutil
 import subprocess
 import time
 import webbrowser
+import stat
 
 from .consts import *
 from .log import logger
@@ -106,7 +107,7 @@ class ProjectDOL:
         self._game_texts_file_lists = []
         texts_dir = DIR_GAME_TEXTS_COMMON if self._type == "common" else DIR_GAME_TEXTS_DEV
         for root, dir_list, file_list in os.walk(texts_dir):
-            dir_name = root.split("\\")[-1]
+            dir_name = root.split(self.nomalized_path("\\"))[-1]
             for file in file_list:
                 if not file.endswith(SUFFIX_TWEE):
                     if not file.endswith(SUFFIX_JS):
@@ -134,7 +135,7 @@ class ProjectDOL:
             await self.fetch_latest_version()
         dir_name = DIR_GAME_ROOT_COMMON_NAME if self._type == "common" else DIR_GAME_ROOT_DEV_NAME
         for file in self._game_texts_file_lists:
-            target_dir = file.parent.__str__().split(f"{dir_name}\\")[1]
+            target_dir = file.parent.__str__().split(self.nomalized_path(f"{dir_name}\\"))[1]
             target_dir_csv = DIR_RAW_DICTS / self._version / "csv" / target_dir
             if not target_dir_csv.exists():
                 os.makedirs(target_dir_csv, exist_ok=True)
@@ -150,7 +151,7 @@ class ProjectDOL:
         logger.info("##### 翻译文本已处理为键值对 ! \n")
 
     async def _process_for_gather(self, idx: int, file: Path):
-        target_file = file.__str__().split("game\\")[1].replace(SUFFIX_JS, "").replace(SUFFIX_TWEE, "")
+        target_file = file.__str__().split(self.nomalized_path("game\\"))[1].replace(SUFFIX_JS, "").replace(SUFFIX_TWEE, "")
 
         with open(file, "r", encoding="utf-8") as fp:
             lines = fp.readlines()
@@ -205,7 +206,7 @@ class ProjectDOL:
     async def _update_for_gather(self, old_file: Path, new_file: Path, idx: int, full: int):
         """gather 用"""
         if not new_file.exists():
-            unavailable_file = DIR_RAW_DICTS / self._version / "csv/game/失效词条" / old_file.__str__().split("utf8\\")[1]
+            unavailable_file = DIR_RAW_DICTS / self._version / "csv/game/失效词条" / old_file.__str__().split(self.nomalized_path("utf8\\"))[1]
             os.makedirs(unavailable_file.parent, exist_ok=True)
             with open(old_file, "r", encoding="utf-8") as fp:
                 unavailables = list(csv.reader(fp))
@@ -247,7 +248,7 @@ class ProjectDOL:
             if old_en not in new_ens:
                 # logger.info(f"\t- old: {old_en}")
                 unavailables.append(old_data[idx_])
-        unavailable_file = DIR_RAW_DICTS / self._version / "csv/game/失效词条" / old_file.__str__().split("utf8\\")[1] if unavailables else None
+        unavailable_file = DIR_RAW_DICTS / self._version / "csv/game/失效词条" / old_file.__str__().split(self.nomalized_path("utf8\\"))[1] if unavailables else None
 
         with open(new_file, "w", encoding="utf-8-sig", newline="") as fp:
             csv.writer(fp).writerows(new_data)
@@ -470,17 +471,70 @@ class ProjectDOL:
     def _compile_for_linux(self):
         """linux"""
         game_dir = DIR_GAME_ROOT_COMMON if self._type == "common" else DIR_GAME_ROOT_DEV
+        
+        if GITHUB_ACTION_DEV:
+            tweego_exe = "tweego_linux" + (
+                "86" if PLATFORM_ARCHITECTURE == "32bit" else "64"
+            )
+            tweego_exe_file = Path(f"{game_dir}/devTools/tweego/{tweego_exe}")
+            tweego_exe_file.chmod(tweego_exe_file.stat().st_mode | stat.S_IEXEC)
+            tweego_compile_sh = Path(f"{game_dir}/compile.sh")
+            tweego_compile_sh.chmod(tweego_compile_sh.stat().st_mode | stat.S_IEXEC)
         subprocess.Popen(f'bash {game_dir / "compile.sh"}')
         time.sleep(5)
         logger.info(f"\t- Linux 游戏编译完成，位于 {game_dir / 'Degrees of Lewdity VERSION.html'}")
 
     def _compile_for_mobile(self):
         """android"""
+    def copy_to_git(self):
+        "复制到git"
+        git_repo = os.getenv("GIT_REPO")
+        dol_chinese_path = self.nomalized_path(f"{DIR_ROOT}\\{git_repo}")
+        if not Path(dol_chinese_path).exists():
+            logger.info(f"不存在{git_repo}文件夹")
+            return
+        game_dir_path = (
+            DIR_GAME_ROOT_COMMON if self._type == "common" else DIR_GAME_ROOT_DEV
+        )
+        logger.info(f"===== 开始")
+        game_dir = os.listdir(game_dir_path)
+
+        logger.info(game_dir)
+        for file in game_dir:
+            if file.startswith("Degrees of Lewdity") and file.endswith("html"):
+                dol_html = "beta" if GITHUB_ACTION_ISBETA else "index"
+                shutil.copyfile(
+                    self.nomalized_path(f"{game_dir_path}\\{file}"),
+                    self.nomalized_path(f"{dol_chinese_path}\\{dol_html}.html"),
+                )
+            elif file == "style.css" or file == "DolSettingsExport.json":
+                logger.info(file)
+                shutil.copyfile(
+                    self.nomalized_path(f"{game_dir_path}\\{file}"),
+                    self.nomalized_path(f"{dol_chinese_path}\\{file}"),
+                )
+        dol_chinese_img_path = self.nomalized_path(f"{dol_chinese_path}\\img")
+
+        def ignorefile(dir, files):
+            return [f for f in files if f.endswith(".js") or f.endswith(".bat")]
+
+        shutil.copytree(
+            self.nomalized_path(f"{game_dir_path}\\img"),
+            dol_chinese_img_path,
+            True,
+            ignore=ignorefile,
+            dirs_exist_ok=True,
+        )
+        logger.info(f"结束移动")
 
     """ 在浏览器中启动 """
     def run(self):
         game_dir = DIR_GAME_ROOT_COMMON if self._type == "common" else DIR_GAME_ROOT_DEV
         webbrowser.open(game_dir / "Degrees of Lewdity VERSION.html")
+    
+    @staticmethod
+    def nomalized_path(path: str):
+        return path if PLATFORM_SYSTEM == "Windows" else path.replace("\\", "/")
 
 
 __all__ = [
