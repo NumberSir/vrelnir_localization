@@ -480,7 +480,7 @@ class ProjectDOL:
             tweego_exe_file.chmod(tweego_exe_file.stat().st_mode | stat.S_IEXEC)
             tweego_compile_sh = Path(f"{game_dir}/compile.sh")
             tweego_compile_sh.chmod(tweego_compile_sh.stat().st_mode | stat.S_IEXEC)
-        subprocess.Popen(f'bash {game_dir / "compile.sh"}')
+        subprocess.Popen(f"bash ./compile.sh", env=os.environ, shell=True, cwd=game_dir)
         time.sleep(5)
         logger.info(f"\t- Linux 游戏编译完成，位于 {game_dir / 'Degrees of Lewdity VERSION.html'}")
 

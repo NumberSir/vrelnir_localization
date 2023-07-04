@@ -5,7 +5,8 @@ name: DOL Chinese Compile Beta Lastest
 
 on:
   schedule:
-    - cron: "0 2 * * *"
+    - cron: "0 20/6 * * *"
+  workflow_dispatch:
 
 env:
   PARATRANZ_TOKEN: ${{secrets.PARATRANZ_TOKEN}}
@@ -50,7 +51,7 @@ jobs:
           git config --global user.name "${{env.GIT_USERNAME}}"
           cd dol-chinese
           git add .
-          git commit -m "更新"
+          git commit -m "测试版更新"
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:

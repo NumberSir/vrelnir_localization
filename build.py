@@ -76,7 +76,9 @@ async def main():
     await dol.update_dicts()
 
     """ 覆写汉化 用的是 `paratranz` 文件夹里的内容覆写 """
-    await dol.apply_dicts()
+    blacklist_dirs = []
+    blacklist_files = []
+    await dol.apply_dicts(blacklist_dirs, blacklist_files)
 
     """ 编译成游戏 """
     dol.compile()
