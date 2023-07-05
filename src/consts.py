@@ -29,7 +29,9 @@ REPOSITORY_URL_COMMITS = "https://gitgud.io/api/v4/projects/8430/repository/comm
 """本地目录"""
 DIR_ROOT = Path(__file__).parent.parent
 DIR_DATA_ROOT = DIR_ROOT / "data"
-DIR_TEMP_ROOT = DIR_ROOT / "temp"
+DIR_JSON_ROOT = DIR_DATA_ROOT / "json"
+DIR_TEMP_ROOT = DIR_DATA_ROOT / "temp"
+DIR_MODS_ROOT = DIR_DATA_ROOT / "mods"
 
 DIR_GAME_ROOT_COMMON_NAME = "degrees-of-lewdity-master"
 DIR_GAME_ROOT_COMMON = DIR_ROOT / DIR_GAME_ROOT_COMMON_NAME
@@ -40,14 +42,14 @@ DIR_GAME_ROOT_DEV_NAME = "degrees-of-lewdity-dev"
 DIR_GAME_ROOT_DEV = DIR_ROOT / DIR_GAME_ROOT_DEV_NAME
 DIR_GAME_TEXTS_DEV = DIR_GAME_ROOT_DEV / "game"
 
-DIR_RAW_DICTS = DIR_ROOT / "raw_dicts"
-DIR_FINE_DICTS = DIR_ROOT / "fine_dicts"
+DIR_RAW_DICTS = DIR_DATA_ROOT / "raw_dicts"
 
-DIR_PARATRANZ = DIR_ROOT / "paratranz"
+DIR_PARATRANZ = DIR_DATA_ROOT / "paratranz"
 
 """文件"""
 FILE_REPOSITORY_ZIP = DIR_TEMP_ROOT / "dol.zip"
 FILE_PARATRANZ_ZIP = DIR_TEMP_ROOT / "paratranz_export.zip"
+FILE_COMMITS = DIR_JSON_ROOT / "commits.json"
 
 SUFFIX_TWEE = ".twee"
 SUFFIX_JS = ".js"
@@ -194,7 +196,7 @@ __all__ = [
     "GITHUB_ACTION_ISBETA",
     "PLATFORM_SYSTEM",
     "PLATFORM_ARCHITECTURE",
-    
+
     "PARATRANZ_BASE_URL",
     "PARATRANZ_HEADERS",
     "PARATRANZ_TOKEN",
@@ -208,7 +210,9 @@ __all__ = [
 
     "DIR_ROOT",
     "DIR_DATA_ROOT",
+    "DIR_JSON_ROOT",
     "DIR_TEMP_ROOT",
+    "DIR_MODS_ROOT",
     "DIR_GAME_ROOT_COMMON_NAME",
     "DIR_GAME_ROOT_COMMON",
     "DIR_GAME_TEXTS_COMMON",
@@ -216,11 +220,11 @@ __all__ = [
     "DIR_GAME_ROOT_DEV",
     "DIR_GAME_TEXTS_DEV",
     "DIR_RAW_DICTS",
-    "DIR_FINE_DICTS",
     "DIR_PARATRANZ",
 
     "FILE_REPOSITORY_ZIP",
     "FILE_PARATRANZ_ZIP",
+    "FILE_COMMITS",
 
     "SUFFIX_TWEE",
     "SUFFIX_JS",

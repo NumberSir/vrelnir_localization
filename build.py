@@ -54,7 +54,7 @@ async def main():
     pt = Paratranz()
     if not PARATRANZ_TOKEN:
         logger.error(
-            "未填写 PARATRANZ_TOKEN, 汉化包下载可能失败，请前往 https://paratranz.cn/users/my 的设置栏中查看自己的 token, 并在 src/consts.py 中填写\n"
+            "未填写 PARATRANZ_TOKEN, 汉化包下载可能失败，请前往 https://paratranz.cn/users/my 的设置栏中查看自己的 token, 并在 .env 中填写\n"
         )
         return
 
@@ -86,7 +86,7 @@ async def main():
 
     """ 编译成游戏 """
     dol.compile()
-    dol.copy_to_git()
+    await dol.copy_to_git()
     # dol.run()
     # =====
     end = time.time()

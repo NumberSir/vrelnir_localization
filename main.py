@@ -58,7 +58,7 @@ async def main():
     dol = ProjectDOL(type_="common")  # 改成 “dev” 则下载最新开发版分支的内容
     pt = Paratranz()
     if not PARATRANZ_TOKEN:
-        logger.error("未填写 PARATRANZ_TOKEN, 汉化包下载可能失败，请前往 https://paratranz.cn/users/my 的设置栏中查看自己的 token, 并在 src/consts.py 中填写\n")
+        logger.error("未填写 PARATRANZ_TOKEN, 汉化包下载可能失败，请前往 https://paratranz.cn/users/my 的设置栏中查看自己的 token, 并在 .env 中填写\n")
         return
 
     """ 删库跑路 """

@@ -5,7 +5,7 @@ name: DOL Chinese Compile Beta Lastest
 
 on:
   schedule:
-    - cron: "0 20/6 * * *"
+    - cron: "0 20 * * *"
   workflow_dispatch:
 
 env:
@@ -55,7 +55,7 @@ jobs:
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
-            github_token: ${{ secrets.ACCESS_TOKEN }}
-            repository: '${{env.GIT_OWNER}}/${{env.GIT_REPO}}'
-            directory: ${{env.GIT_REPO}}
-            force_with_lease: true
+          github_token: ${{ secrets.ACCESS_TOKEN }}
+          repository: '${{env.GIT_OWNER}}/${{env.GIT_REPO}}'
+          directory: ${{env.GIT_REPO}}
+          force_with_lease: true
