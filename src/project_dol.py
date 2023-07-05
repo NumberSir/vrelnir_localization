@@ -342,7 +342,7 @@ class ProjectDOL:
                         elif "<<clothingicon" in target_row and re.findall(r"<<clothingicon.*?\.name_cap", zh):
                             raw_targets[idx_] = raw_targets[idx_].replace("name_cap", "cn_name_cap")
                         raw_targets_temp[idx_] = ""
-                        break
+                        
                     elif "<" in target_row:
                         if "<<link [[" in target_row and re.findall(r"<<link \[\[(Next->|Next\s->|Next\||Next\s\||Leave\||Refuse\||Return\|Resume\||Confirm\||Continue\||Stop\|)", target_row):  # 高频词
                             raw_targets[idx_] = target_row\
@@ -428,7 +428,6 @@ class ProjectDOL:
         """恢复到最初时的样子"""
         if not force:
             await self.get_lastest_commit()
-
         logger.warning("===== 开始删库跑路 ...")
         await self._drop_temp()
         await self._drop_gitgud()
@@ -542,6 +541,7 @@ class ProjectDOL:
             game_html = self.game_dir / file
             if file.startswith("Degrees of Lewdity") and file.endswith("html"):
                 dol_html = "beta" if GITHUB_ACTION_ISBETA else "index"
+                game_html = self.nomalized_path(f"{game_dir_path}\\{file}")
                 shutil.copyfile(
                     game_html,
                     dol_chinese_path / f"{dol_html}.html",

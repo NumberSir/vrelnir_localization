@@ -3,10 +3,10 @@
 
 name: DOL Chinese Compile
 
-on:
-  schedule:
+on: 
+   schedule:
     - cron: "0 20 * * 0"
-  workflow_dispatch:
+   workflow_dispatch:
 
 env:
   PARATRANZ_TOKEN: ${{secrets.PARATRANZ_TOKEN}}
