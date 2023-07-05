@@ -534,23 +534,25 @@ class ProjectDOL:
             return
 
         logger.info("===== 开始复制到 git ...")
-        game_dir = os.listdir(self.game_dir)
+        game_dir_path = self.game_dir
+        game_dir = os.listdir(game_dir_path)
 
         logger.info(f"game_dir: {game_dir}")
         for file in game_dir:
-            game_html = self.game_dir / file
             if file.startswith("Degrees of Lewdity") and file.endswith("html"):
                 dol_html = "beta" if GITHUB_ACTION_ISBETA else "index"
                 game_html = game_dir_path / file
+                logger.info("同步到GIT文件夹")
                 shutil.copyfile(
                     game_html,
                     dol_chinese_path / f"{dol_html}.html",
                 )
                 beeesssmod_dir = dol_chinese_path / "beeesssmod"
                 if beeesssmod_dir.exists():
+                    logger.info("同步到美化包文件夹")
                     shutil.copyfile(
                         game_html,
-                        dol_chinese_path / "beeesssmod" / f"{dol_html}.html",
+                        beeesssmod_dir / f"{dol_html}.html",
                     )
 
             elif file in {"style.css", "DolSettingsExport.json"}:
