@@ -546,7 +546,7 @@ class ProjectDOL:
                     game_html,
                     dol_chinese_path / f"{dol_html}.html",
                 )
-                beeesssmod_dir = self.game_dir / "beeesssmod"
+                beeesssmod_dir = dol_chinese_path / "beeesssmod"
                 if beeesssmod_dir.exists():
                     shutil.copyfile(
                         game_html,
