@@ -558,7 +558,7 @@ class ProjectDOL:
             elif file in {"style.css", "DolSettingsExport.json"}:
                 logger.info(f"game_dir file: {file}")
                 shutil.copyfile(
-                    game_html,
+                    game_dir_path / file,
                     dol_chinese_path / file,
                 )
         dol_chinese_img_path = dol_chinese_path / "img"
