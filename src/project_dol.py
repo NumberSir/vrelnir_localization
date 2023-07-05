@@ -558,7 +558,7 @@ class ProjectDOL:
                     self.nomalized_path(f"{dol_chinese_path}\\{dol_html}.html"),
                 )
                 beeesssmod_dir =  Path(self.nomalized_path(f"{game_dir_path}\\beeesssmod"))
-                if beeesssmod_dir.exists() and beeesssmod_dir.is_dir:
+                if beeesssmod_dir.exists() and beeesssmod_dir.is_dir():
                     shutil.copyfile(
                     game_html,
                     self.nomalized_path(f"{dol_chinese_path}\\beeesssmod\\{dol_html}.html"),

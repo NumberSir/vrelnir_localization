@@ -5,7 +5,7 @@ name: DOL Chinese Compile Beta Lastest
 
 on:
   schedule:
-    - cron: "0 20/6 * * *"
+    - cron: "0 20 * * *"
   workflow_dispatch:
 
 env:
