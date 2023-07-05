@@ -567,7 +567,7 @@ class ProjectDOL:
             self.game_dir / "img",
             dol_chinese_img_path,
             True,
-            ignore=lambda files: [f for f in files if f.endswith(".js") or f.endswith(".bat")],
+            ignore=lambda src,files: [f for f in files if f.endswith(".js") or f.endswith(".bat")],
             dirs_exist_ok=True,
         )
         logger.info("##### 复制到 git 已完毕! ")
