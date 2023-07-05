@@ -32,12 +32,12 @@ class ProjectDOL:
             self._whitelists: Dict[str, List] = json.load(fp)
         self._type: str = type_
         self._version: str = None
+        self.commit = None
         commits_path = DIR_ROOT / "commits.json"
         if Path(commits_path).exists() :
          with  open(commits_path, "r", encoding="utf-8") as fp:
                 self.commit:Dict[str,Any] = json.load(fp)
-        else:
-            self.commit = None
+            
         self.dol_is_last = False
         self._paratranz_file_lists: List[Path] = None
         self._raw_dicts_file_lists: List[Path] = None
@@ -344,7 +344,7 @@ class ProjectDOL:
                         elif "<<clothingicon" in target_row and re.findall(r"<<clothingicon.*?\.name_cap", zh):
                             raw_targets[idx_] = raw_targets[idx_].replace("name_cap", "cn_name_cap")
                         raw_targets_temp[idx_] = ""
-                        break
+                        
                     elif "<" in target_row:
                         if "<<link [[" in target_row and re.findall(r"<<link \[\[(Next\||Next\s\||Leave\||Refuse\||Return\|Resume\||Confirm\||Continue\||Stop\|)", target_row):  # 高频词
                             raw_targets[idx_] = target_row\
@@ -428,17 +428,11 @@ class ProjectDOL:
         return ': "' in line_en and ': “' in line_zh
 
     """ 删删删 """
-    async def drop_all_dirs(self):
+    async def drop_all_dirs(self,force = False):
         """恢复到最初时的样子"""
-        last_commit = await self.get_lastest_commit()
-        if last_commit:
-            logger.info(last_commit["id"])
-            self.dol_is_last = True if self.commit and last_commit["id"] == self.commit["id"] else False
-            if not self.dol_is_last:
-                logger.info("开始")
-                f = open(DIR_ROOT / "commits.json","w")
-                json.dump(last_commit,f)
-                f.close()
+        if not force:
+            await self.get_lastest_commit()
+        
         logger.warning("===== 开始删库跑路 ...")
         
         await self._drop_temp()
@@ -447,7 +441,7 @@ class ProjectDOL:
         await self._drop_paratranz()
         logger.warning("##### 删库跑路完毕 !\n")
     
-    async def get_lastest_commit(self)-> Dict[str,Any]: 
+    async def get_lastest_commit(self): 
         ref_name = self.get_type("master","dev")
         async with httpx.AsyncClient() as client:
            repo_commits = await client.get(
@@ -457,8 +451,14 @@ class ProjectDOL:
            if repo_commits.status_code == 200:
                 repo_json = repo_commits.json()
                 if len(repo_json) > 0:
-                    return repo_json[0]
-        return None # type: ignore
+                    last_commit = repo_json[0]
+                    logger.info(last_commit["id"])
+                    self.dol_is_last = True if self.commit and last_commit["id"] == self.commit["id"] else False
+                    if not self.dol_is_last:
+                        logger.info("开始")
+                        f = open(DIR_ROOT / "commits.json","w")
+                        json.dump(last_commit,f)
+                        f.close()
            
     async def _drop_temp(self):
         """删掉临时文件"""
@@ -535,7 +535,7 @@ class ProjectDOL:
 
     def _compile_for_mobile(self):
         """android"""
-    def copy_to_git(self):
+    async def copy_to_git(self):
         "复制到git"
         git_repo = os.getenv("GIT_REPO")
         dol_chinese_path = self.nomalized_path(f"{DIR_ROOT}\\{git_repo}")
@@ -552,10 +552,18 @@ class ProjectDOL:
         for file in game_dir:
             if file.startswith("Degrees of Lewdity") and file.endswith("html"):
                 dol_html = "beta" if GITHUB_ACTION_ISBETA else "index"
+                game_html = self.nomalized_path(f"{game_dir_path}\\{file}")
                 shutil.copyfile(
-                    self.nomalized_path(f"{game_dir_path}\\{file}"),
+                    game_html,
                     self.nomalized_path(f"{dol_chinese_path}\\{dol_html}.html"),
                 )
+                beeesssmod_dir =  Path(self.nomalized_path(f"{game_dir_path}\\beeesssmod"))
+                if beeesssmod_dir.exists() and beeesssmod_dir.is_dir():
+                    shutil.copyfile(
+                    game_html,
+                    self.nomalized_path(f"{dol_chinese_path}\\beeesssmod\\{dol_html}.html"),
+                )
+                
             elif file == "style.css" or file == "DolSettingsExport.json":
                 logger.info(file)
                 shutil.copyfile(
@@ -575,6 +583,7 @@ class ProjectDOL:
             dirs_exist_ok=True,
         )
         logger.info(f"结束移动")
+        await self.drop_all_dirs(True)
 
     """ 在浏览器中启动 """
     def run(self):

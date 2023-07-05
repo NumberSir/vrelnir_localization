@@ -86,7 +86,7 @@ async def main():
 
     """ 编译成游戏 """
     dol.compile()
-    dol.copy_to_git()
+    await dol.copy_to_git()
     # dol.run()
     # =====
     end = time.time()
