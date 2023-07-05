@@ -534,41 +534,42 @@ class ProjectDOL:
             return
 
         logger.info("===== 开始复制到 git ...")
-        game_dir = os.listdir(self.game_dir)
+        game_dir_path = self.game_dir
+        game_dir = os.listdir(game_dir_path)
 
         logger.info(f"game_dir: {game_dir}")
         for file in game_dir:
-            game_html = self.game_dir / file
             if file.startswith("Degrees of Lewdity") and file.endswith("html"):
                 dol_html = "beta" if GITHUB_ACTION_ISBETA else "index"
-                game_html = self.game_dir / file
+                game_html = game_dir_path / file
+                logger.info("复制到GIT文件夹")
                 shutil.copyfile(
                     game_html,
                     dol_chinese_path / f"{dol_html}.html",
                 )
-                beeesssmod_dir = self.game_dir / "beeesssmod"
-                if beeesssmod_dir.exists():
+                beeesssmod_dir_path =dol_chinese_path / "beeesssmod"
+                beeesssmod_dir = Path(beeesssmod_dir_path)
+                if beeesssmod_dir.exists() and beeesssmod_dir.is_dir:
+                    logger.info("复制到美化包文件夹")
                     shutil.copyfile(
                         game_html,
-                        dol_chinese_path / "beeesssmod" / f"{dol_html}.html",
+                        beeesssmod_dir / f"{dol_html}.html",
                     )
 
             elif file in {"style.css", "DolSettingsExport.json"}:
                 logger.info(f"game_dir file: {file}")
                 shutil.copyfile(
-                    game_html,
+                    game_dir_path / file,
                     dol_chinese_path / file,
                 )
         dol_chinese_img_path = dol_chinese_path / "img"
 
-        def ignorefile(dir, files):
-            return [f for f in files if f.endswith(".js") or f.endswith(".bat")]
 
         shutil.copytree(
             self.game_dir / "img",
             dol_chinese_img_path,
             True,
-            ignore=ignorefile,
+            ignore=lambda src,files: [f for f in files if f.endswith(".js") or f.endswith(".bat")],
             dirs_exist_ok=True,
         )
         logger.info("##### 复制到 git 已完毕! ")
