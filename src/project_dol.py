@@ -428,17 +428,11 @@ class ProjectDOL:
         return ': "' in line_en and ': “' in line_zh
 
     """ 删删删 """
-    async def drop_all_dirs(self):
+    async def drop_all_dirs(self,force = False):
         """恢复到最初时的样子"""
-        last_commit = await self.get_lastest_commit()
-        if last_commit:
-            logger.info(last_commit["id"])
-            self.dol_is_last = True if self.commit and last_commit["id"] == self.commit["id"] else False
-            if not self.dol_is_last:
-                logger.info("开始")
-                f = open(DIR_ROOT / "commits.json","w")
-                json.dump(last_commit,f)
-                f.close()
+        if not force:
+            await self.get_lastest_commit()
+        
         logger.warning("===== 开始删库跑路 ...")
         
         await self._drop_temp()
@@ -447,7 +441,7 @@ class ProjectDOL:
         await self._drop_paratranz()
         logger.warning("##### 删库跑路完毕 !\n")
     
-    async def get_lastest_commit(self)-> Dict[str,Any]: 
+    async def get_lastest_commit(self): 
         ref_name = self.get_type("master","dev")
         async with httpx.AsyncClient() as client:
            repo_commits = await client.get(
@@ -457,8 +451,14 @@ class ProjectDOL:
            if repo_commits.status_code == 200:
                 repo_json = repo_commits.json()
                 if len(repo_json) > 0:
-                    return repo_json[0]
-        return None # type: ignore
+                    last_commit = repo_json[0]
+                    logger.info(last_commit["id"])
+                    self.dol_is_last = True if self.commit and last_commit["id"] == self.commit["id"] else False
+                    if not self.dol_is_last:
+                        logger.info("开始")
+                        f = open(DIR_ROOT / "commits.json","w")
+                        json.dump(last_commit,f)
+                        f.close()
            
     async def _drop_temp(self):
         """删掉临时文件"""
@@ -535,7 +535,7 @@ class ProjectDOL:
 
     def _compile_for_mobile(self):
         """android"""
-    def copy_to_git(self):
+    async def copy_to_git(self):
         "复制到git"
         git_repo = os.getenv("GIT_REPO")
         dol_chinese_path = self.nomalized_path(f"{DIR_ROOT}\\{git_repo}")
@@ -552,10 +552,18 @@ class ProjectDOL:
         for file in game_dir:
             if file.startswith("Degrees of Lewdity") and file.endswith("html"):
                 dol_html = "beta" if GITHUB_ACTION_ISBETA else "index"
+                game_html = self.nomalized_path(f"{game_dir_path}\\{file}")
                 shutil.copyfile(
-                    self.nomalized_path(f"{game_dir_path}\\{file}"),
+                    game_html,
                     self.nomalized_path(f"{dol_chinese_path}\\{dol_html}.html"),
                 )
+                beeesssmod_dir =  Path(self.nomalized_path(f"{game_dir_path}\\beeesssmod"))
+                if beeesssmod_dir.exists() and beeesssmod_dir.is_dir:
+                    shutil.copyfile(
+                    game_html,
+                    self.nomalized_path(f"{dol_chinese_path}\\beeesssmod\\{dol_html}.html"),
+                )
+                
             elif file == "style.css" or file == "DolSettingsExport.json":
                 logger.info(file)
                 shutil.copyfile(
@@ -575,6 +583,7 @@ class ProjectDOL:
             dirs_exist_ok=True,
         )
         logger.info(f"结束移动")
+        await self.drop_all_dirs(True)
 
     """ 在浏览器中启动 """
     def run(self):
