@@ -32,12 +32,12 @@ class ProjectDOL:
             self._whitelists: Dict[str, List] = json.load(fp)
         self._type: str = type_
         self._version: str = None
+        self.commit = None
         commits_path = DIR_ROOT / "commits.json"
         if Path(commits_path).exists() :
          with  open(commits_path, "r", encoding="utf-8") as fp:
                 self.commit:Dict[str,Any] = json.load(fp)
-        else:
-            self.commit = None
+            
         self.dol_is_last = False
         self._paratranz_file_lists: List[Path] = None
         self._raw_dicts_file_lists: List[Path] = None
