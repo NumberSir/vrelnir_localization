@@ -541,7 +541,7 @@ class ProjectDOL:
             game_html = self.game_dir / file
             if file.startswith("Degrees of Lewdity") and file.endswith("html"):
                 dol_html = "beta" if GITHUB_ACTION_ISBETA else "index"
-                game_html = self.nomalized_path(f"{game_dir_path}\\{file}")
+                game_html = game_dir_path / file
                 shutil.copyfile(
                     game_html,
                     dol_chinese_path / f"{dol_html}.html",
