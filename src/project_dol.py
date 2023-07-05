@@ -344,7 +344,7 @@ class ProjectDOL:
                         elif "<<clothingicon" in target_row and re.findall(r"<<clothingicon.*?\.name_cap", zh):
                             raw_targets[idx_] = raw_targets[idx_].replace("name_cap", "cn_name_cap")
                         raw_targets_temp[idx_] = ""
-                        break
+                        
                     elif "<" in target_row:
                         if "<<link [[" in target_row and re.findall(r"<<link \[\[(Next\||Next\s\||Leave\||Refuse\||Return\|Resume\||Confirm\||Continue\||Stop\|)", target_row):  # 高频词
                             raw_targets[idx_] = target_row\
