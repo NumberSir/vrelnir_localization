@@ -542,14 +542,15 @@ class ProjectDOL:
             if file.startswith("Degrees of Lewdity") and file.endswith("html"):
                 dol_html = "beta" if GITHUB_ACTION_ISBETA else "index"
                 game_html = game_dir_path / file
-                logger.info("同步到GIT文件夹")
+                logger.info("复制到GIT文件夹")
                 shutil.copyfile(
                     game_html,
                     dol_chinese_path / f"{dol_html}.html",
                 )
-                beeesssmod_dir = dol_chinese_path / "beeesssmod"
-                if beeesssmod_dir.exists():
-                    logger.info("同步到美化包文件夹")
+                beeesssmod_dir_path =dol_chinese_path / "beeesssmod"
+                beeesssmod_dir = Path(beeesssmod_dir_path)
+                if beeesssmod_dir.exists() and beeesssmod_dir.is_dir:
+                    logger.info("复制到美化包文件夹")
                     shutil.copyfile(
                         game_html,
                         beeesssmod_dir / f"{dol_html}.html",
@@ -562,6 +563,7 @@ class ProjectDOL:
                     dol_chinese_path / file,
                 )
         dol_chinese_img_path = dol_chinese_path / "img"
+
 
         shutil.copytree(
             self.game_dir / "img",
