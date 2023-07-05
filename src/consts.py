@@ -14,7 +14,7 @@ SYSTEM_ARGV = sys.argv
 GITHUB_ACTION_DEV = len(SYSTEM_ARGV) > 1 and SYSTEM_ARGV[1] == "-D"
 GITHUB_ACTION_ISBETA = len(SYSTEM_ARGV) > 2 and SYSTEM_ARGV[2] == "beta"
 """汉化仓库"""
-PARATRANZ_TOKEN = ""  # 必填，在个人设置里
+PARATRANZ_TOKEN = "" if not os.getenv("PARATRANZ_TOKEN") else os.getenv("PARATRANZ_TOKEN")   # 必填，在个人设置里
 PARATRANZ_BASE_URL = "https://paratranz.cn/api"
 PARATRANZ_HEADERS = {"Authorization": PARATRANZ_TOKEN}
 PARATRANZ_PROJECT_ID = 4780  # DOL 项目 ID
@@ -24,6 +24,7 @@ REPOSITORY_URL_COMMON = "https://gitgud.io/Vrelnir/degrees-of-lewdity"
 REPOSITORY_ZIP_URL_COMMON = "https://gitgud.io/Vrelnir/degrees-of-lewdity/-/archive/master/degrees-of-lewdity-master.zip"
 REPOSITORY_URL_DEV = "https://gitgud.io/Vrelnir/degrees-of-lewdity"
 REPOSITORY_ZIP_URL_DEV = "https://gitgud.io/Vrelnir/degrees-of-lewdity/-/archive/dev/degrees-of-lewdity-dev.zip"
+REPOSITORY_URL_COMMITS = "https://gitgud.io/api/v4/projects/8430/repository/commits"
 
 """本地目录"""
 DIR_ROOT = Path(__file__).parent.parent
@@ -203,6 +204,7 @@ __all__ = [
     "REPOSITORY_ZIP_URL_COMMON",
     "REPOSITORY_URL_DEV",
     "REPOSITORY_ZIP_URL_DEV",
+    "REPOSITORY_URL_COMMITS",
 
     "DIR_ROOT",
     "DIR_DATA_ROOT",

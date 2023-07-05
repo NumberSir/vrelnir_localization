@@ -60,6 +60,10 @@ async def main():
 
     """ 删库跑路 """
     await dol.drop_all_dirs()
+    # # 测试用
+    # await dol._drop_gitgud()
+    # await dol.unzip_latest_repository()
+
 
     """ 获取最新版本 """
     await dol.fetch_latest_version()
@@ -76,7 +80,9 @@ async def main():
     await dol.update_dicts()
 
     """ 覆写汉化 用的是 `paratranz` 文件夹里的内容覆写 """
-    await dol.apply_dicts()
+    blacklist_dirs = []
+    blacklist_files = []
+    await dol.apply_dicts(blacklist_dirs, blacklist_files)
 
     """ 编译成游戏 """
     dol.compile()
