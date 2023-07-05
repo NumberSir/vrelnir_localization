@@ -1,9 +1,21 @@
+import os
+import sys
 from pathlib import Path
 from enum import Enum
+import platform
 
+from dotenv import load_dotenv
+
+load_dotenv()
+"""当前系统"""
+PLATFORM_SYSTEM = platform.system()
+PLATFORM_ARCHITECTURE = platform.architecture()[0]
+SYSTEM_ARGV = sys.argv
+GITHUB_ACTION_DEV = len(SYSTEM_ARGV) > 1 and SYSTEM_ARGV[1] == "-D"
+GITHUB_ACTION_ISBETA = len(SYSTEM_ARGV) > 2 and SYSTEM_ARGV[2] == "beta"
 
 """汉化仓库"""
-PARATRANZ_TOKEN = ""  # 必填，在个人设置里
+PARATRANZ_TOKEN = os.getenv("PARATRANZ_TOKEN") or ""   # 必填，在个人设置里
 PARATRANZ_BASE_URL = "https://paratranz.cn/api"
 PARATRANZ_HEADERS = {"Authorization": PARATRANZ_TOKEN}
 PARATRANZ_PROJECT_ID = 4780  # DOL 项目 ID
@@ -36,6 +48,7 @@ DIR_PARATRANZ = DIR_ROOT / "paratranz"
 """文件"""
 FILE_REPOSITORY_ZIP = DIR_TEMP_ROOT / "dol.zip"
 FILE_PARATRANZ_ZIP = DIR_TEMP_ROOT / "paratranz_export.zip"
+FILE_COMMITS = DIR_ROOT / "commits.json"
 
 SUFFIX_TWEE = ".twee"
 SUFFIX_JS = ".js"
@@ -166,6 +179,8 @@ class FileNamesJS(Enum):
 HIGH_RATE_LINKS = {
     r"Next\|": "继续",
     r"Next \|": "继续",
+    r"Next->": "继续",
+    r"Next ->": "继续",
     r"Leave\|": "离开",
     r"Refuse\|": "拒绝",
     r"Return\|": "返回",
@@ -202,6 +217,7 @@ __all__ = [
 
     "FILE_REPOSITORY_ZIP",
     "FILE_PARATRANZ_ZIP",
+    "FILE_COMMITS",
 
     "SUFFIX_TWEE",
     "SUFFIX_JS",

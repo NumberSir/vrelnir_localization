@@ -2,7 +2,8 @@ import csv
 import re
 
 from pathlib import Path
-from typing import List, Dict
+
+from typing import List, Dict, Any, Optional
 from zipfile import ZipFile
 from urllib.parse import quote
 
@@ -32,7 +33,12 @@ class ProjectDOL:
             self._whitelists: Dict[str, List] = json.load(fp)
         self._type: str = type_
         self._version: str = None
-
+        if FILE_COMMITS.exists():
+            with open(FILE_COMMITS, "r", encoding="utf-8") as fp:
+                self._commit: Dict[str, Any] = json.load(fp)
+        else:
+            self._commit = None
+        self._is_latest = False
         self._paratranz_file_lists: List[Path] = None
         self._raw_dicts_file_lists: List[Path] = None
         self._game_texts_file_lists: List[Path] = None
@@ -42,13 +48,13 @@ class ProjectDOL:
         """创建目标文件夹"""
         os.makedirs(DIR_TEMP_ROOT, exist_ok=True)
         os.makedirs(DIR_RAW_DICTS / version / "csv", exist_ok=True)
-        # await aos.makedirs(DIR_FINE_DICTS, exist_ok=True)
 
-    async def fetch_latest_version(self):
+    async def fetch_latest_version(self, is_quiet: bool = True):
         async with httpx.AsyncClient() as client:
             url = f"{REPOSITORY_URL_COMMON}/-/raw/master/version" if self._type == "common" else f"{REPOSITORY_URL_DEV}/-/raw/dev/version"
             response = await client.get(url)
-            logger.info(f"当前仓库最新版本: {response.text}")
+            if not is_quiet:
+                logger.info(f"当前仓库最新版本: {response.text}")
             self._version = response.text
         self._init_dirs(self._version)
 
@@ -57,6 +63,12 @@ class ProjectDOL:
         """从 gitgud 下载源仓库文件"""
         if not self._version:
             await self.fetch_latest_version()
+        if self._is_latest:
+            dol_path_zip = DIR_ROOT / "dol.zip"
+            if dol_path_zip.exists():
+                shutil.move(dol_path_zip, DIR_TEMP_ROOT)
+                await self.unzip_latest_repository()
+                return
         await self.fetch_latest_repository()
         await self.unzip_latest_repository()
 
@@ -106,7 +118,7 @@ class ProjectDOL:
         self._game_texts_file_lists = []
         texts_dir = DIR_GAME_TEXTS_COMMON if self._type == "common" else DIR_GAME_TEXTS_DEV
         for root, dir_list, file_list in os.walk(texts_dir):
-            dir_name = root.split("\\")[-1]
+            dir_name = Path(root).absolute().name
             for file in file_list:
                 if not file.endswith(SUFFIX_TWEE):
                     if not file.endswith(SUFFIX_JS):
@@ -134,8 +146,8 @@ class ProjectDOL:
             await self.fetch_latest_version()
         dir_name = DIR_GAME_ROOT_COMMON_NAME if self._type == "common" else DIR_GAME_ROOT_DEV_NAME
         for file in self._game_texts_file_lists:
-            target_dir = file.parent.__str__().split(f"{dir_name}\\")[1]
-            target_dir_csv = DIR_RAW_DICTS / self._version / "csv" / target_dir
+            target_dir = file.parent.parts[file.parts.index(dir_name)+1:]
+            target_dir_csv = (DIR_RAW_DICTS / self._version / "csv").joinpath(*target_dir)
             if not target_dir_csv.exists():
                 os.makedirs(target_dir_csv, exist_ok=True)
 
@@ -150,7 +162,7 @@ class ProjectDOL:
         logger.info("##### 翻译文本已处理为键值对 ! \n")
 
     async def _process_for_gather(self, idx: int, file: Path):
-        target_file = file.__str__().split("game\\")[1].replace(SUFFIX_JS, "").replace(SUFFIX_TWEE, "")
+        target_file = Path().joinpath(*file.parts[file.parts.index("game")+1:]).with_suffix("")
 
         with open(file, "r", encoding="utf-8") as fp:
             lines = fp.readlines()
@@ -180,7 +192,6 @@ class ProjectDOL:
                 csv.writer(fp).writerows(results_lines_csv)
         # logger.info(f"\t- ({idx + 1} / {len(self._game_texts_file_lists)}) {target_file} 处理完毕")
 
-
     """更新字典"""
     async def update_dicts(self):
         """更新字典"""
@@ -205,7 +216,7 @@ class ProjectDOL:
     async def _update_for_gather(self, old_file: Path, new_file: Path, idx: int, full: int):
         """gather 用"""
         if not new_file.exists():
-            unavailable_file = DIR_RAW_DICTS / self._version / "csv/game/失效词条" / old_file.__str__().split("utf8\\")[1]
+            unavailable_file = DIR_RAW_DICTS / self._version / "csv" / "game" / "失效词条" / Path().joinpath(*old_file.parts[old_file.parts.index("utf8")+1:])
             os.makedirs(unavailable_file.parent, exist_ok=True)
             with open(old_file, "r", encoding="utf-8") as fp:
                 unavailables = list(csv.reader(fp))
@@ -247,7 +258,7 @@ class ProjectDOL:
             if old_en not in new_ens:
                 # logger.info(f"\t- old: {old_en}")
                 unavailables.append(old_data[idx_])
-        unavailable_file = DIR_RAW_DICTS / self._version / "csv/game/失效词条" / old_file.__str__().split("utf8\\")[1] if unavailables else None
+        unavailable_file = DIR_RAW_DICTS / self._version / "csv" / "game" / "失效词条" / os.path.join(*old_file.parts[1:]) if unavailables else None
 
         with open(new_file, "w", encoding="utf-8-sig", newline="") as fp:
             csv.writer(fp).writerows(new_data)
@@ -334,7 +345,7 @@ class ProjectDOL:
                         raw_targets_temp[idx_] = ""
                         break
                     elif "<" in target_row:
-                        if "<<link [[" in target_row and re.findall(r"<<link \[\[(Next\||Next\s\||Leave\||Refuse\||Return\|Resume\||Confirm\||Continue\||Stop\|)", target_row):  # 高频词
+                        if "<<link [[" in target_row and re.findall(r"<<link \[\[(Next->|Next\s->|Next\||Next\s\||Leave\||Refuse\||Return\|Resume\||Confirm\||Continue\||Stop\|)", target_row):  # 高频词
                             raw_targets[idx_] = target_row\
                                 .replace("[[Next", "[[继续")\
                                 .replace("[[Leave", "[[离开")\
@@ -353,7 +364,6 @@ class ProjectDOL:
                             raw_targets[idx_] = raw_targets[idx_].replace("name_cap>>", "cn_name_cap>>")
                         elif "<<clothingicon" in target_row and re.findall(r"<<clothingicon.*?\.name_cap", target_row):
                             raw_targets[idx_] = raw_targets[idx_].replace("name_cap", "cn_name_cap")
-                        break
                     elif target_row.strip() == "].select($_rng)>>":  # 怪东西
                         raw_targets[idx_] = ""
                 # else:
@@ -412,28 +422,61 @@ class ProjectDOL:
         """单双引号打错了"""
         if '",' in line_en and '”,' in line_zh:
             return True
-
         return ': "' in line_en and ': “' in line_zh
 
     """ 删删删 """
     async def drop_all_dirs(self):
         """恢复到最初时的样子"""
         logger.warning("===== 开始删库跑路 ...")
+        latest_commit = await self.get_lastest_commit()
+        if latest_commit:
+            logger.info(f'commit: {latest_commit["id"]}')
+            self._is_latest = bool(self._commit and latest_commit["id"] == self._commit["id"])
+            if not self._is_latest:
+                logger.info("===== 开始写入最新 commit ...")
+                with open(FILE_COMMITS, "w") as f:
+                    json.dump(latest_commit, f, ensure_ascii=False, indent=2)
+                logger.info("##### 最新 commit 写入完毕!\n")
+
         await self._drop_temp()
         await self._drop_gitgud()
         await self._drop_dict()
         await self._drop_paratranz()
         logger.warning("##### 删库跑路完毕 !\n")
 
+    async def get_lastest_commit(self) -> Optional[Dict[str, Any]]:
+        ref_name = self.get_type("master", "dev")
+        async with httpx.AsyncClient() as client:
+            response = await client.get(REPOSITORY_URL_COMMITS, params = {"ref_name": ref_name})
+            if response.status_code != 200:
+                logger.error("获取源仓库 commit 出错！")
+                return None
+            repo_json = response.json()
+            return repo_json[0] if repo_json else None
+           
     async def _drop_temp(self):
         """删掉临时文件"""
-        shutil.rmtree(DIR_TEMP_ROOT, ignore_errors=True)
+        if DIR_TEMP_ROOT.exists():
+            if not self._is_latest:
+                shutil.rmtree(DIR_TEMP_ROOT, ignore_errors=True)
+                return
+            if not FILE_REPOSITORY_ZIP.exists():
+                return
+            shutil.move(FILE_REPOSITORY_ZIP, DIR_ROOT) # type: ignore
+            shutil.rmtree(DIR_TEMP_ROOT, ignore_errors=True)
         logger.warning("\t- 缓存目录已删除")
+
+    def get_type(self, common, dev):
+        return common if self._type == "common" else dev
+
+    @property
+    def game_dir(self) -> Path:
+        """获得游戏目录"""
+        return self.get_type(DIR_GAME_ROOT_COMMON, DIR_GAME_ROOT_DEV)
 
     async def _drop_gitgud(self):
         """删掉游戏库"""
-        game_dir = DIR_GAME_ROOT_COMMON if self._type == "common" else DIR_GAME_ROOT_DEV
-        shutil.rmtree(game_dir, ignore_errors=True)
+        shutil.rmtree(self.game_dir, ignore_errors=True)
         logger.warning("\t- 游戏目录已删除")
 
     async def _drop_dict(self):
@@ -462,25 +505,67 @@ class ProjectDOL:
 
     def _compile_for_windows(self):
         """win"""
-        game_dir = DIR_GAME_ROOT_COMMON if self._type == "common" else DIR_GAME_ROOT_DEV
-        subprocess.Popen(game_dir / "compile.bat")
+        subprocess.Popen(self.game_dir / "compile.bat")
         time.sleep(5)
-        logger.info(f"\t- Windows 游戏编译完成，位于 {game_dir / 'Degrees of Lewdity VERSION.html'}")
+        logger.info(f"\t- Windows 游戏编译完成，位于 {self.game_dir / 'Degrees of Lewdity VERSION.html'}")
 
     def _compile_for_linux(self):
         """linux"""
-        game_dir = DIR_GAME_ROOT_COMMON if self._type == "common" else DIR_GAME_ROOT_DEV
-        subprocess.Popen(f'bash {game_dir / "compile.sh"}')
+        if GITHUB_ACTION_DEV:
+            tweego_exe = "tweego_linux86" if PLATFORM_ARCHITECTURE == "32bit" else "tweego_linux64"
+            tweego_exe_file = self.game_dir / "devTools" / "tweego" / tweego_exe
+            tweego_exe_file.chmod(tweego_exe_file.stat().st_mode | stat.S_IEXEC)
+            tweego_compile_sh = self.game_dir / "compile.sh"
+            tweego_compile_sh.chmod(tweego_compile_sh.stat().st_mode | stat.S_IEXEC)
+        subprocess.Popen("bash ./compile.sh", env=os.environ, shell=True, cwd=self.game_dir)
         time.sleep(5)
-        logger.info(f"\t- Linux 游戏编译完成，位于 {game_dir / 'Degrees of Lewdity VERSION.html'}")
+        logger.info(f"\t- Linux 游戏编译完成，位于 {self.game_dir / 'Degrees of Lewdity VERSION.html'}")
 
     def _compile_for_mobile(self):
         """android"""
 
+    def copy_to_git(self):
+        """复制到git"""
+        git_repo = os.getenv("GIT_REPO")
+        dol_chinese_path = DIR_ROOT / git_repo
+        if not dol_chinese_path.exists():
+            logger.warning(f"不存在{git_repo}文件夹")
+            return
+
+        logger.info("===== 开始复制到 git ...")
+        game_dir = os.listdir(self.game_dir)
+
+        logger.info(f"game_dir: {game_dir}")
+        for file in game_dir:
+            if file.startswith("Degrees of Lewdity") and file.endswith("html"):
+                dol_html = "beta" if GITHUB_ACTION_ISBETA else "index"
+                shutil.copyfile(
+                    self.game_dir / file,
+                    dol_chinese_path / f"{dol_html}.html",
+                )
+            elif file in {"style.css", "DolSettingsExport.json"}:
+                logger.info(f"game_dir file: {file}")
+                shutil.copyfile(
+                    self.game_dir / file,
+                    dol_chinese_path / file,
+                )
+        dol_chinese_img_path = dol_chinese_path / "img"
+
+        # def ignorefile(files):
+        #     return [f for f in files if f.endswith(".js") or f.endswith(".bat")]
+
+        shutil.copytree(
+            self.game_dir / "img",
+            dol_chinese_img_path,
+            True,
+            ignore=lambda files: [f for f in files if f.endswith(".js") or f.endswith(".bat")],
+            dirs_exist_ok=True,
+        )
+        logger.info("##### 复制到 git 已完毕! ")
+
     """ 在浏览器中启动 """
     def run(self):
-        game_dir = DIR_GAME_ROOT_COMMON if self._type == "common" else DIR_GAME_ROOT_DEV
-        webbrowser.open(game_dir / "Degrees of Lewdity VERSION.html")
+        webbrowser.open((self.game_dir / "Degrees of Lewdity VERSION.html").__str__())
 
 
 __all__ = [
