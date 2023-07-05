@@ -2,7 +2,7 @@ import csv
 import re
 
 from pathlib import Path
-from typing import List, Dict
+from typing import List, Dict,Any
 from zipfile import ZipFile
 from urllib.parse import quote
 
@@ -22,7 +22,6 @@ from .log import logger
 from .parse_text import *
 from .utils import *
 
-
 class ProjectDOL:
     """本地化主类"""
 
@@ -33,7 +32,13 @@ class ProjectDOL:
             self._whitelists: Dict[str, List] = json.load(fp)
         self._type: str = type_
         self._version: str = None
-
+        commits_path = DIR_ROOT / "commits.json"
+        if Path(commits_path).exists() :
+         with  open(commits_path, "r", encoding="utf-8") as fp:
+                self.commit:Dict[str,Any] = json.load(fp)
+        else:
+            self.commit = None
+        self.dol_is_last = False
         self._paratranz_file_lists: List[Path] = None
         self._raw_dicts_file_lists: List[Path] = None
         self._game_texts_file_lists: List[Path] = None
@@ -58,6 +63,12 @@ class ProjectDOL:
         """从 gitgud 下载源仓库文件"""
         if not self._version:
             await self.fetch_latest_version()
+        if self.dol_is_last:
+            dol_path_zip = self.nomalized_path(f"{DIR_ROOT}\\dol.zip")
+            dol_path = Path(dol_path_zip)
+            if dol_path.exists() and dol_path.is_file():
+                shutil.move(dol_path_zip,DIR_TEMP_ROOT)
+                return
         await self.fetch_latest_repository()
         await self.unzip_latest_repository()
 
@@ -419,21 +430,59 @@ class ProjectDOL:
     """ 删删删 """
     async def drop_all_dirs(self):
         """恢复到最初时的样子"""
+        last_commit = await self.get_lastest_commit()
+        if last_commit:
+            logger.info(last_commit["id"])
+            self.dol_is_last = True if self.commit and last_commit["id"] == self.commit["id"] else False
+            if not self.dol_is_last:
+                logger.info("开始")
+                f = open(DIR_ROOT / "commits.json","w")
+                json.dump(last_commit,f)
+                f.close()
         logger.warning("===== 开始删库跑路 ...")
+        
         await self._drop_temp()
         await self._drop_gitgud()
         await self._drop_dict()
         await self._drop_paratranz()
         logger.warning("##### 删库跑路完毕 !\n")
-
+    
+    async def get_lastest_commit(self)-> Dict[str,Any]: 
+        ref_name = self.get_type("master","dev")
+        async with httpx.AsyncClient() as client:
+           repo_commits = await client.get(
+            REPOSITORY_URL_COMMITS,
+            params = {"ref_name":ref_name}
+            )
+           if repo_commits.status_code == 200:
+                repo_json = repo_commits.json()
+                if len(repo_json) > 0:
+                    return repo_json[0]
+        return None # type: ignore
+           
     async def _drop_temp(self):
         """删掉临时文件"""
-        shutil.rmtree(DIR_TEMP_ROOT, ignore_errors=True)
+        dir_temp_root = Path(DIR_TEMP_ROOT)
+        if dir_temp_root.exists() and dir_temp_root.is_dir():
+            if self.dol_is_last:
+                dol_path_zip = self.nomalized_path(f"{DIR_TEMP_ROOT}\\dol.zip")
+                dol_path = Path(dol_path_zip)
+                if dol_path.exists() and dol_path.is_file():
+                    shutil.move(dol_path_zip,DIR_ROOT) # type: ignore
+                    shutil.rmtree(DIR_TEMP_ROOT, ignore_errors=True)
+            else:
+                shutil.rmtree(DIR_TEMP_ROOT, ignore_errors=True)
         logger.warning("\t- 缓存目录已删除")
+    def get_type(self,common,dev):
+        return common if self._type == "common" else dev
+
+    def get_game_dir(self):
+        """获得游戏目录"""
+        return self.get_type(DIR_GAME_ROOT_COMMON,DIR_GAME_ROOT_DEV)
 
     async def _drop_gitgud(self):
         """删掉游戏库"""
-        game_dir = DIR_GAME_ROOT_COMMON if self._type == "common" else DIR_GAME_ROOT_DEV
+        game_dir = self.get_game_dir()
         shutil.rmtree(game_dir, ignore_errors=True)
         logger.warning("\t- 游戏目录已删除")
 
@@ -463,14 +512,14 @@ class ProjectDOL:
 
     def _compile_for_windows(self):
         """win"""
-        game_dir = DIR_GAME_ROOT_COMMON if self._type == "common" else DIR_GAME_ROOT_DEV
+        game_dir = self.get_game_dir()
         subprocess.Popen(game_dir / "compile.bat")
         time.sleep(5)
         logger.info(f"\t- Windows 游戏编译完成，位于 {game_dir / 'Degrees of Lewdity VERSION.html'}")
 
     def _compile_for_linux(self):
         """linux"""
-        game_dir = DIR_GAME_ROOT_COMMON if self._type == "common" else DIR_GAME_ROOT_DEV
+        game_dir = self.get_game_dir()
         
         if GITHUB_ACTION_DEV:
             tweego_exe = "tweego_linux" + (
@@ -494,7 +543,7 @@ class ProjectDOL:
             logger.info(f"不存在{git_repo}文件夹")
             return
         game_dir_path = (
-            DIR_GAME_ROOT_COMMON if self._type == "common" else DIR_GAME_ROOT_DEV
+            self.get_game_dir()
         )
         logger.info(f"===== 开始")
         game_dir = os.listdir(game_dir_path)
@@ -529,7 +578,7 @@ class ProjectDOL:
 
     """ 在浏览器中启动 """
     def run(self):
-        game_dir = DIR_GAME_ROOT_COMMON if self._type == "common" else DIR_GAME_ROOT_DEV
+        game_dir = self.get_game_dir()
         webbrowser.open(game_dir / "Degrees of Lewdity VERSION.html")
     
     @staticmethod

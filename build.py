@@ -60,6 +60,10 @@ async def main():
 
     """ 删库跑路 """
     await dol.drop_all_dirs()
+    # # 测试用
+    # await dol._drop_gitgud()
+    # await dol.unzip_latest_repository()
+
 
     """ 获取最新版本 """
     await dol.fetch_latest_version()

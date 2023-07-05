@@ -24,6 +24,7 @@ REPOSITORY_URL_COMMON = "https://gitgud.io/Vrelnir/degrees-of-lewdity"
 REPOSITORY_ZIP_URL_COMMON = "https://gitgud.io/Vrelnir/degrees-of-lewdity/-/archive/master/degrees-of-lewdity-master.zip"
 REPOSITORY_URL_DEV = "https://gitgud.io/Vrelnir/degrees-of-lewdity"
 REPOSITORY_ZIP_URL_DEV = "https://gitgud.io/Vrelnir/degrees-of-lewdity/-/archive/dev/degrees-of-lewdity-dev.zip"
+REPOSITORY_URL_COMMITS = "https://gitgud.io/api/v4/projects/8430/repository/commits"
 
 """本地目录"""
 DIR_ROOT = Path(__file__).parent.parent
@@ -203,6 +204,7 @@ __all__ = [
     "REPOSITORY_ZIP_URL_COMMON",
     "REPOSITORY_URL_DEV",
     "REPOSITORY_ZIP_URL_DEV",
+    "REPOSITORY_URL_COMMITS",
 
     "DIR_ROOT",
     "DIR_DATA_ROOT",
