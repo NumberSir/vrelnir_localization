@@ -32,11 +32,12 @@ class ProjectDOL:
             self._whitelists: Dict[str, List] = json.load(fp)
         self._type: str = type_
         self._version: str = None
+        self._commit: Dict[str, Any]  = None
+        
         if FILE_COMMITS.exists():
             with open(FILE_COMMITS, "r", encoding="utf-8") as fp:
                 self._commit: Dict[str, Any] = json.load(fp)
-        else:
-            self._commit = None
+                
         self._is_latest = False
         self._paratranz_file_lists: List[Path] = None
         self._raw_dicts_file_lists: List[Path] = None
@@ -547,12 +548,13 @@ class ProjectDOL:
                     game_html,
                     dol_chinese_path / f"{dol_html}.html",
                 )
-                beeesssmod_dir = dol_chinese_path / "beeesssmod"
-                if beeesssmod_dir.exists():
+                beeesssmod_dir_path =dol_chinese_path / "beeesssmod"
+                beeesssmod_dir = Path(beeesssmod_dir_path)
+                if beeesssmod_dir.exists() and beeesssmod_dir.is_dir:
                     logger.info("同步到美化包文件夹")
                     shutil.copyfile(
                         game_html,
-                        beeesssmod_dir / f"{dol_html}.html",
+                        beeesssmod_dir_path / f"{dol_html}.html",
                     )
 
             elif file in {"style.css", "DolSettingsExport.json"}:
