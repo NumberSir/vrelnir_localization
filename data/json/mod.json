@@ -8,7 +8,8 @@
         "url": "https://gitgud.io/Wub/degrees-of-lewdity-world-expansion",
         "main_branches": "master",
         "dev_branches": "JSide-Dev",
-        "path": ""
+        "path": "",
+        "output_file": "dol-we.zip"
     },
     {
         "name": "Degrees of Lewdity Graphics Mod",
@@ -19,6 +20,7 @@
         "url": "https://gitgud.io/BEEESSS/degrees-of-lewdity-graphics-mod",
         "main_branches": "master",
         "dev_branches": "",
-        "path": "img.zip"
+        "path": "img.zip",
+        "output_file": "dol-we.zip"
     }
 ]

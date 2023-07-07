@@ -34,6 +34,7 @@ class ModDol:
             if not json
             else json
         )
+        self.branch_json = {}
 
     async def get_lastest_commit(self, branch=""):
         async with httpx.AsyncClient() as client:
@@ -46,6 +47,16 @@ class ModDol:
                 return None
             return repo_json
 
+    async def get_lastest_archive(self, branch="", format="zip"):
+        last_commit = await self.get_lastest_commit(branch)
+        if not last_commit:
+            return
+        sha = last_commit["commit"]["id"]
+        archive_url = f"{self.repository_api_url}/archive.{format}?sha={sha}"
+        async with httpx.AsyncClient() as client:
+            response = await client.get(archive_url)
+        pass
+
     @property
     def project_url_api_url(self):
         return (
@@ -55,9 +66,13 @@ class ModDol:
         )
 
     @property
+    def repository_api_url(self):
+        return f"{self.project_url_api_url}/repository"
+
+    @property
     def project_branches_api_url(self):
-        url_api = self.project_url_api_url
-        return f"{url_api}/repository/branches"
+        url_api = self.repository_api_url
+        return f"{url_api}/branches"
 
     def get_repository_branch_url(self, branch=""):
         brach = self.main_branches if not branch else branch
