@@ -1,0 +1,26 @@
+[
+    {
+        "name": "Degrees Of Lewdity World Expansion +",
+        "zh_name": "DOL世界扩展+",
+        "type": "Game",
+        "project_id": 20811,
+        "author": "Chylli",
+        "url": "https://gitgud.io/Wub/degrees-of-lewdity-world-expansion",
+        "main_branches": "master",
+        "dev_branches": "JSide-Dev",
+        "path": "",
+        "output_file": "dol-we.zip"
+    },
+    {
+        "name": "Degrees of Lewdity Graphics Mod",
+        "zh_name": "DOL美化包",
+        "type": "Graphics",
+        "project_id": 19253,
+        "author": "BEEESSS",
+        "url": "https://gitgud.io/BEEESSS/degrees-of-lewdity-graphics-mod",
+        "main_branches": "master",
+        "dev_branches": "",
+        "path": "img.zip",
+        "output_file": "dol-we.zip"
+    }
+]

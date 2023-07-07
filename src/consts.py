@@ -14,7 +14,9 @@ SYSTEM_ARGV = sys.argv
 GITHUB_ACTION_DEV = len(SYSTEM_ARGV) > 1 and SYSTEM_ARGV[1] == "-D"
 GITHUB_ACTION_ISBETA = len(SYSTEM_ARGV) > 2 and SYSTEM_ARGV[2] == "beta"
 """汉化仓库"""
-PARATRANZ_TOKEN = "" if not os.getenv("PARATRANZ_TOKEN") else os.getenv("PARATRANZ_TOKEN")   # 必填，在个人设置里
+PARATRANZ_TOKEN = (
+    "" if not os.getenv("PARATRANZ_TOKEN") else os.getenv("PARATRANZ_TOKEN")
+)  # 必填，在个人设置里
 PARATRANZ_BASE_URL = "https://paratranz.cn/api"
 PARATRANZ_HEADERS = {"Authorization": PARATRANZ_TOKEN}
 PARATRANZ_PROJECT_ID = 4780  # DOL 项目 ID
@@ -50,6 +52,7 @@ DIR_PARATRANZ = DIR_DATA_ROOT / "paratranz"
 FILE_REPOSITORY_ZIP = DIR_TEMP_ROOT / "dol.zip"
 FILE_PARATRANZ_ZIP = DIR_TEMP_ROOT / "paratranz_export.zip"
 FILE_COMMITS = DIR_JSON_ROOT / "commits.json"
+FILE_MODS = DIR_JSON_ROOT / "mod.json"
 
 SUFFIX_TWEE = ".twee"
 SUFFIX_JS = ".js"
@@ -57,6 +60,7 @@ SUFFIX_JS = ".js"
 
 class DirNamesTwee(Enum):
     """特殊的目录名"""
+
     FRAMEWORK = "00-framework-tools"
     CONFIG = "01-config"
     JAVASCRIPT = "03-JavaScript"
@@ -76,6 +80,7 @@ class DirNamesTwee(Enum):
 
 class FileNamesTwee(Enum):
     """特殊的文件名"""
+
     """ 00-framework-tools """
     WAITING_ROOM_FULL = "waiting-room.twee"  # FULL 代表这就是文件名
 
@@ -152,6 +157,7 @@ class FileNamesTwee(Enum):
 
 class DirNamesJS(Enum):
     """要抓的 JS 目录"""
+
     JAVASCRIPT = "03-JavaScript"
     VARIABLES = "04-Variables"
     SPECIAL_MASTURBATION = "special-masturbation"
@@ -159,6 +165,7 @@ class DirNamesJS(Enum):
 
 class FileNamesJS(Enum):
     """要抓的 JS 文件"""
+
     """ 03-JavaScript """
     BEDROOM_PILLS_FULL = "bedroomPills.js"
     DEBUG_MENU_FULL = "debugMenu.js"
@@ -186,7 +193,7 @@ HIGH_RATE_LINKS = {
     r"Resume\|": "返回",
     r"Confirm\|": "确认",
     r"Continue\|": "继续",
-    r"Stop\|": "停止"
+    r"Stop\|": "停止",
 }
 
 
@@ -196,18 +203,15 @@ __all__ = [
     "GITHUB_ACTION_ISBETA",
     "PLATFORM_SYSTEM",
     "PLATFORM_ARCHITECTURE",
-
     "PARATRANZ_BASE_URL",
     "PARATRANZ_HEADERS",
     "PARATRANZ_TOKEN",
     "PARATRANZ_PROJECT_ID",
-
     "REPOSITORY_URL_COMMON",
     "REPOSITORY_ZIP_URL_COMMON",
     "REPOSITORY_URL_DEV",
     "REPOSITORY_ZIP_URL_DEV",
     "REPOSITORY_URL_COMMITS",
-
     "DIR_ROOT",
     "DIR_DATA_ROOT",
     "DIR_JSON_ROOT",
@@ -221,18 +225,15 @@ __all__ = [
     "DIR_GAME_TEXTS_DEV",
     "DIR_RAW_DICTS",
     "DIR_PARATRANZ",
-
     "FILE_REPOSITORY_ZIP",
     "FILE_PARATRANZ_ZIP",
     "FILE_COMMITS",
-
+    "FILE_MODS",
     "SUFFIX_TWEE",
     "SUFFIX_JS",
-
     "DirNamesTwee",
     "FileNamesTwee",
     "DirNamesJS",
     "FileNamesJS",
-
-    "HIGH_RATE_LINKS"
+    "HIGH_RATE_LINKS",
 ]
