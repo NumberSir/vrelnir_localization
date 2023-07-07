@@ -284,13 +284,20 @@ class ProjectDOL:
             if "失效词条" in root:
                 continue
             for file in file_list:
-                if any(_ in file for _ in blacklist_files):
-                    continue
-                if file.endswith(".js.csv"):
-                    file_mapping[Path(root).absolute() / file] = DIR_GAME_TEXTS / Path(root).relative_to(DIR_RAW_DICTS / self._version / "csv" / "game") / f"{file.split('.')[0]}.js"
-                else:
-                    file_mapping[Path(root).absolute() / file] = DIR_GAME_TEXTS / Path(root).relative_to(DIR_RAW_DICTS / self._version / "csv" / "game") / f"{file.split('.')[0]}.twee"
-
+                if all(_ not in file for _ in blacklist_files):
+                    file_mapping[Path(root).absolute() / file] = (
+                        DIR_GAME_TEXTS
+                        / Path(root).relative_to(
+                            DIR_RAW_DICTS / self._version / "csv" / "game"
+                        )
+                        / f"{file.split('.')[0]}.js"
+                        if file.endswith(".js.csv")
+                        else DIR_GAME_TEXTS
+                        / Path(root).relative_to(
+                            DIR_RAW_DICTS / self._version / "csv" / "game"
+                        )
+                        / f"{file.split('.')[0]}.twee"
+                    )
         tasks = [
             self._apply_for_gather(csv_file, twee_file, idx, len(file_mapping))
             for idx, (csv_file, twee_file) in enumerate(file_mapping.items())

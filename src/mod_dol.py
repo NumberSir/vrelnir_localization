@@ -43,9 +43,7 @@ class ModDol:
                 logger.error("获取源仓库 commit 出错！")
                 return None
             repo_json = response.json()
-            if not repo_json:
-                return None
-            return repo_json
+            return None if not repo_json else repo_json
 
     async def get_lastest_archive(self, branch="", format="zip"):
         last_commit = await self.get_lastest_commit(branch)
@@ -55,7 +53,6 @@ class ModDol:
         archive_url = f"{self.repository_api_url}/archive.{format}?sha={sha}"
         async with httpx.AsyncClient() as client:
             response = await client.get(archive_url)
-        pass
 
     @property
     def project_url_api_url(self):
@@ -157,8 +154,7 @@ class ModDol:
     def getter_key(self, key: str):
         if not key:
             return None
-        value = self.data[key]
-        if value:
+        if value := self.data[key]:
             return value
         default_value = MOD_DOL_DEFAULT[key]
         self.data[key] = default_value
