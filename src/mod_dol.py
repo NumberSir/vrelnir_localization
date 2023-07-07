@@ -1,67 +1,75 @@
-from typing import Any, TypeVar
+import asyncio
+from pathlib import Path
+from typing import Union, Optional
 from .consts import *
 from .log import *
 import json
 import httpx
+from utils import chunk_split, chunk_download
 
-MOD_DOL_DEFAULT = {
-    "name": "",
-    "zh_name": "",
-    "type": "",
-    "project_id": -1,
-    "author": "",
-    "url": "",
-    "main_branches": "",
-    "dev_branches": "",
-    "path": "",
-}
+
+from dataclasses import dataclass
+
+@dataclass
+class ModData:
+    name: str = ""
+    zh_name: str = ""
+    type: str = ""
+    project_id: int = -1
+    author: str = ""
+    url: str = ""
+    main_branches: str = ""
+    dev_branches: str = ""
+    path: Union[str, Path] = ""
+    output_file: str = ""
 
 
 class ModDol:
-    def __init__(self, json=None) -> None:
-        self._data = (
-            {
-                "name": "",
-                "zh_name": "",
-                "type": "",
-                "project_id": -1,
-                "author": "",
-                "url": "",
-                "main_branches": "",
-                "dev_branches": "",
-                "path": "",
-            }
-            if not json
-            else json
-        )
+    def __init__(self, json_: dict = None) -> None:
+        self._data = ModData(**json_) if json_ else ModData()
         self.branch_json = {}
 
-    async def get_lastest_commit(self, branch=""):
+    async def get_lastest_commit(self, branch: str = "") -> Optional[dict]:
         async with httpx.AsyncClient() as client:
             response = await client.get(self.get_repository_branch_url(branch))
             if response.status_code != 200:
                 logger.error("获取源仓库 commit 出错！")
                 return None
-            repo_json = response.json()
-            if not repo_json:
-                return None
-            return repo_json
+            return response.json() or None
 
-    async def get_lastest_archive(self, branch="", format="zip"):
+    async def get_lastest_archive(self, branch: str = "", format_: str = "zip"):
+        """下载 mod 包"""
         last_commit = await self.get_lastest_commit(branch)
         if not last_commit:
             return
-        sha = last_commit["commit"]["id"]
-        archive_url = f"{self.repository_api_url}/archive.{format}?sha={sha}"
+        archive_url = f"{self.repository_api_url}/archive.{format_}?sha={last_commit['commit']['id']}"
+
         async with httpx.AsyncClient() as client:
-            response = await client.get(archive_url)
-        pass
+            for _ in range(3):
+                try:
+                    response = await client.head(archive_url, timeout=60, follow_redirects=True)
+                    filesize = int(response.headers["Content-Length"])
+                    chunks = await chunk_split(filesize, 64)
+                except (httpx.ConnectError, KeyError) as e:
+                    continue
+                else:
+                    flag = True
+                    break
+
+            if not flag:
+                logger.error(f"***** 无法正常下载最新mod {self.data.zh_name}！请检查你的网络连接是否正常！")
+            tasks = [
+                chunk_download(archive_url, client, start, end, idx, len(chunks), DIR_TEMP_ROOT / self.data.output_file)
+                for idx, (start, end) in enumerate(chunks)
+            ]
+            await asyncio.gather(*tasks)
+        logger.info(f"##### 最新mod {self.data.zh_name} 内容已获取! \n")
 
     @property
     def project_url_api_url(self):
         return (
-            f"https://gitgud.io/api/v4/projects/{self.project_id}"
-            if self.project_id > 0
+            f"https://gitgud.io/api/v4/projects/{self.data.project_id}"
+            if self.data.project_id > 0
             else None
         )
 
@@ -71,101 +79,15 @@ class ModDol:
 
     @property
     def project_branches_api_url(self):
-        url_api = self.repository_api_url
-        return f"{url_api}/branches"
+        return f"{self.repository_api_url}/branches"
 
-    def get_repository_branch_url(self, branch=""):
-        brach = self.main_branches if not branch else branch
+    def get_repository_branch_url(self, branch: str = ""):
+        branch = branch or self.data.main_branches
         return f"{self.project_branches_api_url}/{branch}"
 
     @property
-    def data(self):
+    def data(self) -> "ModData":
         return self._data
-
-    @property
-    def name(self) -> str:
-        return self.getter_key("name")  # type: ignore
-
-    @name.setter
-    def name(self, value: str):
-        self.setter_key("name", value)
-
-    @property
-    def zh_name(self) -> str:
-        return self.getter_key("zh_name")  # type: ignore
-
-    @zh_name.setter
-    def zh_name(self, value: str):
-        self.setter_key("zh_name", value)
-
-    @property
-    def type(self) -> str:
-        return self.getter_key("type")  # type: ignore
-
-    @type.setter
-    def type(self, value: str):
-        self.setter_key("type", value)
-
-    @property
-    def project_id(self) -> int:
-        return self.getter_key("project_id")  # type: ignore
-
-    @project_id.setter
-    def project_id(self, value: int):
-        self.setter_key("project_id", value)
-
-    @property
-    def author(self) -> str:
-        return self.getter_key("author")  # type: ignore
-
-    @author.setter
-    def author(self, value: str):
-        self.setter_key("author", value)
-
-    @property
-    def url(self) -> str:
-        return self.getter_key("url")  # type: ignore
-
-    @url.setter
-    def url(self, value: str):
-        self.setter_key("url", value)
-
-    @property
-    def main_branches(self) -> str:
-        return self.getter_key("main_branches")  # type: ignore
-
-    @main_branches.setter
-    def main_branches(self, value: str):
-        self.setter_key("main_branches", value)
-
-    @property
-    def dev_branches(self) -> str:
-        return self.getter_key("dev_branches")  # type: ignore
-
-    @dev_branches.setter
-    def dev_branches(self, value: str):
-        self.setter_key("dev_branches", value)
-
-    @property
-    def path(self) -> str:
-        return self.getter_key("path")  # type: ignore
-
-    @path.setter
-    def path(self, value: str):
-        self.setter_key("path", value)
-
-    def getter_key(self, key: str):
-        if not key:
-            return None
-        value = self.data[key]
-        if value:
-            return value
-        default_value = MOD_DOL_DEFAULT[key]
-        self.data[key] = default_value
-        return default_value
-
-    def setter_key(self, key: str, value: Any):
-        self.data[key] = value
 
 
 __all__ = ["ModDol"]

@@ -333,15 +333,15 @@ class ProjectDOL:
                     if en == target_row.strip():
                         raw_targets[idx_] = target_row.replace(en, zh)
                         if "<<print" in target_row and re.findall(r"<<print.*?\.writing>>", zh):
-                            raw_targets[idx_] = raw_targets[idx_].replace("writing>>", "writ_cn>>")
-                        elif "name_cap" not in target_row:
+                            raw_targets[idx_] = raw_targets[idx_].replace(".writing>>", ".writ_cn>>")
+                        elif ".name_cap" not in target_row:
                             raw_targets_temp[idx_] = ""
                             continue
 
                         if "<<link " in target_row and re.findall(r"<<link.*?\.name_cap>>", zh):
-                            raw_targets[idx_] = raw_targets[idx_].replace("name_cap>>", "cn_name_cap>>")
+                            raw_targets[idx_] = raw_targets[idx_].replace(".name_cap>>", ".cn_name_cap>>")
                         elif "<<clothingicon" in target_row and re.findall(r"<<clothingicon.*?\.name_cap", zh):
-                            raw_targets[idx_] = raw_targets[idx_].replace("name_cap", "cn_name_cap")
+                            raw_targets[idx_] = raw_targets[idx_].replace(".name_cap", ".cn_name_cap")
                         raw_targets_temp[idx_] = ""
                         
                     elif "<" in target_row:
@@ -356,14 +356,14 @@ class ProjectDOL:
                                 .replace("[[Continue", "[[继续")\
                                 .replace("[[Stop", "[[停止")
                         elif "<<print" in target_row and re.findall(r"<<print.*?\.writing>>", target_row):
-                            raw_targets[idx_] = raw_targets[idx_].replace("writing>>", "writ_cn>>")
-                        elif "name_cap" not in target_row:
+                            raw_targets[idx_] = raw_targets[idx_].replace(".writing>>", ".writ_cn>>")
+                        elif ".name_cap" not in target_row:
                             continue
 
                         if "<<link " in target_row and re.findall(r"<<link.*?\.name_cap>>", target_row):
-                            raw_targets[idx_] = raw_targets[idx_].replace("name_cap>>", "cn_name_cap>>")
+                            raw_targets[idx_] = raw_targets[idx_].replace(".name_cap>>", ".cn_name_cap>>")
                         elif "<<clothingicon" in target_row and re.findall(r"<<clothingicon.*?\.name_cap", target_row):
-                            raw_targets[idx_] = raw_targets[idx_].replace("name_cap", "cn_name_cap")
+                            raw_targets[idx_] = raw_targets[idx_].replace(".name_cap", ".cn_name_cap")
                     elif target_row.strip() == "].select($_rng)>>":  # 怪东西
                         raw_targets[idx_] = ""
                 # else:
