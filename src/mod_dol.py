@@ -5,7 +5,7 @@ from .consts import *
 from .log import *
 import json
 import httpx
-from utils import chunk_split, chunk_download
+from .utils import chunk_split, chunk_download
 
 
 from dataclasses import dataclass
