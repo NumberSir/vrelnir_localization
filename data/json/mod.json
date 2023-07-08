@@ -8,7 +8,7 @@
         "url": "https://gitgud.io/Wub/degrees-of-lewdity-world-expansion",
         "main_branches": "master",
         "dev_branches": "JSide-Dev",
-        "path": "",
+        "path": "game",
         "output_file": "dol-we.zip"
     },
     {
