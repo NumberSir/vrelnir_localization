@@ -1,16 +1,18 @@
+import io
 from dataclasses import dataclass
-from typing import Union,List
-from enum import  Enum
+from typing import Union, List, Callable,Optional
+from typing_extensions import Self
+from enum import Enum, auto
 
-EOF = -1
+EOF = ''
 class ItemType(Enum):
     ItemError = 0
-    ItemEOF = 1
-    ItemHeader = 2
-    ItemName = 3
-    ItemTags = 4
-    ItemMetadata = 5
-    ItemContent = 6
+    ItemEOF = auto()
+    ItemHeader = auto()
+    ItemName = auto()
+    ItemTags = auto()
+    ItemMetadata = auto()
+    ItemContent = auto()
 @dataclass
 class Item:
     _type:int = 0
@@ -50,9 +52,9 @@ class ItemValue:
     item:Union[Item,None] = None
     @property
     def result(self):
-        return self.item is None
+        return self.has_value()
     def has_value(self):
-        return self.item is None
+        return self.item is not None
 
 @dataclass
 class TweeLexer:
@@ -65,6 +67,16 @@ class TweeLexer:
     @property
     def now_chara(self):
         return self.input[self.pos]
+
+    @property
+    def has_header_delim(self):
+        return  self.input.startswith(HEADER_DELIM,self.pos)
+    @property
+    def newline_header_delim_index(self):
+        return  self.input.index(NEWLINE_HEADER_DELIM,self.pos)
+    @property
+    def now_text(self):
+        return self.input[self.pos:]
     @property
     def count_line_now(self):
         return self.input.count('\n',self.start,self.pos)
@@ -84,6 +96,7 @@ class TweeLexer:
     @property
     def peek(self):
         return EOF if self.pos >= len(self.input) else self.now_chara
+
 
     def backup(self):  # sourcery skip: raise-specific-error
         if self.pos <= self.start:
@@ -115,8 +128,8 @@ class TweeLexer:
             r = self.next
         if r != EOF:
             self.backup()
-    def error_format(self,format_str:str,**args:List[any]):
-        self.items.append(Item(ItemType.ItemError.value, self.line, self.pos, format_str.format(**args)))
+    def error_format(self,format_str:str,*args):
+        self.items.append(Item(ItemType.ItemError.value, self.line, self.pos, format_str.format(*args)))
     def run(self):
         pass
     @staticmethod
@@ -133,21 +146,158 @@ class TweeLexer:
         return  ItemValue()
     def drain(self):
         pass
-def accept_quoted(twee_lexer:TweeLexer,quote:str):
+
+
+
+
+def accept_quoted(twee_lexer: TweeLexer, quote: str):
     while True:
         r = twee_lexer.next
-        if r =="\\":
+        if r == "\\":
             r = twee_lexer.next
             if r not in ['\n', EOF]:
                 break
+            continue
         elif r in ['\n', EOF]:
-            return "unterminated quoted string"
+            return repr("unterminated quoted string")
         elif r == quote:
             continue
     return None
 
 HEADER_DELIM = "::"
 NEWLINE_HEADER_DELIM = "\n::"
+class TweeLexerState(Enum):
+    LexerNone = 0
+    LexerProlog =auto()
+    LexerContent =auto()
+    LexerHeaderDelim =auto()
+    LexerName =auto()
+    LexerNextOptionalBlock =auto()
+    LexerTags =auto()
+    LexerMetadata =auto()
+
+    STATE_FUNC = Optional[Callable[[TweeLexer], Optional[Self]]]
+    @staticmethod
+    def lex_prolog(twee_lexer: TweeLexer):
+        if twee_lexer.has_header_delim:
+            return TweeLexerState.LexerHeaderDelim
+        text_index =twee_lexer.newline_header_delim_index
+        if  text_index > -1:
+            twee_lexer.pos += text_index + 1
+            twee_lexer.ignore()
+            return TweeLexerState.LexerHeaderDelim
+        twee_lexer.emit(ItemType.ItemEOF)
+        return TweeLexerState.LexerNone
+
+    @staticmethod
+    def lex_context(twee_lexer: TweeLexer):
+        if twee_lexer.has_header_delim:
+            return TweeLexerState.LexerHeaderDelim
+        text_index = twee_lexer.newline_header_delim_index
+        if text_index > -1:
+            twee_lexer.pos += text_index + 1
+            twee_lexer.emit(ItemType.ItemContent)
+            return TweeLexerState.LexerHeaderDelim
+        twee_lexer.pos = len(twee_lexer.input)
+        if twee_lexer.pos > twee_lexer.start:
+            twee_lexer.emit(ItemType.ItemContent)
+        twee_lexer.emit(ItemType.ItemEOF)
+        return TweeLexerState.LexerNone
+
+    @staticmethod
+    def lex_header_delim(twee_lexer: TweeLexer):
+        twee_lexer.pos += len(HEADER_DELIM)
+        twee_lexer.emit(ItemType.ItemHeader)
+        return TweeLexerState.LexerName
+
+    @staticmethod
+    def lex_name(twee_lexer: TweeLexer):
+        while True:
+            r = twee_lexer.next
+            if r == "\\":
+                r = twee_lexer.next
+                if r not in  ["\n",EOF]:
+                    break
+                continue
+            elif r in  ['[', ']', '{', '}',"\n",EOF]:
+                if r is not EOF:
+                    twee_lexer.backup()
+                continue
+        twee_lexer.emit(ItemType.ItemName)
+        if r == '[':
+            return  TweeLexerState.LexerTags
+        if r == ']':
+            return  twee_lexer.error_format("unexpected right square bracket %#U",r)
+        if r == '{':
+            return TweeLexerState.LexerMetadata
+        if r == '}':
+            return  twee_lexer.error_format("unexpected right curly bracket %#U",r)
+        if r == '\n':
+            twee_lexer.pos += 1
+            twee_lexer.ignore()
+            return TweeLexerState.LexerContent
+        twee_lexer.emit(ItemType.ItemEOF)
+        return TweeLexerState.LexerNone
+
+
+    @staticmethod
+    def lex_next_optional_block(twee_lexer: TweeLexer):
+        twee_lexer.accept_run(" \t")
+        twee_lexer.ignore()
+        r = twee_lexer.peek
+        if r == '[':
+            return TweeLexerState.LexerTags
+        if r == ']':
+            return twee_lexer.error_format("unexpected right square bracket %#U", r)
+        if r == '{':
+            return TweeLexerState.LexerMetadata
+        if r == '}':
+            return twee_lexer.error_format("unexpected right curly bracket %#U", r)
+        if r == '\n':
+            twee_lexer.pos += 1
+            twee_lexer.ignore()
+            return TweeLexerState.LexerContent
+        if r == EOF:
+            twee_lexer.emit(ItemType.ItemEOF)
+            return TweeLexerState.LexerNone
+        return twee_lexer.error_format("illegal character %#U amid the optional block", r)
+    @staticmethod
+    def lex_tags(twee_lexer: TweeLexer):
+        twee_lexer.pos += 1
+
+        if twee_lexer.pos > twee_lexer.start:
+            twee_lexer.emit(ItemType.ItemTags)
+        return TweeLexerState.LexerNextOptionalBlock
+    @staticmethod
+    def lex_metadata(twee_lexer: TweeLexer):
+        twee_lexer.pos += 1
+
+        if twee_lexer.pos > twee_lexer.start:
+            twee_lexer.emit(ItemType.ItemTags)
+        return TweeLexerState.LexerNextOptionalBlock
+    def get_state_func(self: Self) ->STATE_FUNC:
+        if self == TweeLexerState.LexerNone:
+            return None
+        if self == TweeLexerState.LexerProlog:
+            return TweeLexerState.lex_prolog
+        elif self == TweeLexerState.LexerContent:
+            return TweeLexerState.lex_context
+        elif self == TweeLexerState.LexerHeaderDelim:
+            return TweeLexerState.lex_header_delim
+
+        elif self == TweeLexerState.LexerName:
+            return TweeLexerState.lex_name
+
+        elif self == TweeLexerState.LexerNextOptionalBlock:
+            return TweeLexerState.lex_next_optional_block
+
+        elif self == TweeLexerState.LexerTags:
+            return TweeLexerState.lex_tags
+        elif self == TweeLexerState.LexerMetadata:
+            return TweeLexerState.lex_metadata
+        return None
+
+
 
 __all__ = [
     "HEADER_DELIM",
@@ -157,6 +307,7 @@ __all__ = [
     "Item",
     "ItemType",
     "TweeLexer",
+    "TweeLexerState",
     "accept_quoted",
 
 ]
