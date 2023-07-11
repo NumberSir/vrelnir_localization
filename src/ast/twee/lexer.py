@@ -1,12 +1,7 @@
 from dataclasses import dataclass
-from typing import Union, Optional,List
+from typing import Union,List
 from enum import  Enum
-__all__ = [
-    "EOF",
-    "Item",
-    "ItemType",
-    "TweeLexer"
-]
+
 EOF = -1
 class ItemType(Enum):
     ItemError = 0
@@ -151,3 +146,13 @@ def accept_quoted(twee_lexer:TweeLexer,quote:str):
             continue
     return None
 
+HEADER_DELIM = "::"
+NEWLINE_HEADER_DELIM = "\n::"
+
+__all__ = [
+    "EOF",
+    "Item",
+    "ItemType",
+    "TweeLexer",
+    "accept_quoted"
+]
