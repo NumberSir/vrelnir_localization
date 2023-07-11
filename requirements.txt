@@ -1,6 +1,8 @@
-loguru~=0.6.0
+loguru~=0.7.0
 httpx~=0.24.0
 numpy~=1.24.3
 pandas~=2.0.0
 aiofiles~=23.1.0
 python-dotenv~=1.0.0
+js2py~=0.74
+beautifulsoup4~=4.12.2
