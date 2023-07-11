@@ -150,9 +150,13 @@ HEADER_DELIM = "::"
 NEWLINE_HEADER_DELIM = "\n::"
 
 __all__ = [
+    "HEADER_DELIM",
+    "NEWLINE_HEADER_DELIM",
     "EOF",
+
     "Item",
     "ItemType",
     "TweeLexer",
-    "accept_quoted"
+    "accept_quoted",
+
 ]
