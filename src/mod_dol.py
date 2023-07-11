@@ -5,7 +5,7 @@ from .consts import *
 from .log import *
 import json
 import httpx
-from utils import chunk_split, chunk_download
+from .utils import chunk_split, chunk_download
 
 
 from dataclasses import dataclass
@@ -43,11 +43,14 @@ class ModDol:
         if not last_commit:
             return
         archive_url = f"{self.repository_api_url}/archive.{format_}?sha={last_commit['commit']['id']}"
-
+        if param_path := self.data.path:
+            archive_url += f"&path={param_path}"
+        logger.info(f"====开始下载{self.data.zh_name}")
+        logger.info(f"下载地址{archive_url}")
         async with httpx.AsyncClient() as client:
             for _ in range(3):
                 try:
-                    response = await client.head(archive_url, timeout=60, follow_redirects=True)
+                    response = await client.head(archive_url,timeout=60, follow_redirects=True)
                     filesize = int(response.headers["Content-Length"])
                     chunks = await chunk_split(filesize, 64)
                 except (httpx.ConnectError, KeyError) as e:
