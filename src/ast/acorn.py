@@ -3,7 +3,7 @@ from src import *
 from dataclasses import  dataclass, asdict
 from typing import Optional,Literal,NewType,Union,TypedDict
 
-import orjson
+__all__ = ["DIR_JS_MODULE_ROOT","DIR_ARCON_ROOT","ArconOptionParam","ArconOption","Arcon"]
 DIR_JS_MODULE_ROOT = DIR_DATA_ROOT / "jsmodule"
 DIR_ARCON_ROOT = DIR_JS_MODULE_ROOT / "acorn"
 SOURCE_TYPE = Literal['script','module']
