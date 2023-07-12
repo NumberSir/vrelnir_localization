@@ -7,3 +7,4 @@ python-dotenv~=1.0.0
 js2py~=0.74
 beautifulsoup4~=4.12.2
 typing-extensions~=4.7.1
+orjson~=3.9.2
