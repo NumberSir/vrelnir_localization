@@ -19,12 +19,15 @@ class Item:
     line:int =0
     pos:int = 0
     val:bytes = b""
+
     @property
     def type(self):
         return ItemType(self._type)
+
     @type.setter
-    def type(self,item_type:ItemType):
+    def type(self, item_type: ItemType):
         self._type = item_type.value
+
     def to_string(self):
         name = ""
         item_type = self.type
@@ -47,14 +50,18 @@ class Item:
         if item_type != ItemType.ItemError and len(self.val) > 80:
             return  f"[{name}:{self.line}行/{self.pos}位] {self.val:.80}..."
         return  f"[{name}:{self.line}行/{self.pos}位] {self.val}"
+
 @dataclass
 class ItemValue:
-    item:Union[Item,None] = None
+    item: Item | None = None
+
     @property
     def result(self):
         return self.has_value()
+      
     def has_value(self):
         return self.item is not None
+
 
 @dataclass
 class TweeLexer:
@@ -80,9 +87,11 @@ class TweeLexer:
     @property
     def count_line_now(self):
         return self.input.count(b'\n',self.start,self.pos)
+      
     @property
     def item_value(self):
         return self.input[self.start:self.pos]
+
     @property
     def next(self):
         if self.pos >= len(self.input):
@@ -91,7 +100,7 @@ class TweeLexer:
         self.pos += 1
         if r == '\n':
             self.line += 1
-        return  r
+        return r
 
     @property
     def peek(self):
@@ -101,19 +110,21 @@ class TweeLexer:
     def backup(self):  # sourcery skip: raise-specific-error
         if self.pos <= self.start:
             raise Exception("backup would leave pos < start")
-        self.pos -=1
+        self.pos -= 1
         if self.now_chara == '\n':
             self.line -= 1
-    def append_item(self,item_type:ItemType):
+
+    def append_item(self, item_type: ItemType):
         self.items.append(Item(item_type.value, self.line, self.pos, self.item_value))
-    def emit(self,item_type:ItemType):
+
+    def emit(self, item_type: ItemType):
         self.append_item(item_type)
         if item_type == ItemType.ItemContent:
-            self.line+= self.count_line_now
+            self.line += self.count_line_now
         self.start = self.pos
 
     def ignore(self):
-        self.line +=self.count_line_now
+        self.line += self.count_line_now
         self.start = self.pos
 
     def accept(self,valid:bytes):
@@ -128,29 +139,33 @@ class TweeLexer:
             r = self.next
         if r != EOF:
             self.backup()
+            
     def error_format(self,format_str:str,*args):
         self.items.append(Item(ItemType.ItemError.value, self.line, self.pos, format_str.format(*args).encode()))
+    
     def run(self):
         state = TweeLexerState.LexerProlog
         while state != TweeLexerState.LexerNone:
             callback = state.get_state_func()
             state = callback(self)
+    
     @staticmethod
     def create_twee_lexer(input_str:bytes):
         twee_instance = TweeLexer(input_str, line=1, items=[])
         twee_instance.run()
         return twee_instance
+
     def get_items(self):
-        return  self.items
+        return self.items
+
     def next_items(self):
         if len(self.items) > 0:
             item = self.items.pop(0)
-            return  ItemValue(item)
-        return  ItemValue()
+            return ItemValue(item)
+        return ItemValue()
+
     def drain(self):
         pass
-
-
 
 
 def accept_quoted(twee_lexer: TweeLexer, quote: str):
@@ -167,8 +182,10 @@ def accept_quoted(twee_lexer: TweeLexer, quote: str):
             break
     return None
 
+
 HEADER_DELIM = b"::"
 NEWLINE_HEADER_DELIM = b"\n::"
+
 class TweeLexerState(Enum):
     LexerNone = 0
     LexerProlog =auto()

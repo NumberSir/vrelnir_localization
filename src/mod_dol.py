@@ -1,6 +1,5 @@
 import asyncio
 from pathlib import Path
-from typing import Union, Optional
 from .consts import *
 from .log import *
 import json
@@ -20,7 +19,7 @@ class ModData:
     url: str = ""
     main_branches: str = ""
     dev_branches: str = ""
-    path: Union[str, Path] = ""
+    path: str | Path = ""
     output_file: str = ""
 
 
@@ -29,7 +28,7 @@ class ModDol:
         self._data = ModData(**json_) if json_ else ModData()
         self.branch_json = {}
 
-    async def get_lastest_commit(self, branch: str = "") -> Optional[dict]:
+    async def get_lastest_commit(self, branch: str = "") -> dict | None:
         async with httpx.AsyncClient() as client:
             response = await client.get(self.get_repository_branch_url(branch))
             if response.status_code != 200:

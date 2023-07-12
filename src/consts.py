@@ -13,10 +13,9 @@ PLATFORM_ARCHITECTURE = platform.architecture()[0]
 SYSTEM_ARGV = sys.argv
 GITHUB_ACTION_DEV = len(SYSTEM_ARGV) > 1 and SYSTEM_ARGV[1] == "-D"
 GITHUB_ACTION_ISBETA = len(SYSTEM_ARGV) > 2 and SYSTEM_ARGV[2] == "beta"
+
 """汉化仓库"""
-PARATRANZ_TOKEN = (
-    "" if not os.getenv("PARATRANZ_TOKEN") else os.getenv("PARATRANZ_TOKEN")
-)  # 必填，在个人设置里
+PARATRANZ_TOKEN = os.getenv("PARATRANZ_TOKEN") or ""  # 必填，在个人设置里
 PARATRANZ_BASE_URL = "https://paratranz.cn/api"
 PARATRANZ_HEADERS = {"Authorization": PARATRANZ_TOKEN}
 PARATRANZ_PROJECT_ID = 4780  # DOL 项目 ID

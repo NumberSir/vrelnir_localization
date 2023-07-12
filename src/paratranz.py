@@ -13,7 +13,7 @@ class Paratranz:
     """下载汉化包相关"""
 
     @classmethod
-    async def download_from_paratranz(cls):
+    async def download_from_paratranz(cls) -> bool:
         """从 paratranz 下载汉化包"""
         os.makedirs(DIR_PARATRANZ, exist_ok=True)
         with contextlib.suppress(httpx.TimeoutException):

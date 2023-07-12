@@ -2,7 +2,7 @@ import csv
 import re
 
 from pathlib import Path
-from typing import List, Dict,Any
+from typing import Any
 from zipfile import ZipFile
 from urllib.parse import quote
 
@@ -27,21 +27,21 @@ class ProjectDOL:
 
     def __init__(self, type_: str = "common"):
         with open(DIR_JSON_ROOT / "blacklists.json", "r", encoding="utf-8") as fp:
-            self._blacklists: Dict[str, List] = json.load(fp)
+            self._blacklists: dict[str, list] = json.load(fp)
         with open(DIR_JSON_ROOT / "whitelists.json", "r", encoding="utf-8") as fp:
-            self._whitelists: Dict[str, List] = json.load(fp)
+            self._whitelists: dict[str, list] = json.load(fp)
         self._type: str = type_
         self._version: str = None
-        self._commit: Dict[str, Any]  = None
+        self._commit: dict[str, Any]  = None
         
         if FILE_COMMITS.exists():
             with open(FILE_COMMITS, "r", encoding="utf-8") as fp:
-                self._commit: Dict[str, Any] = json.load(fp)
+                self._commit: dict[str, Any] = json.load(fp)
                 
         self._is_latest = False
-        self._paratranz_file_lists: List[Path] = None
-        self._raw_dicts_file_lists: List[Path] = None
-        self._game_texts_file_lists: List[Path] = None
+        self._paratranz_file_lists: list[Path] = None
+        self._raw_dicts_file_lists: list[Path] = None
+        self._game_texts_file_lists: list[Path] = None
 
     @staticmethod
     def _init_dirs(version: str):
@@ -271,7 +271,7 @@ class ProjectDOL:
         # logger.info(f"\t- ({idx + 1} / {full}) {new_file.__str__().split('game')[1]} 更新完毕")
 
     """应用字典"""
-    async def apply_dicts(self, blacklist_dirs: List[str] = None, blacklist_files: List[str] = None):
+    async def apply_dicts(self, blacklist_dirs: list[str] = None, blacklist_files: list[str] = None):
         """汉化覆写游戏文件"""
         if not self._version:
             await self.fetch_latest_version()
@@ -302,7 +302,7 @@ class ProjectDOL:
         """gather 用"""
         vip_flag = target_file.name == "clothing-sets.twee"
         with open(target_file, "r", encoding="utf-8") as fp:
-            raw_targets: List[str] = fp.readlines()
+            raw_targets: list[str] = fp.readlines()
         raw_targets_temp = raw_targets.copy()
 
         with open(csv_file, "r", encoding="utf-8") as fp:
@@ -550,7 +550,7 @@ class ProjectDOL:
                 )
                 beeesssmod_dir_path =dol_chinese_path / "beeesssmod"
                 beeesssmod_dir = Path(beeesssmod_dir_path)
-                if beeesssmod_dir.exists() and beeesssmod_dir.is_dir():
+                if beeesssmod_dir.is_dir():
                     logger.info("同步到美化包文件夹")
                     shutil.copyfile(
                         game_html,

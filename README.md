@@ -12,7 +12,7 @@
 6. 编译为 `html` 并用默认浏览器运行
 
 ## 食用方法
-1. 需要 `python` 3.8+
+1. 需要 `python` 3.10+
 2. 在根目录使用 `pip install -r requirements.txt` 安装依赖库
 3. 在 `src/consts.py` 里填你的 `token`, 在 `https://paratranz.cn/users/my` 里找
 4. 运行 `main.py` (`python -m main`)
