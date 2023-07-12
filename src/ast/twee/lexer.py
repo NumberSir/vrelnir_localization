@@ -305,10 +305,10 @@ class TweeLexerState(Enum):
             return TweeLexerState.lex_metadata
         return None
 
-twee=TweeLexer.create_twee_lexer(b"::Test [demo]\n<<he>>")
-print(twee)
-for item in twee.items:
-    print(item.to_string())
+# twee=TweeLexer.create_twee_lexer(b"::Test [demo]\n<<he>>")
+# print(twee)
+# for item in twee.items:
+#     print(item.to_string())
 __all__ = [
     "HEADER_DELIM",
     "NEWLINE_HEADER_DELIM",
