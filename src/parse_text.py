@@ -1,20 +1,19 @@
 import re
 from pathlib import Path
-from typing import List, Union, Set
 
 from .consts import *
 
 
 class ParseTextTwee:
 
-    def __init__(self, lines: List[str], filepath: Path):
+    def __init__(self, lines: list[str], filepath: Path):
         self._lines = lines
         self._filepath = filepath
 
         self._filename = self._filepath.name  # 文件名
         self._filedir = self._filepath.parent  # 文件夹
 
-    def parse(self) -> List[bool]:
+    def parse(self) -> list[bool]:
         if DirNamesTwee.NORMAL.value in self._filedir.name:
             return self.parse_normal()
         elif DirNamesTwee.FRAMEWORK.value in {
@@ -1449,7 +1448,7 @@ class ParseTextTwee:
         return results
 
     """ 归整 """
-    def parse_type_only(self, pattern: Union[str, Set[str]]) -> List[bool]:
+    def parse_type_only(self, pattern: str | set[str]) -> list[bool]:
         """指文件中只有一种或几种简单字符格式需要提取"""
         if isinstance(pattern, str):
             return [
@@ -1464,7 +1463,7 @@ class ParseTextTwee:
             for line in self._lines
         ]
 
-    def parse_type_only_regex(self, pattern: Union[str, Set[str]]) -> List[bool]:
+    def parse_type_only_regex(self, pattern: str | set[str]) -> list[bool]:
         """指文件中只有一种或几种正则格式需要提取"""
         if isinstance(pattern, str):
             return [
@@ -1479,7 +1478,7 @@ class ParseTextTwee:
             for line in self._lines
         ]
 
-    def parse_type_startwith(self, pattern: Union[str, Set[str]]) -> List[bool]:
+    def parse_type_startwith(self, pattern: str | set[str]) -> list[bool]:
         """以xx开头的"""
         if isinstance(pattern, str):
             return [
@@ -1494,7 +1493,7 @@ class ParseTextTwee:
             for line in self._lines
         ]
 
-    def parse_type_pure_text(self) -> List[bool]:
+    def parse_type_pure_text(self) -> list[bool]:
         """指文件中只有纯文本需要提取"""
         return [
             line.strip() and
@@ -1502,7 +1501,7 @@ class ParseTextTwee:
             for line in self._lines
         ]
 
-    def parse_type_between(self, starts: List[str], ends: List[str], contain: bool = False) -> List[bool]:
+    def parse_type_between(self, starts: list[str], ends: list[str], contain: bool = False) -> list[bool]:
         """指文件中只有这两部分之间的内容需要提取"""
         results = []
         needed_flag = False
@@ -1572,7 +1571,7 @@ class ParseTextTwee:
         return any(re.findall(r"<<note\s\"", line))
 
     @staticmethod
-    def is_widget_set_to(line: str, keys: Set[str]) -> bool:
+    def is_widget_set_to(line: str, keys: set[str]) -> bool:
         """<<set xxx yyy>>"""
         pattern = re.compile("<<set\s(?:" + r"|".join(keys) + ")[\'\"\w\s\[\]\$\+\.\(\)\{\}:\-]*(?:to|\+|\+=|\().*?[\w\{\"\'`]+(?:\w| \w|<<|\"\w)")
         return any(re.findall(pattern, line))
@@ -1644,14 +1643,14 @@ class ParseTextTwee:
 
 class ParseTextJS:
 
-    def __init__(self, lines: List[str], filepath: Path):
+    def __init__(self, lines: list[str], filepath: Path):
         self._lines = lines
         self._filepath = filepath
 
         self._filename = self._filepath.name  # 文件名
         self._filedir = self._filepath.parent  # 文件夹
 
-    def parse(self) -> List[bool]:
+    def parse(self) -> list[bool]:
         """"""
         if DirNamesJS.JAVASCRIPT.value == self._filedir.name:
             return self.parse_javascript()
@@ -1662,7 +1661,7 @@ class ParseTextJS:
         return self.parse_normal()
 
     """ 03-JavaScript """
-    def parse_javascript(self) -> List[bool]:
+    def parse_javascript(self) -> list[bool]:
         """ 03-JavaScript """
         if FileNamesJS.BEDROOM_PILLS_FULL.value == self._filename:
             return self._parse_bedroom_pills()
@@ -1880,7 +1879,7 @@ class ParseTextJS:
         return results
 
     """ 04-variables """
-    def parse_variables(self) -> List[bool]:
+    def parse_variables(self) -> list[bool]:
         """ 04-variables """
         if FileNamesJS.FEATS_FULL.value == self._filename:
             return self._parse_feats()
@@ -1897,7 +1896,7 @@ class ParseTextJS:
         return self.parse_type_only("name_cap")
 
     """ special-masturbation """
-    def parse_masturbation(self) -> List[bool]:
+    def parse_masturbation(self) -> list[bool]:
         """ special-masturbation """
         if FileNamesJS.ACTIONS_FULL.value == self._filename:
             return self._parse_actions()
@@ -1932,7 +1931,7 @@ class ParseTextJS:
         return results
 
     """ 常规 """
-    def parse_normal(self) -> List[bool]:
+    def parse_normal(self) -> list[bool]:
         """常规"""
         results = []
         append_fragment_flag = False
@@ -1967,7 +1966,7 @@ class ParseTextJS:
         return results
 
     """ 归整 """
-    def parse_type_only(self, pattern: Union[str, Set[str]]) -> List[bool]:
+    def parse_type_only(self, pattern: str | set[str]) -> list[bool]:
         """指文件中只有一种或几种简单字符格式需要提取"""
         if isinstance(pattern, str):
             return [

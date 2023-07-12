@@ -1,11 +1,10 @@
 from pathlib import Path
 from aiofiles import open as aopen
-from typing import List
 import httpx
 
 from .log import logger
 
-async def chunk_split(filesize: int, chunk: int = 2) -> List[List[int]]:
+async def chunk_split(filesize: int, chunk: int = 2) -> list[list[int]]:
     """给大文件切片"""
     step = filesize // chunk
     arr = range(0, filesize, step)
