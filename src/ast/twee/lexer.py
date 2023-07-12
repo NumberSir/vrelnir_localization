@@ -16,7 +16,7 @@ class ItemType(Enum):
     ItemContent = auto()
 @dataclass
 class Item:
-    type:ItemType = 0
+    type:ItemType = ItemType.ItemError
     line:int =0
     pos:int = 0
     end:int = 0
@@ -75,6 +75,23 @@ class TweeLexer:
     pos:int = 0
     _end:int = 0
     items:list[Item] = list
+
+    def reset(self):
+        self.line = 0
+        self.start = 0
+        self.pos = 0
+        self._end = 0
+        self.items = []
+        self.input = b''
+    def parse(self,input_str: Union[bytes,str]):
+        self.reset()
+        if type(input_str) == str:
+            input_str = input_str.encode()
+        self.input = input_str
+        self.line =1
+        self.run()
+        return self
+
 
     @staticmethod
     def create_twee_lexer(input_str: Union[bytes,str]):
@@ -161,7 +178,7 @@ class TweeLexer:
         if r != EOF:
             self.backup()
             
-    def error_format(self,format_str:str,*args:tuple[any]):
+    def error_format(self,format_str:str,*args:any):
         error_str =format_str.format(*args).encode()
         end = self.pos
         for text in args:
@@ -173,6 +190,7 @@ class TweeLexer:
         while state not in  [TweeLexerState.LexerNone,EOF]:
             callback = state.get_state_func()
             state = callback(self)
+
     
 
 
