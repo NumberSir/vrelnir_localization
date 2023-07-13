@@ -109,7 +109,7 @@ class Arcon:
     def parse(self,code_text:str,option:ArconOptionParam = None):
         self.install_dep()
         arcon_option,func= ArconOption.parse_option(option)
-        print(arcon_option)
+        # print(arcon_option)
         code = ["var acorn = require('acorn')",REGISTER_FUNC,"var option = Object.assign({},dukpy['option'])"]
         for key, value in func.items():
             code.append(f"option['{key}'] = registerFunc('{key}')")
