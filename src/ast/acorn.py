@@ -5,7 +5,7 @@ from typing import Optional,Literal,NewType,Union,TypedDict,Callable,Any
 from typing_extensions import Self
 from types import  FunctionType,LambdaType
 
-__all__ = ["DIR_JS_MODULE_ROOT","DIR_ARCON_ROOT","ArconOptionParam","ArconOption","Arcon"]
+
 DIR_JS_MODULE_ROOT = DIR_DATA_ROOT / "jsmodule"
 DIR_ARCON_ROOT = DIR_JS_MODULE_ROOT / "acorn"
 SOURCE_TYPE = Literal['script','module']
@@ -120,9 +120,23 @@ class Arcon:
     def install_dep():
         if not DIR_ARCON_ROOT.exists():
             dukpy.install_jspackage("acorn",None,DIR_ARCON_ROOT)
+__all__ = [
+    "DIR_JS_MODULE_ROOT",
+    "DIR_ARCON_ROOT",
 
+    "ArconOptionParam",
+    "ArconOption",
+    "Arcon",
+
+    "Position",
+    "TokenType",
+    "SourceLocation",
+    "Token",
+    "Comment",
+
+]
 # def on_token(token):
 #     print(token)
 # arcon=Arcon()
 # print(REGISTER_FUNC)
-# print(arcon.parse("test\n\nvar a = 1 +1",ArconOptionParam(ecmaVersion=2020,sourceType='script',onToken= on_token)))
+# print(arcon.parse("test\n\nvar a = 1 +1",ArconOptionParam(ecmaVersion=2020,sourceType='script',onToken= lambda token:print(token))))
