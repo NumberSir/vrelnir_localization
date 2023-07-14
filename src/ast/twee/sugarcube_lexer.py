@@ -1,7 +1,9 @@
 from dataclasses import dataclass
-from typing import Union, List, Callable,Optional
+from typing import Callable
 from typing_extensions import Self
 from enum import Enum, auto
+
+
 @dataclass
 class SugarCubeLexerState:
     LexNone = 0
@@ -12,11 +14,12 @@ class SugarCubeLexerState:
     LexSingleQuote = auto()
     LexSquareBracket = auto()
 
+
 class SugarCubeLexer:
-    source:str = ""
+    source: str = ""
     initial_state = None
     _state = None
-    def __init__(self,source:str,initial_state:Callable[[Self],None]):
+
+    def __init__(self, source: str, initial_state: Callable[[Self], None]):
         self.source = source
         self.initial_state = initial_state
-

@@ -1,9 +1,11 @@
-from dataclasses import dataclass
-from typing import Union, List, Callable,Optional
+from dataclasses import dataclass, field
+from typing import Callable
 from typing_extensions import Self
 from enum import Enum, auto
 
 EOF = None
+
+
 class ItemType(Enum):
     ItemError = 0
     ItemEOF = auto()
@@ -12,13 +14,15 @@ class ItemType(Enum):
     ItemTags = auto()
     ItemMetadata = auto()
     ItemContent = auto()
+
+
 @dataclass
 class Item:
-    type:ItemType = ItemType.ItemError
-    line:int =0
-    pos:int = 0
-    end:int = 0
-    val:bytes = b""
+    type: ItemType = ItemType.ItemError
+    line: int = 0
+    pos: int = 0
+    end: int = 0
+    val: bytes = b""
 
     # @property
     # def type(self):
@@ -50,8 +54,9 @@ class Item:
             case ItemType.ItemContent:
                 name = "Content"
         if item_type != ItemType.ItemError and len(self.value) > 80:
-            return  f"[{name}:{self.line}行/{self.pos}位] {self.value:.80}..."
-        return  f"[{name}:{self.line}行/{self.pos}位] {self.value}"
+            return f"[{name}:{self.line}行/{self.pos}位] {self.value:.80}..."
+        return f"[{name}:{self.line}行/{self.pos}位] {self.value}"
+
 
 @dataclass
 class ItemValue:
@@ -60,19 +65,19 @@ class ItemValue:
     @property
     def result(self):
         return self.has_value()
-      
+
     def has_value(self):
         return self.item is not None
 
 
 @dataclass
 class TweeLexer:
-    input:bytes = b""
-    line:int = 0
-    start:int = 0
-    pos:int = 0
-    _end:int = 0
-    items:list[Item] = list
+    input: bytes = b""
+    line: int = 0
+    start: int = 0
+    pos: int = 0
+    _end: int = 0
+    items: list[Item] = field(default_factory=list)  # 可变参数初始化
 
     def reset(self):
         self.line = 0
@@ -81,19 +86,19 @@ class TweeLexer:
         self._end = 0
         self.items = []
         self.input = b''
-    def parse(self,input_str: Union[bytes,str]):
+
+    def parse(self, input_str: bytes | str):  # Union[] 是 3.9 前的写法
         self.reset()
-        if type(input_str) == str:
+        if isinstance(input_str, str):  # 类判断用 isinstance
             input_str = input_str.encode()
         self.input = input_str
-        self.line =1
+        self.line = 1
         self.run()
         return self
 
-
     @staticmethod
-    def create_twee_lexer(input_str: Union[bytes,str]):
-        if type(input_str) == str:
+    def create_twee_lexer(input_str: bytes | str):
+        if isinstance(input_str, str):
             input_str = input_str.encode()
         twee_instance = TweeLexer(input_str, line=1, items=[])
         twee_instance.run()
@@ -101,7 +106,7 @@ class TweeLexer:
 
     @property
     def end(self):
-        if self._end == 0 :
+        if self._end == 0:
             self._end = len(self.input)
         return self._end
 
@@ -111,18 +116,21 @@ class TweeLexer:
 
     @property
     def has_header_delim(self):
-        return  self.input.startswith(HEADER_DELIM,self.pos)
+        return self.input.startswith(HEADER_DELIM, self.pos)
+
     @property
     def newline_header_delim_index(self):
 
-        return -1 if self.pos > self.end else self.input.find(NEWLINE_HEADER_DELIM,self.pos)
+        return -1 if self.pos > self.end else self.input.find(NEWLINE_HEADER_DELIM, self.pos)
+
     @property
     def now_text(self):
         return self.input[self.pos:]
+
     @property
     def count_line_now(self):
-        return self.input.count(b'\n',self.start,self.pos)
-      
+        return self.input.count(b'\n', self.start, self.pos)
+
     @property
     def item_value(self):
         return self.input[self.start:self.pos]
@@ -141,7 +149,6 @@ class TweeLexer:
     def peek(self):
         return EOF if self.pos >= len(self.input) else self.now_chara
 
-
     def backup(self):  # sourcery skip: raise-specific-error
         if self.pos <= self.start:
             raise Exception("backup would leave pos < start")
@@ -151,7 +158,7 @@ class TweeLexer:
 
     def append_item(self, item_type: ItemType):
         end = len(self.item_value) + self.pos
-        self.items.append(Item(item_type, self.line, self.pos,end, self.item_value))
+        self.items.append(Item(item_type, self.line, self.pos, end, self.item_value))
 
     def emit(self, item_type: ItemType):
         self.append_item(item_type)
@@ -163,8 +170,8 @@ class TweeLexer:
         self.line += self.count_line_now
         self.start = self.pos
 
-    def accept(self,valid:list[bytes]):
-        if self.next  in valid:
+    def accept(self, valid: list[bytes]):
+        if self.next in valid:
             return True
         self.backup()
         return False
@@ -175,22 +182,19 @@ class TweeLexer:
             r = self.next
         if r != EOF:
             self.backup()
-            
-    def error_format(self,format_str:str,*args:any):
-        error_str =format_str.format(*args).encode()
+
+    def error_format(self, format_str: str, *args: any):
+        error_str = format_str.format(*args).encode()
         end = self.pos
         for text in args:
             end += len(text)
-        self.items.append(Item(ItemType.ItemError, self.line, self.pos,end, error_str))
-    
+        self.items.append(Item(ItemType.ItemError, self.line, self.pos, end, error_str))
+
     def run(self):
         state = TweeLexerState.LexerProlog
-        while state not in  [TweeLexerState.LexerNone,EOF]:
+        while state not in {TweeLexerState.LexerNone, EOF}:
             callback = state.get_state_func()
             state = callback(self)
-
-    
-
 
     def get_items(self):
         return self.items
@@ -213,36 +217,37 @@ def accept_quoted(twee_lexer: TweeLexer, quote: list[bytes]):
         match r:
             case b"\\":
                 r = twee_lexer.next
-                if r not in [b"", None]:
+                if r not in {b"", None}:
                     break
                 continue
             case [b'\n', None]:
-                return repr("unterminated quoted string")
-
+                return "unterminated quoted string"
     return None
 
 
 HEADER_DELIM = b"::"
 NEWLINE_HEADER_DELIM = b"\n::"
 
+
 class TweeLexerState(Enum):
     LexerNone = 0
-    LexerProlog =auto()
-    LexerContent =auto()
-    LexerHeaderDelim =auto()
-    LexerName =auto()
-    LexerNextOptionalBlock =auto()
-    LexerTags =auto()
-    LexerMetadata =auto()
+    LexerProlog = auto()
+    LexerContent = auto()
+    LexerHeaderDelim = auto()
+    LexerName = auto()
+    LexerNextOptionalBlock = auto()
+    LexerTags = auto()
+    LexerMetadata = auto()
 
-    STATE_FUNC = Optional[Callable[[TweeLexer], Optional[Self]]]
+    STATE_FUNC = Callable[[TweeLexer], Self | None] | None
+
     @staticmethod
     def lex_prolog(twee_lexer: TweeLexer):
         print("进入Prolog解析器")
         if twee_lexer.has_header_delim:
             return TweeLexerState.LexerHeaderDelim
-        text_index =twee_lexer.newline_header_delim_index
-        if  text_index > -1:
+        text_index = twee_lexer.newline_header_delim_index
+        if text_index > -1:
             twee_lexer.pos += text_index + 1
             twee_lexer.ignore()
             return TweeLexerState.LexerHeaderDelim
@@ -279,23 +284,23 @@ class TweeLexerState(Enum):
             r = twee_lexer.next
             if r == "\\":
                 r = twee_lexer.next
-                if r not in  [b"\n",EOF]:
+                if r not in [b"\n", EOF]:
                     break
                 continue
-            elif r in  [b'[', b']', b'{', b'}',b"\n",EOF]:
+            elif r in [b'[', b']', b'{', b'}', b"\n", EOF]:
                 if r != EOF:
                     twee_lexer.backup()
                 break
         twee_lexer.emit(ItemType.ItemName)
         match r:
             case b'[':
-                return  TweeLexerState.LexerTags
+                return TweeLexerState.LexerTags
             case b']':
-                return  twee_lexer.error_format("unexpected right square bracket %#U",r)
+                return twee_lexer.error_format("unexpected right square bracket %#U", r)
             case b'{':
                 return TweeLexerState.LexerMetadata
             case b'}':
-                return  twee_lexer.error_format("unexpected right curly bracket %#U",r)
+                return twee_lexer.error_format("unexpected right curly bracket %#U", r)
             case b'\n':
                 twee_lexer.pos += 1
                 twee_lexer.ignore()
@@ -303,11 +308,10 @@ class TweeLexerState(Enum):
         twee_lexer.emit(ItemType.ItemEOF)
         return TweeLexerState.LexerNone
 
-
     @staticmethod
     def lex_next_optional_block(twee_lexer: TweeLexer):
         print("进入NextOptionalBlock解析器")
-        twee_lexer.accept_run([b" ",b"\t"])
+        twee_lexer.accept_run([b" ", b"\t"])
         twee_lexer.ignore()
         r = twee_lexer.peek
         match r:
@@ -337,11 +341,11 @@ class TweeLexerState(Enum):
             match r:
                 case b"\\":
                     r = twee_lexer.next
-                    if r not in [u'\n',EOF]:
+                    if r not in [u'\n', EOF]:
                         break
                     continue
-                case [b'\n',None]:
-                    if r == '\n' :
+                case [b'\n', None]:
+                    if r == '\n':
                         twee_lexer.backup()
                     return twee_lexer.error_format("unterminated tag block")
                 case b'[':
@@ -365,7 +369,7 @@ class TweeLexerState(Enum):
             r = twee_lexer.next
             match r:
                 case b'"':
-                    err = accept_quoted(twee_lexer,[b'"'])
+                    err = accept_quoted(twee_lexer, [b'"'])
                     if err is not None:
                         return twee_lexer.error_format(err)
                 case b'\n':
@@ -374,16 +378,16 @@ class TweeLexerState(Enum):
                 case None:
                     return twee_lexer.error_format("unterminated metadata block")
                 case b'{':
-                    depth+=1
+                    depth += 1
                 case b'}':
-                    depth-=1
+                    depth -= 1
                     if depth == 0:
                         break
         if twee_lexer.pos > twee_lexer.start:
             twee_lexer.emit(ItemType.ItemTags)
         return TweeLexerState.LexerNextOptionalBlock
 
-    def get_state_func(self: Self) ->STATE_FUNC:
+    def get_state_func(self: Self) -> STATE_FUNC:
         print(f"进入状态机:{self}")
         match self:
             case TweeLexerState.LexerNone:
@@ -403,6 +407,7 @@ class TweeLexerState(Enum):
             case TweeLexerState.LexerMetadata:
                 return TweeLexerState.lex_metadata
         return None
+
 
 __all__ = [
     "HEADER_DELIM",
