@@ -1,6 +1,6 @@
 import csv
 import re
-
+from src.ast import  Arcon,JSSyntaxError
 from pathlib import Path
 from typing import Any
 from zipfile import ZipFile
@@ -33,7 +33,7 @@ class ProjectDOL:
         self._type: str = type_
         self._version: str = None
         self._commit: dict[str, Any]  = None
-        
+        self._acorn =Arcon()
         if FILE_COMMITS.exists():
             with open(FILE_COMMITS, "r", encoding="utf-8") as fp:
                 self._commit: dict[str, Any] = json.load(fp)
@@ -368,8 +368,17 @@ class ProjectDOL:
                         raw_targets[idx_] = ""
                 # else:
                 #     logger.warning(f"\t!!! 找不到替换的行: {zh} | {csv_file.relative_to(DIR_RAW_DICTS / self._version / 'csv' / 'game')}")
+        if target_file.name.endswith(".js"):
+            logger.info(f"开始检测语法 文件:{target_file}")
+            try:
+                self._acorn.parse("".join(raw_targets))
+                logger.info("语法检测通过")
+            except JSSyntaxError as err:
+                logger.error(err)
+                logger.error(f"语法错误: {err.err_code(raw_targets)}")
         with open(target_file, "w", encoding="utf-8") as fp:
             fp.writelines(raw_targets)
+
         # logger.info(f"\t- ({idx + 1} / {full}) {target_file.__str__().split('game')[1]} 覆写完毕")
 
     @staticmethod
