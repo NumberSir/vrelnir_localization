@@ -60,7 +60,7 @@ class Comment(TypedDict):
     loc: SourceLocation | None
 
 
-class ArconOptionParam(TypedDict, total=False):
+class AcornOptionParam(TypedDict, total=False):
     ecmaVersion: ECMA_VERSION
     sourceType: SOURCE_TYPE
     ranges: bool
@@ -80,7 +80,7 @@ class ArconOptionParam(TypedDict, total=False):
 
 
 @dataclass
-class ArconOption:
+class AcornOption:
     ecmaVersion: ECMA_VERSION = 2020
     sourceType: SOURCE_TYPE = "script"
     ranges: bool = False
@@ -103,17 +103,17 @@ class ArconOption:
         }
 
     @staticmethod
-    def parse_option(option: ArconOptionParam = None):
+    def parse_option(option: AcornOptionParam = None):
         if option is None:
             option = {}
         _option = {}
         func = {}
         for key, value in option.items():
-            if hasattr(ArconOption, key) and not isinstance(value, FunctionType):
+            if hasattr(AcornOption, key) and not isinstance(value, FunctionType):
                 _option[key] = value
             if isinstance(value, FunctionType):
                 func[key] = value
-        return ArconOption(**_option).to_dict(), func
+        return AcornOption(**_option).to_dict(), func
 
 
 @dataclass
@@ -123,9 +123,10 @@ class JSSyntaxError(Exception):
     raisedAt: int = -1
     name: str = ""
     message: str = ""
-
-    def __str__(self):
+    def to_string(self):
         return f"{self.name}:{self.message}({self.line}行:{self.column}位)"
+    def __str__(self):
+        return self.to_string()
     @property
     def line(self):
         return  self.loc["line"] if "line" in self.loc else -1
@@ -134,9 +135,26 @@ class JSSyntaxError(Exception):
     def column(self):
         return self.loc["column"]if "column" in self.loc else -1
     def err_code(self,code:list[str]):
-        return code[self.line - 1]
+        res = code[self.line - 1]
+        column = self.column
+        err_str = ""
+        if column < len(res):
+            # char = res[column]
+            # res = res.replace(char,f"<b><u>{char}</u></b>",column)
+            line_str= len(str(self.line))
+            err_str += "<W>"
+            for _ in range(line_str):
+                err_str += " "
+            err_str +="</W> "
+            for _ in range(column):
+                err_str += " "
+            err_str +="<r>~</r>"
+        msg = f"<r>{self.to_string()}</r>\n<W><k>{self.line}</k></W> {res}"
+        if err_str != "":
+            msg += "\n" + err_str
+        return msg
 
-class Arcon:
+class Acorn:
     def __init__(self):
         self._jsi = dukpy.JSInterpreter()
         self._jsi.loader.register_path(DIR_JS_MODULE_ROOT / "acorn" / "dist")
@@ -146,9 +164,9 @@ class Arcon:
         return self._jsi
 
 
-    def parse(self,code_text:str,option:ArconOptionParam = None):
+    def parse(self, code_text:str, option:AcornOptionParam = None):
         self.install_dep()
-        arcon_option,func= ArconOption.parse_option(option)
+        arcon_option,func= AcornOption.parse_option(option)
         # print(arcon_option)
         code = [REGISTER_FUNC,"var acorn = require('acorn')","function parseArcon() {var option = Object.assign({},dukpy['option']); try{"]
         for key, value in func.items():
@@ -170,9 +188,9 @@ __all__ = [
     "DIR_JS_MODULE_ROOT",
     "DIR_ARCON_ROOT",
 
-    "ArconOptionParam",
-    "ArconOption",
-    "Arcon",
+    "AcornOptionParam",
+    "AcornOption",
+    "Acorn",
 
     "Position",
     "TokenType",

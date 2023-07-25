@@ -1,6 +1,6 @@
 import csv
 import re
-from src.ast import  Arcon,JSSyntaxError
+from src.ast import  Acorn,JSSyntaxError
 from pathlib import Path
 from typing import Any
 from zipfile import ZipFile
@@ -33,7 +33,7 @@ class ProjectDOL:
         self._type: str = type_
         self._version: str = None
         self._commit: dict[str, Any]  = None
-        self._acorn =Arcon()
+        self._acorn =Acorn()
         if FILE_COMMITS.exists():
             with open(FILE_COMMITS, "r", encoding="utf-8") as fp:
                 self._commit: dict[str, Any] = json.load(fp)
@@ -374,8 +374,7 @@ class ProjectDOL:
                 self._acorn.parse("".join(raw_targets))
                 logger.info("语法检测通过")
             except JSSyntaxError as err:
-                logger.error(err)
-                logger.error(f"语法错误: {err.err_code(raw_targets)}")
+                logger.opt(colors=True).error(err.err_code(raw_targets))
         with open(target_file, "w", encoding="utf-8") as fp:
             fp.writelines(raw_targets)
 
