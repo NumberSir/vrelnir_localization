@@ -4,6 +4,6 @@ import sys
 logger_.remove()
 logger_.add(sys.stdout, format="<g>{time:HH:mm:ss}</g> | [<lvl>{level}</lvl>] | {message}", colorize=True)
 
-logger = logger_
+logger = logger_.opt(colors=True)
 
 __all__ = ["logger"]

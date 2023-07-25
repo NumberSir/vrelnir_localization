@@ -372,9 +372,9 @@ class ProjectDOL:
             logger.info(f"开始检测语法 文件:{target_file}")
             try:
                 self._acorn.parse("".join(raw_targets))
-                logger.info("语法检测通过")
+                logger.info("<g>语法检测通过</g>")
             except JSSyntaxError as err:
-                logger.opt(colors=True).error(err.err_code(raw_targets))
+                logger.error(err.err_code(raw_targets))
         with open(target_file, "w", encoding="utf-8") as fp:
             fp.writelines(raw_targets)
 
