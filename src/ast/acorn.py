@@ -139,16 +139,11 @@ class JSSyntaxError(Exception):
         column = self.column
         err_str = ""
         if column < len(res):
-            # char = res[column]
-            # res = res.replace(char,f"<b><u>{char}</u></b>",column)
-            line_str= len(str(self.line))
-            err_str += "<W>"
-            for _ in range(line_str):
-                err_str += " "
-            err_str +="</W> "
-            for _ in range(column):
-                err_str += " "
-            err_str +="<r>~</r>"
+            line_str_len= len(str(self.line))
+            line_space = (" " * line_str_len)
+            column_space =(" " * (column + 1))
+            err_str = f"<W>{line_space}</W>{column_space}<r>~</r>"
+
         msg = f"<r>{self.to_string()}</r>\n<W><k>{self.line}</k></W> {res}"
         if err_str != "":
             msg += "\n" + err_str
