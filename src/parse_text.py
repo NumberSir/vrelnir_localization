@@ -97,6 +97,8 @@ class ParseTextTwee:
             return self._parse_version_update()
         elif FileNamesTwee.PASSAGE_FOOTER_FULL.value == self._filename:
             return self._parse_passage_footer()
+        elif FileNamesTwee.PREGNANCY_VAR_FULL.value == self._filename:
+            return self._parse_pregnancy_var()
         return self.parse_normal()
 
     def _parse_canvasmodel(self):
@@ -137,6 +139,10 @@ class ParseTextTwee:
             else:
                 results.append(False)
         return results
+
+    def _parse_pregnancy_var(self):
+        """只有 "name": """
+        return self.parse_type_only({'"name": '})
 
     """√ base-clothing """
     def parse_base_clothing(self):
@@ -747,6 +753,8 @@ class ParseTextTwee:
             FileNamesTwee.PROMISCUITY_FULL.value
         }:
             return self._parse_sex_stat()
+        elif FileNamesTwee.FAME_FULL.value == self._filename:
+            return self._parse_fame()
         elif FileNamesTwee.FEATS_FULL.value == self._filename:
             return self._parse_feats()
         elif FileNamesTwee.IMAGES_FULL.value == self._filename:
@@ -861,12 +869,12 @@ class ParseTextTwee:
                 continue
 
             if (
-                    self.is_comment(line)
-                    or self.is_event(line)
-                    or self.is_only_marks(line)
+                self.is_comment(line)
+                or self.is_event(line)
+                or self.is_only_marks(line)
             ):
                 results.append(False)
-            elif self.is_widget_set_to(line, {"_text_output"}) or self.is_tag_span(line):
+            elif self.is_widget_set_to(line, {"_text_output", r"\$_writing"}) or self.is_tag_span(line):
                 results.append(True)
             elif self.is_only_widgets(line):
                 results.append(False)
@@ -914,6 +922,10 @@ class ParseTextTwee:
     def _parse_sex_stat(self):
         """纯文本"""
         return self.parse_type_pure_text()
+
+    def _parse_fame(self):
+        """set $_output to"""
+        return self.parse_type_only({"<<set $_output"})
 
     def _parse_feats(self):
         """json"""
@@ -1422,6 +1434,11 @@ class ParseTextTwee:
                 results.append(True)
                 continue
 
+            """还有这个"""
+            if line.startswith("<<run $(`#${_id}") and ('"Take" : ' in line or '"Present" : ' in line):
+                results.append(True)
+                continue
+
             if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
                 results.append(False)
             elif (
@@ -1658,6 +1675,8 @@ class ParseTextJS:
             return self.parse_variables()
         elif DirNamesJS.SPECIAL_MASTURBATION.value == self._filedir.name:
             return self.parse_masturbation()
+        elif DirNamesJS.PREGNANCY.value == self._filedir.name:
+            return self.parse_pregnancy()
         return self.parse_normal()
 
     """ 03-JavaScript """
@@ -1901,6 +1920,17 @@ class ParseTextJS:
         if FileNamesJS.ACTIONS_FULL.value == self._filename:
             return self._parse_actions()
         return self.parse_normal()
+
+    """ 04-pregnancy """
+    def parse_pregnancy(self) -> list[bool]:
+        """ 04-pregnancy """
+        if FileNamesJS.CHILDREN_STROY_FUNCTIONS_FULL.value == self._filename:
+            return self._parse_children_story_functions()
+        return self.parse_normal()
+
+    def _parse_children_story_functions(self):
+        """就一个 wordList"""
+        return self.parse_type_only({"const wordList", "wordList.push"})
 
     def _parse_actions(self):
         """result.text"""

@@ -3,6 +3,8 @@ from typing import Callable
 from typing_extensions import Self
 from enum import Enum, auto
 
+from src.log import logger
+
 EOF = None
 
 
@@ -24,18 +26,17 @@ class Item:
     end: int = 0
     val: bytes = b""
 
-    # @property
-    # def type(self):
-    #     return ItemType(self._type)
-    #
-    # @type.setter
-    # def type(self, item_type: ItemType):
-    #     self._type = item_type.value
+    _value: str = ""
+
     @property
     def value(self):
-        return self.val.decode(encoding="utf8")
+        return self._value or self.val.decode(encoding="utf8")
 
-    def to_string(self):
+    @value.setter
+    def value(self, _v):
+        self._value = _v
+
+    def __str__(self):
         name = ""
         item_type = self.type
         match item_type:
@@ -53,8 +54,9 @@ class Item:
                 name = "Metadata"
             case ItemType.ItemContent:
                 name = "Content"
+                self.value = self.value.replace("\n", "\\n")
         if item_type != ItemType.ItemError and len(self.value) > 80:
-            return f"[{name}:{self.line}行/{self.pos}位] {self.value:.80}..."
+            return f"[{name}:{self.line}行/{self.pos}位] {self.value:.80}...\n"
         return f"[{name}:{self.line}行/{self.pos}位] {self.value}"
 
 
@@ -63,10 +65,10 @@ class ItemValue:
     item: Item | None = None
 
     @property
-    def result(self):
+    def result(self) -> bool:
         return self.has_value()
 
-    def has_value(self):
+    def has_value(self) -> bool:
         return self.item is not None
 
 
@@ -243,7 +245,7 @@ class TweeLexerState(Enum):
 
     @staticmethod
     def lex_prolog(twee_lexer: TweeLexer):
-        print("进入Prolog解析器")
+        logger.debug("\t- 进入Prolog解析器")
         if twee_lexer.has_header_delim:
             return TweeLexerState.LexerHeaderDelim
         text_index = twee_lexer.newline_header_delim_index
@@ -256,7 +258,7 @@ class TweeLexerState(Enum):
 
     @staticmethod
     def lex_context(twee_lexer: TweeLexer):
-        print("进入Context解析器")
+        logger.debug("\t- 进入Context解析器")
         if twee_lexer.has_header_delim:
             return TweeLexerState.LexerHeaderDelim
         text_index = twee_lexer.newline_header_delim_index
@@ -272,14 +274,14 @@ class TweeLexerState(Enum):
 
     @staticmethod
     def lex_header_delim(twee_lexer: TweeLexer):
-        print("进入HeaderDelim解析器")
+        logger.debug("\t- 进入HeaderDelim解析器")
         twee_lexer.pos += len(HEADER_DELIM)
         twee_lexer.emit(ItemType.ItemHeader)
         return TweeLexerState.LexerName
 
     @staticmethod
     def lex_name(twee_lexer: TweeLexer):
-        print("进入Name解析器")
+        logger.debug("\t- 进入Name解析器")
         while True:
             r = twee_lexer.next
             if r == "\\":
@@ -296,11 +298,11 @@ class TweeLexerState(Enum):
             case b'[':
                 return TweeLexerState.LexerTags
             case b']':
-                return twee_lexer.error_format("unexpected right square bracket %#U", r)
+                return twee_lexer.error_format(f"unexpected right square bracket {r}")
             case b'{':
                 return TweeLexerState.LexerMetadata
             case b'}':
-                return twee_lexer.error_format("unexpected right curly bracket %#U", r)
+                return twee_lexer.error_format(f"unexpected right curly bracket {r}")
             case b'\n':
                 twee_lexer.pos += 1
                 twee_lexer.ignore()
@@ -310,7 +312,7 @@ class TweeLexerState(Enum):
 
     @staticmethod
     def lex_next_optional_block(twee_lexer: TweeLexer):
-        print("进入NextOptionalBlock解析器")
+        logger.debug("\t- 进入NextOptionalBlock解析器")
         twee_lexer.accept_run([b" ", b"\t"])
         twee_lexer.ignore()
         r = twee_lexer.peek
@@ -318,30 +320,30 @@ class TweeLexerState(Enum):
             case b'[':
                 return TweeLexerState.LexerTags
             case b']':
-                return twee_lexer.error_format("unexpected right square bracket %#U", r)
+                return twee_lexer.error_format(f"unexpected right square bracket {r}")
             case b'{':
                 return TweeLexerState.LexerMetadata
             case b'}':
-                return twee_lexer.error_format("unexpected right curly bracket %#U", r)
-            case u'\n':
+                return twee_lexer.error_format(f"unexpected right curly bracket {r}")
+            case b'\n':
                 twee_lexer.pos += 1
                 twee_lexer.ignore()
                 return TweeLexerState.LexerContent
             case None:
                 twee_lexer.emit(ItemType.ItemEOF)
                 return TweeLexerState.LexerNone
-        return twee_lexer.error_format("illegal character %#U amid the optional block", r)
+        return twee_lexer.error_format(f"illegal character {r} amid the optional block")
 
     @staticmethod
     def lex_tags(twee_lexer: TweeLexer):
-        print("进入Tags解析器")
+        logger.debug("\t- 进入Tags解析器")
         twee_lexer.pos += 1
         while True:
             r = twee_lexer.next
             match r:
                 case b"\\":
                     r = twee_lexer.next
-                    if r not in [u'\n', EOF]:
+                    if r not in [b'\n', EOF]:
                         break
                     continue
                 case [b'\n', None]:
@@ -349,20 +351,20 @@ class TweeLexerState(Enum):
                         twee_lexer.backup()
                     return twee_lexer.error_format("unterminated tag block")
                 case b'[':
-                    return twee_lexer.error_format("unexpected left square bracket %#U", r)
+                    return twee_lexer.error_format(f"unexpected left square bracket {r}")
                 case b']':
                     break
                 case b'{':
-                    return twee_lexer.error_format("unexpected left curly brace %#U", r)
+                    return twee_lexer.error_format(f"unexpected left curly brace {r}")
                 case b'}':
-                    return twee_lexer.error_format("unexpected right curly brace %#U", r)
+                    return twee_lexer.error_format(f"unexpected right curly brace {r}")
         if twee_lexer.pos > twee_lexer.start:
             twee_lexer.emit(ItemType.ItemTags)
         return TweeLexerState.LexerNextOptionalBlock
 
     @staticmethod
     def lex_metadata(twee_lexer: TweeLexer):
-        print("进入Metadata解析器")
+        logger.debug("\t- 进入Metadata解析器")
         twee_lexer.pos += 1
         depth = 1
         while True:
@@ -388,7 +390,7 @@ class TweeLexerState(Enum):
         return TweeLexerState.LexerNextOptionalBlock
 
     def get_state_func(self: Self) -> STATE_FUNC:
-        print(f"进入状态机:{self}")
+        logger.debug(f"===== 进入状态机:{self}")
         match self:
             case TweeLexerState.LexerNone:
                 return None
@@ -421,3 +423,14 @@ __all__ = [
     "accept_quoted",
 
 ]
+
+if __name__ == '__main__':
+    from src.consts import DIR_GAME_TEXTS_COMMON
+    test = DIR_GAME_TEXTS_COMMON / "overworld-town" / "loc-home" / "main.twee"
+    with open(test, "r", encoding="utf-8") as fp:
+        texts = fp.read()
+    twee = TweeLexer.create_twee_lexer(texts)
+    # items = twee.get_items()
+    for item in twee.items:
+        logger.info(item)
+

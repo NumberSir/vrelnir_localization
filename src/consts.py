@@ -91,6 +91,7 @@ class FileNamesTwee(Enum):
     CANVASMODEL_FULL = "canvasmodel-example.twee"
     PASSAGE_FOOTER_FULL = "variables-passageFooter.twee"
     VERSION_UPDATE_FULL = "variables-versionUpdate.twee"
+    PREGNANCY_VAR_FULL = "pregnancyVar.twee"
 
     """ base-clothing """
     CAPTIONTEXT_FULL = "captiontext.twee"
@@ -129,6 +130,7 @@ class FileNamesTwee(Enum):
     CAPTION_FULL = "caption.twee"
     DEVIANCY_FULL = "deviancy.twee"
     SYSTEM_EXHIBITIONISM_FULL = "exhibitionism.twee"
+    FAME_FULL = "fame.twee"
     FEATS_FULL = "feats.twee"
     MOBILE_STATS_FULL = "mobileStats.twee"
     NAME_LIST_FULL = "name-list.twee"
@@ -160,6 +162,7 @@ class DirNamesJS(Enum):
     JAVASCRIPT = "03-JavaScript"
     VARIABLES = "04-Variables"
     SPECIAL_MASTURBATION = "special-masturbation"
+    PREGNANCY = "04-Pregnancy"
 
 
 class FileNamesJS(Enum):
@@ -181,6 +184,9 @@ class FileNamesJS(Enum):
 
     """ special-masturbation """
     ACTIONS_FULL = "actions.js"
+
+    """ 04-Pregnancy """
+    CHILDREN_STROY_FUNCTIONS_FULL = "childrenStoryFunctions.js"
 
 
 HIGH_RATE_LINKS = {

@@ -17,5 +17,8 @@
     "actions.js",
     "effects.js",
     "slimeControl.js"
+  ],
+  "04-Pregnancy": [
+    "childrenStoryFunctions.js"
   ]
 }
