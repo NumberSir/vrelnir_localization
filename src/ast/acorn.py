@@ -60,7 +60,7 @@ class Comment(TypedDict):
     loc: SourceLocation | None
 
 
-class ArconOptionParam(TypedDict, total=False):
+class AcornOptionParam(TypedDict, total=False):
     ecmaVersion: ECMA_VERSION
     sourceType: SOURCE_TYPE
     ranges: bool
@@ -80,7 +80,7 @@ class ArconOptionParam(TypedDict, total=False):
 
 
 @dataclass
-class ArconOption:
+class AcornOption:
     ecmaVersion: ECMA_VERSION = 2020
     sourceType: SOURCE_TYPE = "script"
     ranges: bool = False
@@ -103,20 +103,53 @@ class ArconOption:
         }
 
     @staticmethod
-    def parse_option(option: ArconOptionParam = None):
+    def parse_option(option: AcornOptionParam = None):
         if option is None:
             option = {}
         _option = {}
         func = {}
         for key, value in option.items():
-            if hasattr(ArconOption, key) and not isinstance(value, FunctionType):
+            if hasattr(AcornOption, key) and not isinstance(value, FunctionType):
                 _option[key] = value
             if isinstance(value, FunctionType):
                 func[key] = value
-        return ArconOption(**_option).to_dict(), func
+        return AcornOption(**_option).to_dict(), func
 
 
-class Arcon:
+@dataclass
+class JSSyntaxError(Exception):
+    pos: int = -1
+    loc: dict[str, int] = dict
+    raisedAt: int = -1
+    name: str = ""
+    message: str = ""
+    def to_string(self):
+        return f"{self.name}:{self.message}({self.line}行:{self.column}位)"
+    def __str__(self):
+        return self.to_string()
+    @property
+    def line(self):
+        return  self.loc["line"] if "line" in self.loc else -1
+
+    @property
+    def column(self):
+        return self.loc["column"]if "column" in self.loc else -1
+    def err_code(self,code:list[str]):
+        res = code[self.line - 1]
+        column = self.column
+        err_str = ""
+        if column < len(res):
+            line_str_len= len(str(self.line))
+            line_space = (" " * line_str_len)
+            column_space =(" " * (column + 1))
+            err_str = f"<W>{line_space}</W>{column_space}<r>~</r>"
+
+        msg = f"<r>{self.to_string()}</r>\n<W><k>{self.line}</k></W> {res}"
+        if err_str != "":
+            msg += "\n" + err_str
+        return msg
+
+class Acorn:
     def __init__(self):
         self._jsi = dukpy.JSInterpreter()
         self._jsi.loader.register_path(DIR_JS_MODULE_ROOT / "acorn" / "dist")
@@ -125,16 +158,20 @@ class Arcon:
     def jsi(self):
         return self._jsi
 
-    def parse(self, code_text: str, option: ArconOptionParam = None):
+
+    def parse(self, code_text:str, option:AcornOptionParam = None):
         self.install_dep()
-        arcon_option, func = ArconOption.parse_option(option)
+        arcon_option,func= AcornOption.parse_option(option)
         # print(arcon_option)
-        code = ["var acorn = require('acorn')", REGISTER_FUNC, "var option = Object.assign({},dukpy['option'])"]
+        code = [REGISTER_FUNC,"var acorn = require('acorn')","function parseArcon() {var option = Object.assign({},dukpy['option']); try{"]
         for key, value in func.items():
             code.append(f"option['{key}'] = registerFunc('{key}')")
-            self._jsi.export_function(key, value)
-        code.extend(("var result =acorn.parse(dukpy['code_text'], option)", "result"))
-        return self._jsi.evaljs(code, code_text=code_text, option=arcon_option)
+            self._jsi.export_function(key,value)
+        code.extend(("var result =acorn.parse(dukpy['code_text'], option);return result}catch (e){if (!(e instanceof SyntaxError)) throw e;var err = Object.assign({}, e); err.name = e.name;err.message = e.message;return err;}}", "parseArcon()"))
+        result = self._jsi.evaljs(code, code_text= code_text, option =arcon_option)
+        if "name" in result and result["name"] == 'SyntaxError':
+            raise JSSyntaxError(**result)
+        return result
 
     @staticmethod
     def install_dep():
@@ -146,19 +183,15 @@ __all__ = [
     "DIR_JS_MODULE_ROOT",
     "DIR_ARCON_ROOT",
 
-    "ArconOptionParam",
-    "ArconOption",
-    "Arcon",
+    "AcornOptionParam",
+    "AcornOption",
+    "Acorn",
 
     "Position",
     "TokenType",
     "SourceLocation",
     "Token",
     "Comment",
+    "JSSyntaxError"
 
 ]
-# def on_token(token):
-#     print(token)
-# arcon=Arcon()
-# print(REGISTER_FUNC)
-# print(arcon.parse("test\n\nvar a = 1 +1",ArconOptionParam(ecmaVersion=2020,sourceType='script',onToken= lambda token:print(token))))

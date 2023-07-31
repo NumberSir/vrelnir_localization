@@ -42,15 +42,17 @@ STRING                  | 文本
 TEXT, STRING
 """
 import asyncio
+import sys
 import time
 
 from src import (
     logger,
     Paratranz,
     ProjectDOL,
-    PARATRANZ_TOKEN
-)
+    PARATRANZ_TOKEN,
 
+)
+from src.ast import Acorn,JSSyntaxError
 
 async def main():
     start = time.time()
@@ -94,5 +96,5 @@ async def main():
 
 
 if __name__ == '__main__':
-    last = asyncio.run(main())
-    logger.info(f"===== 总耗时 {last or -1}s =====")
+     last = asyncio.run(main())
+     logger.info(f"===== 总耗时 {last or -1}s =====")
