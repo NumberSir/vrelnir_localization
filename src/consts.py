@@ -23,6 +23,8 @@ PARATRANZ_PROJECT_ID = 4780  # DOL 项目 ID
 """源代码仓库"""
 REPOSITORY_URL_COMMON = "https://gitgud.io/Vrelnir/degrees-of-lewdity"
 REPOSITORY_ZIP_URL_COMMON = "https://gitgud.io/Vrelnir/degrees-of-lewdity/-/archive/master/degrees-of-lewdity-master.zip"
+REPOSITORY_URL_WORLD = "https://gitgud.io/Wub/degrees-of-lewdity-world-expansion"
+REPOSITORY_ZIP_URL_WORLD = "https://gitgud.io/Wub/degrees-of-lewdity-world-expansion/-/archive/master/degrees-of-lewdity-world-expansion-master.zip"
 REPOSITORY_URL_DEV = "https://gitgud.io/Vrelnir/degrees-of-lewdity"
 REPOSITORY_ZIP_URL_DEV = "https://gitgud.io/Vrelnir/degrees-of-lewdity/-/archive/dev/degrees-of-lewdity-dev.zip"
 REPOSITORY_URL_COMMITS = "https://gitgud.io/api/v4/projects/8430/repository/commits"
@@ -38,6 +40,10 @@ DIR_GAME_ROOT_COMMON_NAME = "degrees-of-lewdity-master"
 DIR_GAME_ROOT_COMMON = DIR_ROOT / DIR_GAME_ROOT_COMMON_NAME
 # DIR_GAME_ROOT_COMMON = Path("D:\Joy\Butter").absolute() / "degrees-of-lewdity-master"
 DIR_GAME_TEXTS_COMMON = DIR_GAME_ROOT_COMMON / "game"
+
+DIR_GAME_ROOT_WORLD_NAME = "degrees-of-lewdity-world-expansion-master"
+DIR_GAME_ROOT_WORLD = DIR_ROOT / DIR_GAME_ROOT_WORLD_NAME
+DIR_GAME_TEXTS_WORLD = DIR_GAME_ROOT_WORLD / "game"
 
 DIR_GAME_ROOT_DEV_NAME = "degrees-of-lewdity-dev"
 DIR_GAME_ROOT_DEV = DIR_ROOT / DIR_GAME_ROOT_DEV_NAME
@@ -214,6 +220,8 @@ __all__ = [
     "PARATRANZ_PROJECT_ID",
     "REPOSITORY_URL_COMMON",
     "REPOSITORY_ZIP_URL_COMMON",
+    "REPOSITORY_URL_WORLD",
+    "REPOSITORY_ZIP_URL_WORLD",
     "REPOSITORY_URL_DEV",
     "REPOSITORY_ZIP_URL_DEV",
     "REPOSITORY_URL_COMMITS",
@@ -225,6 +233,9 @@ __all__ = [
     "DIR_GAME_ROOT_COMMON_NAME",
     "DIR_GAME_ROOT_COMMON",
     "DIR_GAME_TEXTS_COMMON",
+    "DIR_GAME_ROOT_WORLD_NAME",
+    "DIR_GAME_ROOT_WORLD",
+    "DIR_GAME_TEXTS_WORLD",
     "DIR_GAME_ROOT_DEV_NAME",
     "DIR_GAME_ROOT_DEV",
     "DIR_GAME_TEXTS_DEV",
