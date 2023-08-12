@@ -563,7 +563,6 @@ class ProjectDOL:
                 return
             if not FILE_REPOSITORY_ZIP.exists():
                 return
-            shutil.move(FILE_REPOSITORY_ZIP, DIR_ROOT) # type: ignore
             shutil.rmtree(DIR_TEMP_ROOT, ignore_errors=True)
         logger.warning("\t- 缓存目录已删除")
 
