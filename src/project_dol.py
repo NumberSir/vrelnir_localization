@@ -76,9 +76,9 @@ class ProjectDOL:
         logger.info("===== 开始获取最新仓库内容 ...")
         async with httpx.AsyncClient() as client:
             if self._type == "common":
-                zip_url = REPOSITORY_ZIP_URL_COMMON 
+                zip_url = REPOSITORY_ZIP_URL_COMMON
             elif self._type == "world":
-                zip_url = REPOSITORY_ZIP_URL_WORLD 
+                zip_url = REPOSITORY_ZIP_URL_WORLD
             else:
                 zip_url = REPOSITORY_ZIP_URL_DEV
             flag = False
@@ -332,30 +332,18 @@ class ProjectDOL:
                 en, zh = en.strip(), zh.strip()
                 if not zh and not vip_flag:  # 没汉化/汉化为空
                     continue
-                
+
                 zh = zh.replace('^(“)','"')
                 zh = zh.replace('(”)$','"')
                 if self._is_lack_angle_new(zh, en):
                     logger.warning(f"\t!!! 可能的尖括号数量错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(en)}")
-                    webbrowser.open((f"https://paratranz.cn/projects/4780/strings?text={quote(en)}").__str__())
+                    webbrowser.open(f"https://paratranz.cn/projects/4780/strings?text={quote(en)}")
                 if self._is_lack_fang(zh, en):
                     logger.warning(f"\t!!! 可能的方括号数量错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(en)}")
-                    webbrowser.open((f"https://paratranz.cn/projects/4780/strings?text={quote(en)}").__str__())
+                    webbrowser.open(f"https://paratranz.cn/projects/4780/strings?text={quote(en)}")
                 if self._is_different_event(zh, en):
                     logger.warning(f"\t!!! 可能的事件名称错翻：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(en)}")
-                    webbrowser.open((f"https://paratranz.cn/projects/4780/strings?text={quote(en)}").__str__())
-                # if self._is_full_notation_new(zh, en):
-                #     logger.warning(f"\t!!! 可能的半全角错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(en)}")
-                #     webbrowser.open((f"https://paratranz.cn/projects/4780/strings?text={quote(en)}").__str__())
-                # if self._is_lack_yin(zh, en):
-                #     logger.warning(f"\t!!! 可能的引号数量错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(en)}")
-                #     webbrowser.open((f"https://paratranz.cn/projects/4780/strings?text={quote(en)}").__str__())
-                # if self._is_full_comma(zh):
-                #     logger.warning(f"\t!!! 可能的全角逗号错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(zh)}")
-                # if self._is_lack_angle(zh, en):
-                #     logger.warning(f"\t!!! 可能的尖括号数量错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(zh)}")
-                # if self._is_full_notation(zh, en):
-                #     logger.warning(f"\t!!! 可能的全角引号错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(zh)}")
+                    webbrowser.open(f"https://paratranz.cn/projects/4780/strings?text={quote(en)}")
 
                 for idx_, target_row in enumerate(raw_targets_temp):
                     if not target_row.strip():
@@ -412,16 +400,13 @@ class ProjectDOL:
                             raw_targets[idx_] = raw_targets[idx_].replace(".name_cap", ".cn_name_cap")
                     elif target_row.strip() == "].select($_rng)>>":  # 怪东西
                         raw_targets[idx_] = ""
-                # else:
-                #     logger.warning(f"\t!!! 找不到替换的行: {zh} | {csv_file.relative_to(DIR_RAW_DICTS / self._version / 'csv' / 'game')}")
-        if target_file.name.endswith(".js"):
-            logger.info(f"开始检测语法 文件:{target_file}")
 
+        if target_file.name.endswith(".js"):
             try:
                 self._acorn.parse("".join(raw_targets))
-                LOGGER_COLOR.info("<g>语法检测通过</g>")
+                LOGGER_COLOR.info(f"<g>语法检测通过</g> {target_file}")
             except JSSyntaxError as err:
-                LOGGER_COLOR.error(err.err_code(raw_targets))
+                LOGGER_COLOR.error(f"{target_file} | {err.err_code(raw_targets)}")
         with open(target_file, "w", encoding="utf-8") as fp:
             fp.writelines(raw_targets)
 
@@ -439,7 +424,7 @@ class ProjectDOL:
         return (
             len(left_angle_double_en)-len(right_angle_double_en) != len(left_angle_double_zh)-len(right_angle_double_zh)
         )
-    
+
     @staticmethod
     def _is_lack_fang(line_zh: str, line_en: str):
         """缺少[或者]"""
@@ -452,7 +437,7 @@ class ProjectDOL:
         return (
             len(right_angle_double_en) != len(right_angle_double_zh)
         )
-    
+
     @staticmethod
     def _is_different_event(line_zh: str, line_en: str):
         """<<link [[TEXT|EVENT]]>> 中 EVENT 打错了"""
@@ -463,7 +448,7 @@ class ProjectDOL:
             return False
         event_zh = re.findall(r"<<link\s\[\[.*?\|(.*?)\]\]", line_zh)
         return event_en != event_zh
-    
+
     @staticmethod
     def _is_full_notation_new(line_zh: str, line_en: str):
         """半全角打错了"""
@@ -472,7 +457,7 @@ class ProjectDOL:
         left_angle_double_en = re.findall(r'(",)', line_en)
         left_angle_double_zh = re.findall(r'(",)', line_zh)
         return len(left_angle_double_en) != len(left_angle_double_zh)
-    
+
     @staticmethod
     def _is_lack_yin(line_zh: str, line_en: str):
         """缺少引号"""
@@ -481,7 +466,7 @@ class ProjectDOL:
         return (
             (len(right_angle_double_en) - len(right_angle_double_zh))%2 != 0
         )
-    
+
     @staticmethod
     def _is_full_comma(line: str):
         """全角逗号"""
@@ -522,6 +507,13 @@ class ProjectDOL:
         if '",' in line_en and '”,' in line_zh:
             return True
         return ': "' in line_en and ': “' in line_zh
+
+    @staticmethod
+    def _is_lost_notation(line_zh: str, line_en: str):
+        """漏了引号逗号"""
+        if any(line_en.endswith(_) for _ in {"',", '",', "`,"}) and line_zh[-2:] != line_en[-2:]:
+            return True
+        return False
 
     """ 删删删 """
     async def drop_all_dirs(self, force = False):
@@ -578,7 +570,7 @@ class ProjectDOL:
     def game_dir(self) -> Path:
         """获得游戏目录"""
         return self.get_type(DIR_GAME_ROOT_COMMON, DIR_GAME_ROOT_WORLD, DIR_GAME_ROOT_DEV)
-    
+
     async def _drop_gitgud(self):
         """删掉游戏库"""
         shutil.rmtree(self.game_dir, ignore_errors=True)

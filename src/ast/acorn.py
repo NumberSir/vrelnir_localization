@@ -98,7 +98,7 @@ class AcornOption:
 
     def to_dict(self):
         return {
-            k: str(v) if v is not None else None 
+            k: str(v) if v is not None else None
             for k, v in asdict(self).items()
         }
 
@@ -123,31 +123,36 @@ class JSSyntaxError(Exception):
     raisedAt: int = -1
     name: str = ""
     message: str = ""
+
     def to_string(self):
         return f"{self.name}:{self.message}({self.line}行:{self.column}位)"
+
     def __str__(self):
         return self.to_string()
+
     @property
     def line(self):
-        return  self.loc["line"] if "line" in self.loc else -1
+        return self.loc["line"] if "line" in self.loc else -1
 
     @property
     def column(self):
-        return self.loc["column"]if "column" in self.loc else -1
-    def err_code(self,code:list[str]):
+        return self.loc["column"] if "column" in self.loc else -1
+
+    def err_code(self, code: list[str]):
         res = code[self.line - 1]
         column = self.column
         err_str = ""
         if column < len(res):
-            line_str_len= len(str(self.line))
+            line_str_len = len(str(self.line))
             line_space = (" " * line_str_len)
-            column_space =(" " * (column + 1))
+            column_space = (" " * (column + 1))
             err_str = f"<W>{line_space}</W>{column_space}<r>~</r>"
 
         msg = f"<r>{self.to_string()}</r>\n<W><k>{self.line}</k></W> {res}"
         if err_str != "":
             msg += "\n" + err_str
         return msg
+
 
 class Acorn:
     def __init__(self):
@@ -158,17 +163,19 @@ class Acorn:
     def jsi(self):
         return self._jsi
 
-
-    def parse(self, code_text:str, option:AcornOptionParam = None):
+    def parse(self, code_text: str, option: AcornOptionParam = None):
         self.install_dep()
-        arcon_option,func= AcornOption.parse_option(option)
+        arcon_option, func = AcornOption.parse_option(option)
         # print(arcon_option)
-        code = [REGISTER_FUNC,"var acorn = require('acorn')","function parseArcon() {var option = Object.assign({},dukpy['option']); try{"]
+        code = [REGISTER_FUNC, "var acorn = require('acorn')",
+                "function parseArcon() {var option = Object.assign({},dukpy['option']); try{"]
         for key, value in func.items():
             code.append(f"option['{key}'] = registerFunc('{key}')")
-            self._jsi.export_function(key,value)
-        code.extend(("var result =acorn.parse(dukpy['code_text'], option);return result}catch (e){if (!(e instanceof SyntaxError)) throw e;var err = Object.assign({}, e); err.name = e.name;err.message = e.message;return err;}}", "parseArcon()"))
-        result = self._jsi.evaljs(code, code_text= code_text, option =arcon_option)
+            self._jsi.export_function(key, value)
+        code.extend((
+                    "var result =acorn.parse(dukpy['code_text'], option);return result}catch (e){if (!(e instanceof SyntaxError)) throw e;var err = Object.assign({}, e); err.name = e.name;err.message = e.message;return err;}}",
+                    "parseArcon()"))
+        result = self._jsi.evaljs(code, code_text=code_text, option=arcon_option)
         if "name" in result and result["name"] == 'SyntaxError':
             raise JSSyntaxError(**result)
         return result

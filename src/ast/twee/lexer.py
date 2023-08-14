@@ -122,7 +122,6 @@ class TweeLexer:
 
     @property
     def newline_header_delim_index(self):
-
         return -1 if self.pos > self.end else self.input.find(NEWLINE_HEADER_DELIM, self.pos)
 
     @property

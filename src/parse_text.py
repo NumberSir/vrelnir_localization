@@ -406,7 +406,7 @@ class ParseTextTwee:
                     "_anusaction", "_actions", "_undressLeftTargets",
                     "_undressRightTargets", "_handGuideOptions", "_penisaction",
                     "_askActions", "_vaginaaction", "_text_output", "_chestaction",
-                    "_thighaction", "_npccr", "_npcff"
+                    "_thighaction", "_npccr", "_npcff", r"\$_doText"
                 })
             ):
                 results.append(True)
@@ -1452,7 +1452,8 @@ class ParseTextTwee:
                     or (self.is_widget_link(line) and not self.is_widget_high_rate_link(line))
                     or ("<<set " in line and self.is_widget_set_to(line, {
                         r"\$_strings", r"\$_text_output", "_text_output",
-                        r"\$_customertype", r"\$_theboy", "_clothesDesc"
+                        r"\$_customertype", r"\$_theboy", "_clothesDesc",
+                        "_actionText"
                     }))
                     or any(re.findall(r"<<set (?:(?:\$|_)[^_][#;\w\.\(\)\[\]\"\'`]*) to \[[\"\'`\w,\s]*\]>>", line))
                 )
@@ -1565,12 +1566,12 @@ class ParseTextTwee:
     @staticmethod
     def is_tag_span(line: str) -> bool:
         """<span???>xxx"""
-        return any(re.findall(r'<span.*?>[\"\w\.]', line))
+        return any(re.findall(r'<span.*?>[\"\w\.\-+]', line))
 
     @staticmethod
     def is_tag_label(line: str) -> bool:
         """<label>xxx</label>"""
-        return any(re.findall(r"<label>\w", line)) or any(re.findall(r"\w</label>", line))
+        return any(re.findall(r"<label>[\w\-+]", line)) or any(re.findall(r"\w</label>", line))
 
     @staticmethod
     def is_tag_input(line: str) -> bool:
@@ -1866,6 +1867,10 @@ class ParseTextJS:
                 inner_text_flag = False
                 results.append(False)
             elif inner_text_flag or "lastChild.innerText" in line:
+                results.append(True)
+            elif "value: " in line:
+                results.append(True)
+            elif "Saves here will be lost" in line:
                 results.append(True)
             else:
                 results.append(False)
