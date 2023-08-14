@@ -51,7 +51,12 @@ class ProjectDOL:
 
     async def fetch_latest_version(self, is_quiet: bool = True):
         async with httpx.AsyncClient() as client:
-            url = f"{REPOSITORY_URL_COMMON}/-/raw/master/version" if self._type == "common" else f"{REPOSITORY_URL_DEV}/-/raw/dev/version"
+            if self._type == "common":
+                url = f"{REPOSITORY_URL_COMMON}/-/raw/master/version"
+            elif self._type == "world":
+                url = f"{REPOSITORY_URL_WORLD}/-/raw/master/version"
+            else:
+                url = f"{REPOSITORY_URL_DEV}/-/raw/dev/version"
             response = await client.get(url)
             if not is_quiet:
                 logger.info(f"当前仓库最新版本: {response.text}")
@@ -63,12 +68,6 @@ class ProjectDOL:
         """从 gitgud 下载源仓库文件"""
         if not self._version:
             await self.fetch_latest_version()
-        if self._is_latest:
-            dol_path_zip = DIR_ROOT / "dol.zip"
-            if dol_path_zip.exists():
-                shutil.move(dol_path_zip, DIR_TEMP_ROOT)
-                await self.unzip_latest_repository()
-                return
         await self.fetch_latest_repository()
         await self.unzip_latest_repository()
 
@@ -76,7 +75,12 @@ class ProjectDOL:
         """获取最新仓库内容"""
         logger.info("===== 开始获取最新仓库内容 ...")
         async with httpx.AsyncClient() as client:
-            zip_url = REPOSITORY_ZIP_URL_COMMON if self._type == "common" else REPOSITORY_ZIP_URL_DEV
+            if self._type == "common":
+                zip_url = REPOSITORY_ZIP_URL_COMMON 
+            elif self._type == "world":
+                zip_url = REPOSITORY_ZIP_URL_WORLD 
+            else:
+                zip_url = REPOSITORY_ZIP_URL_DEV
             flag = False
             for _ in range(3):
                 try:
@@ -116,7 +120,12 @@ class ProjectDOL:
         """获取所有文本文件"""
         logger.info("===== 开始获取所有文本文件位置 ...")
         self._game_texts_file_lists = []
-        texts_dir = DIR_GAME_TEXTS_COMMON if self._type == "common" else DIR_GAME_TEXTS_DEV
+        if self._type == "common":
+            texts_dir = DIR_GAME_TEXTS_COMMON
+        elif self._type == "world":
+            texts_dir = DIR_GAME_TEXTS_WORLD
+        else:
+            texts_dir = DIR_GAME_TEXTS_DEV
         for root, dir_list, file_list in os.walk(texts_dir):
             dir_name = Path(root).absolute().name
             for file in file_list:
@@ -144,7 +153,12 @@ class ProjectDOL:
         """创建目录防报错"""
         if not self._version:
             await self.fetch_latest_version()
-        dir_name = DIR_GAME_ROOT_COMMON_NAME if self._type == "common" else DIR_GAME_ROOT_DEV_NAME
+        if self._type == "common":
+            dir_name = DIR_GAME_ROOT_COMMON_NAME
+        elif self._type == "world":
+            dir_name = DIR_GAME_ROOT_WORLD_NAME
+        else:
+            dir_name = DIR_GAME_ROOT_DEV_NAME
         for file in self._game_texts_file_lists:
             target_dir = file.parent.parts[file.parts.index(dir_name)+1:]
             target_dir_csv = (DIR_RAW_DICTS / self._version / "csv").joinpath(*target_dir)
@@ -275,7 +289,12 @@ class ProjectDOL:
         """汉化覆写游戏文件"""
         if not self._version:
             await self.fetch_latest_version()
-        DIR_GAME_TEXTS = DIR_GAME_TEXTS_COMMON if self._type == "common" else DIR_GAME_TEXTS_DEV
+        if self._type == "common":
+            DIR_GAME_TEXTS = DIR_GAME_TEXTS_COMMON
+        elif self._type == "world":
+            DIR_GAME_TEXTS = DIR_GAME_TEXTS_WORLD
+        else:
+            DIR_GAME_TEXTS = DIR_GAME_TEXTS_DEV
         logger.info("===== 开始覆写汉化 ...")
         file_mapping: dict = {}
         for root, dir_list, file_list in os.walk(DIR_RAW_DICTS / self._version / "csv"):
@@ -313,15 +332,30 @@ class ProjectDOL:
                 en, zh = en.strip(), zh.strip()
                 if not zh and not vip_flag:  # 没汉化/汉化为空
                     continue
-
-                if self._is_full_comma(zh):
-                    logger.warning(f"\t!!! 可能的全角逗号错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(zh)}")
-                if self._is_lack_angle(zh, en):
-                    logger.warning(f"\t!!! 可能的尖括号数量错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(zh)}")
+                
+                zh = zh.replace('^(“)','"')
+                zh = zh.replace('(”)$','"')
+                if self._is_lack_angle_new(zh, en):
+                    logger.warning(f"\t!!! 可能的尖括号数量错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(en)}")
+                    webbrowser.open((f"https://paratranz.cn/projects/4780/strings?text={quote(en)}").__str__())
+                if self._is_lack_fang(zh, en):
+                    logger.warning(f"\t!!! 可能的方括号数量错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(en)}")
+                    webbrowser.open((f"https://paratranz.cn/projects/4780/strings?text={quote(en)}").__str__())
                 if self._is_different_event(zh, en):
-                    logger.warning(f"\t!!! 可能的错译额外内容：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(zh)}")
-                if self._is_full_notation(zh, en):
-                    logger.warning(f"\t!!! 可能的全角引号错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(zh)}")
+                    logger.warning(f"\t!!! 可能的事件名称错翻：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(en)}")
+                    webbrowser.open((f"https://paratranz.cn/projects/4780/strings?text={quote(en)}").__str__())
+                # if self._is_full_notation_new(zh, en):
+                #     logger.warning(f"\t!!! 可能的半全角错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(en)}")
+                #     webbrowser.open((f"https://paratranz.cn/projects/4780/strings?text={quote(en)}").__str__())
+                # if self._is_lack_yin(zh, en):
+                #     logger.warning(f"\t!!! 可能的引号数量错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(en)}")
+                #     webbrowser.open((f"https://paratranz.cn/projects/4780/strings?text={quote(en)}").__str__())
+                # if self._is_full_comma(zh):
+                #     logger.warning(f"\t!!! 可能的全角逗号错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(zh)}")
+                # if self._is_lack_angle(zh, en):
+                #     logger.warning(f"\t!!! 可能的尖括号数量错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(zh)}")
+                # if self._is_full_notation(zh, en):
+                #     logger.warning(f"\t!!! 可能的全角引号错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(zh)}")
 
                 for idx_, target_row in enumerate(raw_targets_temp):
                     if not target_row.strip():
@@ -394,6 +428,61 @@ class ProjectDOL:
         # logger.info(f"\t- ({idx + 1} / {full}) {target_file.__str__().split('game')[1]} 覆写完毕")
 
     @staticmethod
+    def _is_lack_angle_new(line_zh: str, line_en: str):
+        """缺少<或者>"""
+        if "writ_cn" in line_zh:
+            return False
+        left_angle_double_en = re.findall(r"(<)", line_en)
+        left_angle_double_zh = re.findall(r"(<)", line_zh)
+        right_angle_double_en = re.findall(r"(>)", line_en)
+        right_angle_double_zh = re.findall(r"(>)", line_zh)
+        return (
+            len(left_angle_double_en)-len(right_angle_double_en) != len(left_angle_double_zh)-len(right_angle_double_zh)
+        )
+    
+    @staticmethod
+    def _is_lack_fang(line_zh: str, line_en: str):
+        """缺少[或者]"""
+        left_angle_double_en = re.findall(r"(\[)", line_en)
+        left_angle_double_zh = re.findall(r"(\[)", line_zh)
+        if len(left_angle_double_en) != len(left_angle_double_zh):
+            return True
+        right_angle_double_en = re.findall(r"(\])", line_en)
+        right_angle_double_zh = re.findall(r"(\])", line_zh)
+        return (
+            len(right_angle_double_en) != len(right_angle_double_zh)
+        )
+    
+    @staticmethod
+    def _is_different_event(line_zh: str, line_en: str):
+        """<<link [[TEXT|EVENT]]>> 中 EVENT 打错了"""
+        if "<<link [[" not in line_en or "|" not in line_en or not line_zh:
+            return False
+        event_en = re.findall(r"<<link\s\[\[.*?\|(.*?)\]\]", line_en)
+        if not event_en:
+            return False
+        event_zh = re.findall(r"<<link\s\[\[.*?\|(.*?)\]\]", line_zh)
+        return event_en != event_zh
+    
+    @staticmethod
+    def _is_full_notation_new(line_zh: str, line_en: str):
+        """半全角打错了"""
+        if "cn_name" in line_zh or "writ_cn" in line_zh:
+            return False
+        left_angle_double_en = re.findall(r'(",)', line_en)
+        left_angle_double_zh = re.findall(r'(",)', line_zh)
+        return len(left_angle_double_en) != len(left_angle_double_zh)
+    
+    @staticmethod
+    def _is_lack_yin(line_zh: str, line_en: str):
+        """缺少引号"""
+        right_angle_double_en = re.findall(r'(")', line_en)
+        right_angle_double_zh = re.findall(r'(")', line_zh)
+        return (
+            (len(right_angle_double_en) - len(right_angle_double_zh))%2 != 0
+        )
+    
+    @staticmethod
     def _is_full_comma(line: str):
         """全角逗号"""
         return line.endswith('"，')
@@ -428,17 +517,6 @@ class ProjectDOL:
         )  # 形如 << >> <<
 
     @staticmethod
-    def _is_different_event(line_zh: str, line_en: str):
-        """<<link [[TEXT|EVENT]]>> 中 EVENT 打错了"""
-        if "<<link [[" not in line_en or "|" not in line_en or not line_zh:
-            return False
-        event_en = re.findall(r"<<link\s\[\[.*?\|(.*?)\]\]", line_en)
-        if not event_en:
-            return False
-        event_zh = re.findall(r"<<link\s\[\[.*?\|(.*?)\]\]", line_zh)
-        return event_en != event_zh
-
-    @staticmethod
     def _is_full_notation(line_zh: str, line_en: str):
         """单双引号打错了"""
         if '",' in line_en and '”,' in line_zh:
@@ -458,7 +536,7 @@ class ProjectDOL:
         logger.warning("##### 删库跑路完毕 !\n")
 
     async def get_lastest_commit(self) -> None:
-        ref_name = self.get_type("master", "dev")
+        ref_name = self.get_type("master", "master", "dev")
         async with httpx.AsyncClient() as client:
             response = await client.get(REPOSITORY_URL_COMMITS, params = {"ref_name": ref_name})
             if response.status_code != 200:
@@ -485,18 +563,22 @@ class ProjectDOL:
                 return
             if not FILE_REPOSITORY_ZIP.exists():
                 return
-            shutil.move(FILE_REPOSITORY_ZIP, DIR_ROOT) # type: ignore
             shutil.rmtree(DIR_TEMP_ROOT, ignore_errors=True)
         logger.warning("\t- 缓存目录已删除")
 
-    def get_type(self, common, dev):
-        return common if self._type == "common" else dev
+    def get_type(self, common, world, dev):
+        if self._type == "common":
+            return common
+        elif self._type == "world":
+            return world
+        else:
+            return dev
 
     @property
     def game_dir(self) -> Path:
         """获得游戏目录"""
-        return self.get_type(DIR_GAME_ROOT_COMMON, DIR_GAME_ROOT_DEV)
-
+        return self.get_type(DIR_GAME_ROOT_COMMON, DIR_GAME_ROOT_WORLD, DIR_GAME_ROOT_DEV)
+    
     async def _drop_gitgud(self):
         """删掉游戏库"""
         shutil.rmtree(self.game_dir, ignore_errors=True)
