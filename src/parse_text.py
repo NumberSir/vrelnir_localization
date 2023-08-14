@@ -1,6 +1,7 @@
 import re
 from pathlib import Path
 
+from . import logger
 from .consts import *
 
 
@@ -300,7 +301,7 @@ class ParseTextTwee:
                 multirow_set_flag = True
                 results.append(False)
                 continue
-            elif multirow_set_flag and line in {"]>>", "})>>"}:
+            elif multirow_set_flag and line in {"]>>", "})>>", "}>>"}:
                 multirow_set_flag = False
                 results.append(False)
                 continue
@@ -313,7 +314,7 @@ class ParseTextTwee:
                 multirow_run_flag = True
                 results.append(False)
                 continue
-            elif multirow_run_flag and line in {"]>>", "})>>"}:
+            elif multirow_run_flag and line in {"})>>", "}>>", ")>>", "]>>", "});>>"}:
                 multirow_run_flag = False
                 results.append(False)
                 continue
@@ -1272,8 +1273,10 @@ class ParseTextTwee:
                 or line.endswith("(")
             ):
                 maybe_json_flag = True
+                continue
             elif maybe_json_flag and ">>" in line:
                 maybe_json_flag = False
+                continue
 
             if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
                 results.append(False)
@@ -1342,9 +1345,10 @@ class ParseTextTwee:
         multirow_if_flag = False
         multirow_error_flag = False
         maybe_json_flag = False
+        multirow_run_line_pool_flag = False  # 草!
 
         shop_clothes_hint_flag = False  # 草
-        for line in self._lines:
+        for idx, line in enumerate(self._lines):
             line = line.strip()
             if not line:
                 results.append(False)
@@ -1381,7 +1385,7 @@ class ParseTextTwee:
                 multirow_run_flag = True
                 results.append(False)
                 continue
-            elif multirow_run_flag and line in {"})>>", "}>>"}:
+            elif multirow_run_flag and line in {"})>>", "}>>", ")>>", "]>>", "});>>"}:
                 multirow_run_flag = False
                 results.append(False)
                 continue
@@ -1418,8 +1422,12 @@ class ParseTextTwee:
             """突如其来的json"""
             if ((line.startswith("<<set ") or line.startswith("<<error {")) and ">>" not in line) or line.endswith("[") or line.endswith("{") or line.endswith("("):
                 maybe_json_flag = True
+                results.append(False)
+                continue
             elif maybe_json_flag and ">>" in line:
                 maybe_json_flag = False
+                results.append(False)
+                continue
 
             """就这个特殊"""
             if line == "<<set _specialClothesHint to {":
@@ -1439,8 +1447,25 @@ class ParseTextTwee:
                 results.append(True)
                 continue
 
+            """以及这个"""
+            if line.startswith("<<run _linePool"):
+                if line.endswith(">>"):
+                    results.append(True)
+                else:
+                    multirow_run_line_pool_flag = True
+                    results.append(False)
+                continue
+            elif multirow_run_line_pool_flag and line.endswith(")>>"):
+                multirow_run_line_pool_flag = False
+                results.append(False)
+                continue
+            elif multirow_run_line_pool_flag:
+                results.append(True)
+                continue
+
             if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
                 results.append(False)
+                continue
             elif (
                 "<" in line and (
                     self.is_tag_span(line)
@@ -1453,14 +1478,18 @@ class ParseTextTwee:
                     or ("<<set " in line and self.is_widget_set_to(line, {
                         r"\$_strings", r"\$_text_output", "_text_output",
                         r"\$_customertype", r"\$_theboy", "_clothesDesc",
-                        "_actionText"
+                        "_actionText", r"\$_marked_text", r"\$_plural",
+                        r"\$_link_text", "_has_feelings_towards", "_causing_a_consequence",
+                        "_hilarity_ensues"
                     }))
                     or any(re.findall(r"<<set (?:(?:\$|_)[^_][#;\w\.\(\)\[\]\"\'`]*) to \[[\"\'`\w,\s]*\]>>", line))
                 )
             ):
                 results.append(True)
+                continue
             elif ("<" in line and self.is_only_widgets(line)) or (maybe_json_flag and self.is_json_line(line)):
                 results.append(False)
+                continue
             else:
                 results.append(True)
         return results
@@ -1639,7 +1668,7 @@ class ParseTextTwee:
         if line in {"<<print either(", "<<print ["}:
             return True
 
-        widgets = {_ for _ in re.findall(r"(<<(?:[^<>]*?|for.*?)>>)", line) if _}
+        widgets = {_ for _ in re.findall(r"(<<(?:[^<>]*?|run.*?|for.*?)>>)", line) if _}
         for w in widgets:
             # if "[[" not in w or ("[" in w and '"' not in w and "'" not in w and "`" not in w):
             line = line.replace(w, "", -1)
