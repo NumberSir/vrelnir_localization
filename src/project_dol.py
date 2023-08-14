@@ -349,8 +349,8 @@ class ProjectDOL:
                     if not target_row.strip():
                         continue
 
-                    if "replace(/[^a-zA-Z 0-9.!()]" in target_row.strip():
-                        raw_targets[idx_] = target_row.replace("replace(/[^a-zA-Z 0-9.!()]", "replace(/[^a-zA-Z\\u4e00-\\u9fa5 0-9.!()]")
+                    if "replace(/[^a-zA-Z" in target_row.strip():
+                        raw_targets[idx_] = target_row.replace("replace(/[^a-zA-Z", "replace(/[^a-zA-Z\\u4e00-\\u9fa5")
                         continue
                     if en == target_row.strip():
                         raw_targets[idx_] = target_row.replace(en, zh)
