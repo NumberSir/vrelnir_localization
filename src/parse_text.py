@@ -198,7 +198,6 @@ class ParseTextTwee:
         """好麻烦"""
         results = []
         multirow_comment_flag = False
-        multirow_script_flag = False
         multirow_json_flag = False
         for line in self._lines:
             line = line.strip()
@@ -219,25 +218,12 @@ class ParseTextTwee:
                 results.append(False)
                 continue
 
-            """跨行script，逆天"""
-            if line == "<<script>>":
-                multirow_script_flag = True
-                results.append(False)
-                continue
-            elif multirow_script_flag and line == "<</script>>":
-                multirow_script_flag = False
-                results.append(False)
-                continue
-            elif multirow_script_flag:
-                results.append(False)
-                continue
-
             """就为这一个单开一档，逆天"""
-            if (line.startswith("<<run ") or line.startswith("<<set ")) and "}>>" not in line:
+            if (line.startswith("<<run ") or line.startswith("<<set ")) and ">>" not in line:
                 multirow_json_flag = True
                 results.append(False)
                 continue
-            elif "}>>" in line:
+            elif any(_ in line for _ in {"}>>", "})>>"}):
                 multirow_json_flag = False
                 results.append(False)
                 continue
@@ -1231,6 +1217,7 @@ class ParseTextTwee:
     def _parse_system_widgets(self):
         results = []
         multirow_comment_flag = False
+        multirow_error_flag = False
         multirow_script_flag = False
         maybe_json_flag = False
         for line in self._lines:
@@ -1265,17 +1252,17 @@ class ParseTextTwee:
                 results.append(False)
                 continue
 
-            """突如其来的json"""
-            if (
-                ((line.startswith("<<set ") or line.startswith("<<error {")) and ">>" not in line)
-                or line.endswith("[")
-                or line.endswith("{")
-                or line.endswith("(")
-            ):
-                maybe_json_flag = True
+
+            if line.startswith("<<error {"):
+                multirow_error_flag = True
+                results.append(False)
                 continue
-            elif maybe_json_flag and ">>" in line:
-                maybe_json_flag = False
+            elif multirow_error_flag and line == "}>>":
+                multirow_error_flag = False
+                results.append(False)
+                continue
+            elif multirow_error_flag:
+                results.append(False)
                 continue
 
             if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
@@ -1290,7 +1277,7 @@ class ParseTextTwee:
                 or (self.is_widget_link(line) and not self.is_widget_high_rate_link(line))
             ):
                 results.append(True)
-            elif ("<" in line and self.is_only_widgets(line)) or (maybe_json_flag and self.is_json_line(line)):
+            elif "<" in line and self.is_only_widgets(line):
                 results.append(False)
             else:
                 results.append(True)
