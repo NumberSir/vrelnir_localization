@@ -345,15 +345,15 @@ class ProjectDOL:
                 # zh = zh.replace('^(“)', '"')
                 # zh = zh.replace('(”)$', '"')
                 if self._is_lack_angle(zh, en):
-                    LOGGER_COLOR.warning(f"\t!!! 可能的<r>尖括号数量<r>错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(en)}")
+                    logger.warning(f"\t!!! 可能的尖括号数量错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(en)}")
                     if debug_flag:
                         webbrowser.open(f"https://paratranz.cn/projects/4780/strings?text={quote(en)}")
                 if self._is_lack_square(zh, en):
-                    LOGGER_COLOR.warning(f"\t!!! 可能的<r>方括号数量<r>错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(en)}")
+                    logger.warning(f"\t!!! 可能的方括号数量错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(en)}")
                     if debug_flag:
                         webbrowser.open(f"https://paratranz.cn/projects/4780/strings?text={quote(en)}")
                 if self._is_different_event(zh, en):
-                    LOGGER_COLOR.warning(f"\t!!! 可能的<r>事件名称<r>错翻：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(en)}")
+                    logger.warning(f"\t!!! 可能的事件名称错翻：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(en)}")
                     if debug_flag:
                         webbrowser.open(f"https://paratranz.cn/projects/4780/strings?text={quote(en)}")
 
