@@ -1036,28 +1036,23 @@ class ParseTextTwee:
             line = line.strip()
             if not line:
                 results.append(False)
-                logger.debug(f"null - {idx+1}: {line}")
                 continue
 
             """跨行注释/error，逆天"""
             if line in ["/*", "<!--", "<<error {"] or (any(line.startswith(_) for _ in {"/*", "<!--", "<<error {"}) and all(_ not in line for _ in {"*/", "-->", "}>>"})):
                 multirow_comment_flag = True
                 results.append(False)
-                logger.debug(f"multihead - {idx+1}: {line}")
                 continue
             elif multirow_comment_flag and (line in ["*/", "-->", "}>>"] or any(line.endswith(_) for _ in {"*/", "-->", "}>>"})):
                 multirow_comment_flag = False
                 results.append(False)
-                logger.debug(f"multibutt - {idx+1}: {line}")
                 continue
             elif multirow_comment_flag:
                 results.append(False)
-                logger.debug(f"multibody - {idx+1}: {line}")
                 continue
 
             if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
                 results.append(False)
-                logger.debug(f"cmt|evt|omk - {idx+1}: {line}")
             elif (
                 self.is_widget_button(line)
                 or self.is_tag_span(line)
@@ -1069,7 +1064,6 @@ class ParseTextTwee:
                 results.append(True)
             elif "<" in line and self.is_only_widgets(line):
                 results.append(False)
-                logger.debug(f"widgets - {idx+1}: {line}")
             else:
                 results.append(True)
         return results
