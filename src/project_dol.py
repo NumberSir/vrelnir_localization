@@ -68,6 +68,12 @@ class ProjectDOL:
         """从 gitgud 下载源仓库文件"""
         if not self._version:
             await self.fetch_latest_version()
+        if self._is_latest:  # 下载慢，是最新就不要重复下载了
+            dol_path_zip = DIR_ROOT / "dol.zip"
+            if dol_path_zip.exists():
+                shutil.move(dol_path_zip, DIR_TEMP_ROOT)
+                await self.unzip_latest_repository()
+                return
         await self.fetch_latest_repository()
         await self.unzip_latest_repository()
 
@@ -199,7 +205,7 @@ class ProjectDOL:
                 if able_lines[idx_]
             ]
         except IndexError:
-            logger.error(f"{file}")
+            logger.error(f"lines: {len(lines)} - parsed: {len(able_lines)}| {file}")
             results_lines_csv = None
         if results_lines_csv:
             with open(DIR_RAW_DICTS / self._version / "csv" / "game" / f"{target_file}.csv", "w", encoding="utf-8-sig", newline="") as fp:
@@ -333,17 +339,17 @@ class ProjectDOL:
                 if not zh and not vip_flag:  # 没汉化/汉化为空
                     continue
 
-                zh = zh.replace('^(“)','"')
-                zh = zh.replace('(”)$','"')
-                if self._is_lack_angle_new(zh, en):
+                # zh = zh.replace('^(“)', '"')
+                # zh = zh.replace('(”)$', '"')
+                if self._is_lack_angle(zh, en):
                     logger.warning(f"\t!!! 可能的尖括号数量错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(en)}")
-                    webbrowser.open(f"https://paratranz.cn/projects/4780/strings?text={quote(en)}")
-                if self._is_lack_fang(zh, en):
+                    # webbrowser.open(f"https://paratranz.cn/projects/4780/strings?text={quote(en)}")
+                if self._is_lack_square(zh, en):
                     logger.warning(f"\t!!! 可能的方括号数量错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(en)}")
-                    webbrowser.open(f"https://paratranz.cn/projects/4780/strings?text={quote(en)}")
+                    # webbrowser.open(f"https://paratranz.cn/projects/4780/strings?text={quote(en)}")
                 if self._is_different_event(zh, en):
                     logger.warning(f"\t!!! 可能的事件名称错翻：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(en)}")
-                    webbrowser.open(f"https://paratranz.cn/projects/4780/strings?text={quote(en)}")
+                    # webbrowser.open(f"https://paratranz.cn/projects/4780/strings?text={quote(en)}")
 
                 for idx_, target_row in enumerate(raw_targets_temp):
                     if not target_row.strip():
@@ -413,35 +419,89 @@ class ProjectDOL:
         # logger.info(f"\t- ({idx + 1} / {full}) {target_file.__str__().split('game')[1]} 覆写完毕")
 
     @staticmethod
-    def _is_lack_angle_new(line_zh: str, line_en: str):
-        """缺少<或者>"""
-        if "writ_cn" in line_zh:
+    def _is_lack_angle(line_zh: str, line_en: str):
+        """<<> 缺一个 >"""
+        if ("<" not in line_en and ">" not in line_en) or ParseTextTwee.is_only_marks(line_en):
             return False
-        left_angle_double_en = re.findall(r"(<)", line_en)
-        left_angle_double_zh = re.findall(r"(<)", line_zh)
-        right_angle_double_en = re.findall(r"(>)", line_en)
-        right_angle_double_zh = re.findall(r"(>)", line_zh)
+
+        # 首尾不好判断
+        if line_zh[0] == "<":
+            line_zh = f"_{line_zh}"
+        if line_en[0] == "<":
+            line_en = f"_{line_en}"
+        if line_zh[-1] == ">":
+            line_zh = f"{line_zh}_"
+        if line_en[-1] == ">":
+            line_en = f"{line_en}_"
+
+        left_angle_single_zh = re.findall(r"[^<=](<)[^<=3]", line_zh)
+        right_angle_single_zh = re.findall(r"[^>=](>)[^>=:]", line_zh)
+        if "<<" not in line_en and ">>" not in line_en:
+            if len(left_angle_single_zh) == len(right_angle_single_zh):
+                return False
+            # print(f"las: {len(left_angle_single_zh)}({left_angle_single_zh}) - ras: {len(right_angle_single_zh)}({right_angle_single_zh}) | {line_zh}")
+            left_angle_single_en = re.findall(r"[^<=](<)[^<=3]", line_en)
+            right_angle_single_en = re.findall(r"[^>=](>)[^>=:]", line_en)
+            return (
+                len(left_angle_single_en) != len(left_angle_single_zh)
+                or len(right_angle_single_en) != len(right_angle_single_zh)
+            )  # 形如 < > <, 也只有这一种情况
+
+        left_angle_double_zh = re.findall(r"(<<)", line_zh)
+        right_angle_double_zh = re.findall(r"(>>)", line_zh)
+        if len(left_angle_double_zh) == len(right_angle_double_zh):
+            return False
+
+        left_angle_double_en = re.findall(r"(<<)", line_en)
+        right_angle_double_en = re.findall(r"(>>)", line_en)
         return (
-            len(left_angle_double_en)-len(right_angle_double_en) != len(left_angle_double_zh)-len(right_angle_double_zh)
-        )
+            len(left_angle_double_en) != len(left_angle_double_zh)
+            or len(right_angle_double_en) != len(right_angle_double_zh)
+        )  # 形如 << >> <<
 
     @staticmethod
-    def _is_lack_fang(line_zh: str, line_en: str):
-        """缺少[或者]"""
-        left_angle_double_en = re.findall(r"(\[)", line_en)
-        left_angle_double_zh = re.findall(r"(\[)", line_zh)
-        if len(left_angle_double_en) != len(left_angle_double_zh):
-            return True
-        right_angle_double_en = re.findall(r"(\])", line_en)
-        right_angle_double_zh = re.findall(r"(\])", line_zh)
+    def _is_lack_square(line_zh: str, line_en: str):
+        """缺一个 [ 或 ]"""
+        if "[" not in line_en and "]" not in line_en:
+            return False
+
+        # 首尾不好判断
+        if line_zh[0] == "[":
+            line_zh = f"_{line_zh}"
+        if line_en[0] == "[":
+            line_en = f"_{line_en}"
+        if line_zh[-1] == "]":
+            line_zh = f"{line_zh}_"
+        if line_en[-1] == "]":
+            line_en = f"{line_en}_"
+
+        left_square_single_zh = re.findall(r"[^\[](\[)[^\[]", line_zh)
+        right_square_single_zh = re.findall(r"[^]](])[^]]", line_zh)
+        if "[[" not in line_en and "]]" not in line_en:
+            if len(left_square_single_zh) == len(right_square_single_zh):
+                return False
+            left_square_single_en = re.findall(r"[^\[](\[)[^\[]", line_en)
+            right_square_single_en = re.findall(r"[^]](])[^]]", line_en)
+            return (
+                len(left_square_single_en) != len(left_square_single_zh)
+                or len(right_square_single_en) != len(right_square_single_zh)
+            )  # 形如 [ ] [, 也只有这一种情况
+
+        left_square_double_zh = re.findall(r"(\[\[)", line_zh)
+        right_square_double_zh = re.findall(r"(]])", line_zh)
+        if len(left_square_double_zh) == len(right_square_double_zh):
+            return False
+        left_square_double_en = re.findall(r"(\[\[)", line_en)
+        right_square_double_en = re.findall(r"(]])", line_en)
         return (
-            len(right_angle_double_en) != len(right_angle_double_zh)
-        )
+                len(left_square_double_en) != len(left_square_double_zh)
+                or len(right_square_double_en) != len(right_square_double_zh)
+        )  # 形如 [[ ]] [[
 
     @staticmethod
     def _is_different_event(line_zh: str, line_en: str):
         """<<link [[TEXT|EVENT]]>> 中 EVENT 打错了"""
-        if "<<link [[" not in line_en or "|" not in line_en or not line_zh:
+        if "<<link [[" not in line_en or not line_zh:
             return False
         event_en = re.findall(r"<<link\s\[\[.*?\|(.*?)\]\]", line_en)
         if not event_en:
@@ -471,35 +531,6 @@ class ProjectDOL:
     def _is_full_comma(line: str):
         """全角逗号"""
         return line.endswith('"，')
-
-    @staticmethod
-    def _is_lack_angle(line_zh: str, line_en: str):
-        """<<> 缺一个 >"""
-        if ("<" not in line_en and ">" not in line_en) or ParseTextTwee.is_only_marks(line_en):
-            return False
-
-        left_angle_single_zh = re.findall(r"[^<>=](<|>)[^<>=]", line_zh)
-        right_angle_single_zh = re.findall(r"[^<>=](<|>)[^<>=]", line_zh)
-        if "<<" not in line_en and ">>" not in line_en:
-            if len(left_angle_single_zh) == len(right_angle_single_zh):
-                return False
-            left_angle_single_en = re.findall(r"[^<>=](<|>)[^<>=]", line_en)
-            right_angle_single_en = re.findall(r"[^<>=](<|>)[^<>=]", line_en)
-            return (
-                len(left_angle_single_en) != len(left_angle_single_zh)
-                or len(right_angle_single_en) != len(right_angle_single_zh)
-            )  # 形如 < > <, 也只有这一种情况
-
-        left_angle_double_zh = re.findall(r"(<<)", line_zh)
-        right_angle_double_zh = re.findall(r"(>>)", line_zh)
-        if len(left_angle_double_zh) == len(right_angle_double_zh):
-            return False
-        left_angle_double_en = re.findall(r"(<<)", line_en)
-        right_angle_double_en = re.findall(r"(>>)", line_en)
-        return (
-            len(left_angle_double_en) != len(left_angle_double_zh)
-            or len(right_angle_double_en) != len(right_angle_double_zh)
-        )  # 形如 << >> <<
 
     @staticmethod
     def _is_full_notation(line_zh: str, line_en: str):
@@ -555,6 +586,7 @@ class ProjectDOL:
                 return
             if not FILE_REPOSITORY_ZIP.exists():
                 return
+            shutil.move(FILE_REPOSITORY_ZIP, DIR_ROOT)  # type: ignore
             shutil.rmtree(DIR_TEMP_ROOT, ignore_errors=True)
         logger.warning("\t- 缓存目录已删除")
 
