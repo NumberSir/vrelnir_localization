@@ -1480,7 +1480,7 @@ class ParseTextTwee:
                         r"\$_customertype", r"\$_theboy", "_clothesDesc",
                         "_actionText", r"\$_marked_text", r"\$_plural",
                         r"\$_link_text", "_has_feelings_towards", "_causing_a_consequence",
-                        "_hilarity_ensues"
+                        "_hilarity_ensues", "_linkText"
                     }))
                     or any(re.findall(r"<<set (?:(?:\$|_)[^_][#;\w\.\(\)\[\]\"\'`]*) to \[[\"\'`\w,\s]*\]>>", line))
                 )
