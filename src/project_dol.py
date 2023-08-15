@@ -395,6 +395,8 @@ class ProjectDOL:
                                 .replace("[[Confirm", "[[确认")\
                                 .replace("[[Continue", "[[继续")\
                                 .replace("[[Stop", "[[停止")
+                        elif '<<link "Next"' in target_row:
+                            raw_targets[idx_] = target_row.replace('"Next"', '"下一个"')
                         elif "<<print" in target_row and re.findall(r"<<print.*?\.writing>>", target_row):
                             raw_targets[idx_] = raw_targets[idx_].replace(".writing>>", ".writ_cn>>")
                         elif ".name_cap" not in target_row:

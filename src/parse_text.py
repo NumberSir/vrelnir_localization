@@ -1059,7 +1059,10 @@ class ParseTextTwee:
                 or self.is_tag_label(line)
                 or self.is_tag_input(line)
                 or (self.is_widget_link(line) and not self.is_widget_high_rate_link(line))
-                or "<<set _buttonName " in line or "<<set _name " in line or "<<set _penisNames " in line
+                or self.is_widget_set_to(line, {
+                    "_buttonName", "_name", "_penisNames", "_breastDescriptionNPC",
+                    "_breastsDescriptionNPC", "_hairColorNPCText", "_eyeColorNPCText"
+                })
             ):
                 results.append(True)
             elif "<" in line and self.is_only_widgets(line):
