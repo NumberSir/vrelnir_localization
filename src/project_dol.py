@@ -291,7 +291,7 @@ class ProjectDOL:
         # logger.info(f"\t- ({idx + 1} / {full}) {new_file.__str__().split('game')[1]} 更新完毕")
 
     """应用字典"""
-    async def apply_dicts(self, blacklist_dirs: list[str] = None, blacklist_files: list[str] = None):
+    async def apply_dicts(self, blacklist_dirs: list[str] = None, blacklist_files: list[str] = None, debug_flag: bool = False):
         """汉化覆写游戏文件"""
         if not self._version:
             await self.fetch_latest_version()
@@ -317,13 +317,13 @@ class ProjectDOL:
                     file_mapping[Path(root).absolute() / file] = DIR_GAME_TEXTS / Path(root).relative_to(DIR_RAW_DICTS / self._version / "csv" / "game") / f"{file.split('.')[0]}.twee"
 
         tasks = [
-            self._apply_for_gather(csv_file, twee_file, idx, len(file_mapping))
+            self._apply_for_gather(csv_file, twee_file, idx, len(file_mapping), debug_flag=debug_flag)
             for idx, (csv_file, twee_file) in enumerate(file_mapping.items())
         ]
         await asyncio.gather(*tasks)
         logger.info("##### 汉化覆写完毕 !\n")
 
-    async def _apply_for_gather(self, csv_file: Path, target_file: Path, idx: int, full: int):
+    async def _apply_for_gather(self, csv_file: Path, target_file: Path, idx: int, full: int, debug_flag: bool = False):
         """gather 用"""
         vip_flag = target_file.name == "clothing-sets.twee"
         with open(target_file, "r", encoding="utf-8") as fp:
@@ -343,13 +343,16 @@ class ProjectDOL:
                 # zh = zh.replace('(”)$', '"')
                 if self._is_lack_angle(zh, en):
                     logger.warning(f"\t!!! 可能的尖括号数量错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(en)}")
-                    # webbrowser.open(f"https://paratranz.cn/projects/4780/strings?text={quote(en)}")
+                    if debug_flag:
+                        webbrowser.open(f"https://paratranz.cn/projects/4780/strings?text={quote(en)}")
                 if self._is_lack_square(zh, en):
                     logger.warning(f"\t!!! 可能的方括号数量错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(en)}")
-                    # webbrowser.open(f"https://paratranz.cn/projects/4780/strings?text={quote(en)}")
+                    if debug_flag:
+                        webbrowser.open(f"https://paratranz.cn/projects/4780/strings?text={quote(en)}")
                 if self._is_different_event(zh, en):
                     logger.warning(f"\t!!! 可能的事件名称错翻：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(en)}")
-                    # webbrowser.open(f"https://paratranz.cn/projects/4780/strings?text={quote(en)}")
+                    if debug_flag:
+                        webbrowser.open(f"https://paratranz.cn/projects/4780/strings?text={quote(en)}")
 
                 for idx_, target_row in enumerate(raw_targets_temp):
                     if not target_row.strip():
