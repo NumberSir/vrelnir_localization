@@ -1970,10 +1970,23 @@ class ParseTextJS:
         """result.text"""
         results = []
         maybe_json_flag = False
+        multirow_text_flag = False
         for line in self._lines:
             line = line.strip()
             if not line:
                 results.append(False)
+                continue
+
+            if line.startswith("result.text") and line.endswith("{"):
+                multirow_text_flag = True
+                results.append(True)
+                continue
+            elif multirow_text_flag and line.endswith("`;"):
+                multirow_text_flag = False
+                results.append(True)
+                continue
+            elif multirow_text_flag:
+                results.append(True)
                 continue
 
             if line.endswith("{"):
@@ -1988,7 +2001,7 @@ class ParseTextJS:
                 results.append(True)
                 continue
 
-            if any(_ in line for _ in {"result.text", }):
+            if any(_ in line for _ in {"result.text", "text:"}):
                 results.append(True)
             else:
                 results.append(False)
