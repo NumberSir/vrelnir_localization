@@ -395,6 +395,7 @@ class ParseTextTwee:
                     "_askActions", "_vaginaaction", "_text_output", "_chestaction",
                     "_thighaction", "_npccr", "_npcff", r"\$_doText"
                 })
+                or "<<run delete " in line
             ):
                 results.append(True)
             elif self.is_only_widgets(line) or self.is_json_line(line):
@@ -831,7 +832,14 @@ class ParseTextTwee:
                 or self.is_only_marks(line)
             ):
                 results.append(False)
-            elif "description: '" in line or self.is_tag_span(line) or "preText: " in line:
+            elif (
+                "description: '" in line
+                or self.is_tag_span(line)
+                or "preText: " in line
+                or self.is_widget_set_to(line, {
+                    r"\$_pre", r"\$_flavor", r"\$_name"
+                })
+            ):
                 results.append(True)
             elif (
                 self.is_json_line(line)
@@ -844,7 +852,12 @@ class ParseTextTwee:
 
     def _parse_traits(self):
         """half-json"""
-        return self.parse_type_only({"name:", "text:", "title:", "<summary", "<<option"})
+        return self.parse_type_only({
+            "name:", "text:", "title:", "<summary", "<<option",
+            'return "Incubus (female)";', 'return "Succubus (male)";',
+            'return "Bull boy (female)";', 'return "Cow girl (male)";',
+            'return "Fox (female)";', 'return "Vixen (male)";'
+        })
 
     def _parse_body_writing(self):
         """有点麻烦"""
@@ -1131,8 +1144,7 @@ class ParseTextTwee:
                 continue
 
             """跨行注释，逆天"""
-            if line in ["/*", "<!--"] or (
-                    any(line.startswith(_) for _ in {"/*", "<!--"}) and all(_ not in line for _ in {"*/", "-->"})):
+            if line in ["/*", "<!--"] or (any(line.startswith(_) for _ in {"/*", "<!--"}) and all(_ not in line for _ in {"*/", "-->"})):
                 multirow_comment_flag = True
                 results.append(False)
                 continue
@@ -1150,6 +1162,7 @@ class ParseTextTwee:
                 "<span " in line
                 or "<<link " in line
                 or not line.startswith("<")
+                or '<<set _bedType to "' in line
             ):
                 results.append(True)
             else:
@@ -1379,6 +1392,10 @@ class ParseTextTwee:
                 multirow_run_flag = False
                 results.append(False)
                 continue
+            elif multirow_run_flag and "Enable indexedDB" in line:
+                multirow_run_flag = False
+                results.append(True)
+                continue
             elif multirow_run_flag:
                 results.append(False)
                 continue
@@ -1470,8 +1487,9 @@ class ParseTextTwee:
                         r"\$_customertype", r"\$_theboy", "_clothesDesc",
                         "_actionText", r"\$_marked_text", r"\$_plural",
                         r"\$_link_text", "_has_feelings_towards", "_causing_a_consequence",
-                        "_hilarity_ensues", "_linkText"
+                        "_hilarity_ensues", "_linkText", r"\$_theshop"
                     }))
+                    or "<<cheatBodyliquidOnPart" in line
                     or any(re.findall(r"<<set (?:(?:\$|_)[^_][#;\w\.\(\)\[\]\"\'`]*) to \[[\"\'`\w,\s]*\]>>", line))
                 )
             ):
@@ -1616,7 +1634,7 @@ class ParseTextTwee:
     @staticmethod
     def is_widget_print(line: str) -> bool:
         """<<print xxx>>"""
-        return any(re.findall(r"<<print\s[^<]*[\"\'`\w]+[\?\s\w\.\$,\'\"<>\[\]\(\)/]+(?:\)>>|\">>|\'>>|`>>|\]>>)", line))
+        return any(re.findall(r"<<print\s[^<]*[\"\'`\w]+[\-\?\s\w\.\$,\'\"<>\[\]\(\)/]+(?:\)>>|\">>|\'>>|`>>|\]>>|>>)", line))
 
     @staticmethod
     def is_widget_if(line: str) -> bool:
@@ -1697,6 +1715,8 @@ class ParseTextJS:
             return self.parse_masturbation()
         elif DirNamesJS.PREGNANCY.value == self._filedir.name:
             return self.parse_pregnancy()
+        elif DirNamesJS.TIME.value == self._filedir.name:
+            return self.parse_time()
         return self.parse_normal()
 
     """ 03-JavaScript """
@@ -1716,6 +1736,8 @@ class ParseTextJS:
             return self._parse_sextoy_inventory()
         elif FileNamesJS.IDB_BACKEND_FULL.value == self._filename:
             return self._parse_idb_backend()
+        elif FileNamesJS.INGAME_FULL.value == self._filename:
+            return self._parse_ingame()
         elif FileNamesJS.UI_FULL.value == self._filename:
             return self._parse_ui()
         return self.parse_normal()
@@ -1884,17 +1906,25 @@ class ParseTextJS:
                 results.append(False)
             elif inner_text_flag and line.endswith(';'):
                 inner_text_flag = False
-                results.append(False)
-            elif inner_text_flag or "lastChild.innerText" in line:
                 results.append(True)
-            elif "value: " in line:
-                results.append(True)
-            elif "Saves here will be lost" in line:
+            elif (
+                "lastChild.innerText" in line
+                or ('value: "' in line and "<" not in line and ">" not in line)
+                or '"<div class=saveGroup>' in line
+                or '.append("' in line
+            ):
                 results.append(True)
             else:
                 results.append(False)
 
         return results
+
+    def _parse_ingame(self):
+        """序数词词缀"""
+        return self.parse_type_only({
+            'return i + "st";', 'return i + "nd";',
+            'return i + "rd";', 'return i + "th";'
+        })
 
     def _parse_ui(self):
         """text"""
@@ -1996,6 +2026,25 @@ class ParseTextJS:
             else:
                 results.append(False)
         return results
+
+    """ time """
+    def parse_time(self) -> list[bool]:
+        """ time """
+        if FileNamesJS.TIME_FULL.value == self._filename:
+            return self._parse_time()
+        elif FileNamesJS.TIME_MACROS_FULL.value == self._filename:
+            return self._parse_time_macros()
+        return self.parse_normal()
+
+    def _parse_time(self):
+        """只有月份和星期"""
+        return self.parse_type_only({"const monthNames", "const daysOfWeek"})
+
+    def _parse_time_macros(self):
+        """只有几句话"""
+        return self.parse_type_only({
+            "School term finishes today.", "School term finishes on ", "School term starts on "
+        })
 
     """ 常规 """
     def parse_normal(self) -> list[bool]:

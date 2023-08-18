@@ -169,6 +169,7 @@ class DirNamesJS(Enum):
     VARIABLES = "04-Variables"
     SPECIAL_MASTURBATION = "special-masturbation"
     PREGNANCY = "04-Pregnancy"
+    TIME = "time"
 
 
 class FileNamesJS(Enum):
@@ -180,6 +181,7 @@ class FileNamesJS(Enum):
     EYES_RELATED = "eyesRelated.js"
     FURNITURE_FULL = "furniture.js"
     IDB_BACKEND_FULL = "idb_backend.js"
+    INGAME_FULL = "ingame.js"
     SEXSHOP_MENU_FULL = "sexShopMenu.js"
     SEXTOY_INVENTORY_FULL = "sexToysInventory.js"
     UI_FULL = "UI.js"
@@ -193,6 +195,10 @@ class FileNamesJS(Enum):
 
     """ 04-Pregnancy """
     CHILDREN_STROY_FUNCTIONS_FULL = "childrenStoryFunctions.js"
+
+    """ time """
+    TIME_FULL = "time.js"
+    TIME_MACROS_FULL = "timeMacros.js"
 
 
 HIGH_RATE_LINKS = {

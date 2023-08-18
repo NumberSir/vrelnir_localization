@@ -5,6 +5,7 @@
     "eyesRelated.js",
     "furniture.js",
     "idb_backend.js",
+    "ingame.js",
     "sexShopMenu.js",
     "sexToysInventory.js",
     "UI.js"
@@ -20,5 +21,9 @@
   ],
   "04-Pregnancy": [
     "childrenStoryFunctions.js"
+  ],
+  "time": [
+    "timeMacros.js",
+    "time.js"
   ]
 }
