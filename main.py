@@ -87,6 +87,9 @@ async def main():
     blacklist_files = []
     await dol.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=True)
 
+    """ 偏偏要改这一个 """
+    dol.fuck_css()
+
     """ 编译成游戏 """
     dol.compile()
     dol.run()

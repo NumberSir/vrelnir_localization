@@ -1487,7 +1487,7 @@ class ParseTextTwee:
                         r"\$_customertype", r"\$_theboy", "_clothesDesc",
                         "_actionText", r"\$_marked_text", r"\$_plural",
                         r"\$_link_text", "_has_feelings_towards", "_causing_a_consequence",
-                        "_hilarity_ensues", "_linkText", r"\$_theshop"
+                        "_hilarity_ensues", "_linkText", r"\$_theshop", "_coffee"
                     }))
                     or "<<cheatBodyliquidOnPart" in line
                     or any(re.findall(r"<<set (?:(?:\$|_)[^_][#;\w\.\(\)\[\]\"\'`]*) to \[[\"\'`\w,\s]*\]>>", line))
@@ -1724,6 +1724,8 @@ class ParseTextJS:
         """ 03-JavaScript """
         if FileNamesJS.BEDROOM_PILLS_FULL.value == self._filename:
             return self._parse_bedroom_pills()
+        elif FileNamesJS.BASE_FULL.value == self._filename:
+            return self._parse_base()
         elif FileNamesJS.DEBUG_MENU_FULL.value == self._filename:
             return self._parse_debug_menu()
         elif FileNamesJS.FURNITURE_FULL.value == self._filename:
@@ -1775,6 +1777,14 @@ class ParseTextJS:
                 results.append(False)
 
         return results
+
+    def _parse_base(self):
+        """ T.text_output """
+        return self.parse_type_only({
+            'T.text_output = "cracked ";',
+            'T.text_output = "scratched ";',
+            'T.text_output = alt === "metal" ? "tarnished " : "discoloured ";'
+        })
 
     def _parse_debug_menu(self):
         """..."""
@@ -1956,15 +1966,15 @@ class ParseTextJS:
         """ 04-variables """
         if FileNamesJS.FEATS_FULL.value == self._filename:
             return self._parse_feats()
-        elif FileNamesJS.COLOUR_FULL.value == self._filename:
-            return self._parse_colour()
+        elif FileNamesJS.COLOURS_FULL.value == self._filename:
+            return self._parse_colours()
         return self.parse_normal()
 
     def _parse_feats(self):
         """json"""
         return self.parse_type_only({"title: ", "desc: ", "hint: "})
 
-    def _parse_colour(self):
+    def _parse_colours(self):
         """json"""
         return self.parse_type_only("name_cap")
 
@@ -2110,6 +2120,7 @@ class ParseTextJS:
     @staticmethod
     def is_only_widgets(line: str) -> bool:
         return ParseTextTwee.is_only_widgets(line)
+
 
 
 __all__ = [

@@ -1,5 +1,6 @@
 {
   "03-JavaScript": [
+    "base.js",
     "bedroomPills.js",
     "debugMenu.js",
     "eyesRelated.js",
@@ -11,7 +12,7 @@
     "UI.js"
   ],
   "04-Variables": [
-    "colour.js",
+    "colours.js",
     "feats.js"
   ],
   "special-masturbation": [

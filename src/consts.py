@@ -40,6 +40,7 @@ DIR_GAME_ROOT_COMMON_NAME = "degrees-of-lewdity-master"
 DIR_GAME_ROOT_COMMON = DIR_ROOT / DIR_GAME_ROOT_COMMON_NAME
 # DIR_GAME_ROOT_COMMON = Path("D:\Joy\Butter").absolute() / "degrees-of-lewdity-master"
 DIR_GAME_TEXTS_COMMON = DIR_GAME_ROOT_COMMON / "game"
+DIR_GAME_CSS_COMMON = DIR_GAME_ROOT_COMMON / "modules" / "css"
 
 DIR_GAME_ROOT_WORLD_NAME = "degrees-of-lewdity-world-expansion-master"
 DIR_GAME_ROOT_WORLD = DIR_ROOT / DIR_GAME_ROOT_WORLD_NAME
@@ -176,6 +177,7 @@ class FileNamesJS(Enum):
     """要抓的 JS 文件"""
 
     """ 03-JavaScript """
+    BASE_FULL = "base.js"
     BEDROOM_PILLS_FULL = "bedroomPills.js"
     DEBUG_MENU_FULL = "debugMenu.js"
     EYES_RELATED = "eyesRelated.js"
@@ -187,7 +189,7 @@ class FileNamesJS(Enum):
     UI_FULL = "UI.js"
 
     """ 04-variables """
-    COLOUR_FULL = "colour.js"
+    COLOURS_FULL = "colours.js"
     FEATS_FULL = "feats.js"
 
     """ special-masturbation """
@@ -239,6 +241,7 @@ __all__ = [
     "DIR_GAME_ROOT_COMMON_NAME",
     "DIR_GAME_ROOT_COMMON",
     "DIR_GAME_TEXTS_COMMON",
+    "DIR_GAME_CSS_COMMON",
     "DIR_GAME_ROOT_WORLD_NAME",
     "DIR_GAME_ROOT_WORLD",
     "DIR_GAME_TEXTS_WORLD",

@@ -426,6 +426,17 @@ class ProjectDOL:
 
         # logger.info(f"\t- ({idx + 1} / {full}) {target_file.__str__().split('game')[1]} 覆写完毕")
 
+    def fuck_css(self):
+        """字体间距"""
+        with open(DIR_GAME_CSS_COMMON / "base.css", "r", encoding="utf-8") as fp:
+            lines = fp.readlines()
+        for idx, line in enumerate(lines):
+            if line.strip() == "#savesListContainer .savesListRow { max-height: 2.4em; };":
+                lines[idx] = line.replace("2.4em;", "7em;")
+                break
+        with open(DIR_GAME_CSS_COMMON / "base.css", "w", encoding="utf-8") as fp:
+            fp.writelines(lines)
+
     @staticmethod
     def _is_lack_angle(line_zh: str, line_en: str):
         """<<> 缺一个 >"""
