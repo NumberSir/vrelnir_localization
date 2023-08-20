@@ -101,6 +101,8 @@ class ParseTextTwee:
             return self._parse_passage_footer()
         elif FileNamesTwee.PREGNANCY_VAR_FULL.value == self._filename:
             return self._parse_pregnancy_var()
+        elif FileNamesTwee.VARIABLES_STATIC_FULL.value == self._filename:
+            return self._parse_variables_static()
         return self.parse_normal()
 
     def _parse_canvasmodel(self):
@@ -145,6 +147,17 @@ class ParseTextTwee:
     def _parse_pregnancy_var(self):
         """只有 "name": """
         return self.parse_type_only({'"name": '})
+
+    def _parse_variables_static(self):
+        """ variables-static.twee """
+        return self.parse_type_between(
+            starts=[
+                "<<set setup.npcPenisRemarks to {"
+            ],
+            ends=[
+                "}>>"
+            ],
+        )
 
     """√ base-clothing """
     def parse_base_clothing(self):
@@ -1485,6 +1498,7 @@ class ParseTextTwee:
                     or self.is_widget_note(line)
                     or self.is_widget_print(line)
                     or self.is_widget_option(line)
+                    or self.is_widget_button(line)
                     or (self.is_widget_link(line) and not self.is_widget_high_rate_link(line))
                     or ("<<set " in line and self.is_widget_set_to(line, {
                         r"\$_strings", r"\$_text_output", "_text_output",

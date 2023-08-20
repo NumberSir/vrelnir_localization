@@ -100,6 +100,7 @@ class FileNamesTwee(Enum):
     PASSAGE_FOOTER_FULL = "variables-passageFooter.twee"
     VERSION_UPDATE_FULL = "variables-versionUpdate.twee"
     PREGNANCY_VAR_FULL = "pregnancyVar.twee"
+    VARIABLES_STATIC_FULL = "variables-static.twee"
 
     """ base-clothing """
     CAPTIONTEXT_FULL = "captiontext.twee"
