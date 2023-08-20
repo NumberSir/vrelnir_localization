@@ -79,6 +79,7 @@ class DirNamesTwee(Enum):
     FLAVOUR_TEXT_GENERATORS = "flavour-text-generators"
 
     OVERWORLD = "overworld-"
+
     LOCATION = "loc-"
     SPECIAL = "special-"
     NORMAL = OVERWORLD or LOCATION or SPECIAL

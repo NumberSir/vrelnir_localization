@@ -44,6 +44,7 @@ class ParseTextTwee:
             return self.parse_base_system()
         elif DirNamesTwee.FLAVOUR_TEXT_GENERATORS.value == self._filedir.name:
             return self.parse_flavour_text()
+
         return self.parse_normal()
 
     """√ framework-tools """
@@ -1341,6 +1342,9 @@ class ParseTextTwee:
 
     """ 其它 """
     def parse_normal(self):
+        return self._parse_normal()
+
+    def _parse_normal(self):
         results = []
         multirow_comment_flag = False
         multirow_script_flag = False
@@ -1380,23 +1384,6 @@ class ParseTextTwee:
                 results.append(False)
                 continue
             elif multirow_script_flag:
-                results.append(False)
-                continue
-
-            """跨行run，逆天"""
-            if line.startswith("<<run ") and ">>" not in line:
-                multirow_run_flag = True
-                results.append(False)
-                continue
-            elif multirow_run_flag and line in {"})>>", "}>>", ")>>", "]>>", "});>>"}:
-                multirow_run_flag = False
-                results.append(False)
-                continue
-            elif multirow_run_flag and "Enable indexedDB" in line:
-                multirow_run_flag = False
-                results.append(True)
-                continue
-            elif multirow_run_flag:
                 results.append(False)
                 continue
 
@@ -1470,6 +1457,23 @@ class ParseTextTwee:
                 results.append(True)
                 continue
 
+            """跨行run，逆天"""
+            if line.startswith("<<run ") and ">>" not in line:
+                multirow_run_flag = True
+                results.append(False)
+                continue
+            elif multirow_run_flag and line in {"})>>", "}>>", ")>>", "]>>", "});>>"}:
+                multirow_run_flag = False
+                results.append(False)
+                continue
+            elif multirow_run_flag and "Enable indexedDB" in line:
+                multirow_run_flag = False
+                results.append(True)
+                continue
+            elif multirow_run_flag:
+                results.append(False)
+                continue
+
             if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
                 results.append(False)
                 continue
@@ -1487,7 +1491,8 @@ class ParseTextTwee:
                         r"\$_customertype", r"\$_theboy", "_clothesDesc",
                         "_actionText", r"\$_marked_text", r"\$_plural",
                         r"\$_link_text", "_has_feelings_towards", "_causing_a_consequence",
-                        "_hilarity_ensues", "_linkText", r"\$_theshop", "_coffee"
+                        "_hilarity_ensues", "_linkText", r"\$_theshop", "_coffee",
+                        "_wraithTitle", "_speaks", r"\$wraithOptions", "_speechWraith"
                     }))
                     or "<<cheatBodyliquidOnPart" in line
                     or any(re.findall(r"<<set (?:(?:\$|_)[^_][#;\w\.\(\)\[\]\"\'`]*) to \[[\"\'`\w,\s]*\]>>", line))
