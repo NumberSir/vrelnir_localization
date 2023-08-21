@@ -157,7 +157,9 @@ class ParseTextTwee:
             ends=[
                 "}>>"
             ],
-        )
+        ) + self.parse_type_only({
+            "setup.breastsizes"
+        })
 
     """√ base-clothing """
     def parse_base_clothing(self):
@@ -407,7 +409,7 @@ class ParseTextTwee:
                     "_anusaction", "_actions", "_undressLeftTargets",
                     "_undressRightTargets", "_handGuideOptions", "_penisaction",
                     "_askActions", "_vaginaaction", "_text_output", "_chestaction",
-                    "_thighaction", "_npccr", "_npcff", r"\$_doText"
+                    "_thighaction", "_npccr", "_npcff", r"\$_doText", "_youraction"
                 })
                 or "<<run delete " in line
             ):
@@ -1012,7 +1014,35 @@ class ParseTextTwee:
 
     def _parse_nicknames(self):
         """只有 " """
-        return self.parse_type_only(r"<<set _text_output to")
+        results = []
+        multirow_set_flag = False
+        for line in self._lines:
+            line = line.strip()
+            if not line:
+                results.append(False)
+                continue
+
+            if line.startswith("<<set ") and ">>" not in line:
+                multirow_set_flag = True
+                results.append(False)
+                continue
+            elif multirow_set_flag and line in {"]>>", "})>>", "}>>", ")>>"}:
+                multirow_set_flag = False
+                results.append(False)
+                continue
+            elif multirow_set_flag and any(_ in line for _ in {
+                "_names.push", "_pre.push"
+            }):
+                results.append(False)
+                continue
+
+            if self.is_widget_set_to(line, {
+                "_text_output", r"_pre\.push", r"_names\.push"
+            }):
+                results.append(True)
+            else:
+                results.append(False)
+        return results
 
     def _parse_plant_objects(self):
         """json"""
@@ -1506,7 +1536,9 @@ class ParseTextTwee:
                         "_actionText", r"\$_marked_text", r"\$_plural",
                         r"\$_link_text", "_has_feelings_towards", "_causing_a_consequence",
                         "_hilarity_ensues", "_linkText", r"\$_theshop", "_coffee",
-                        "_wraithTitle", "_speaks", r"\$wraithOptions", "_speechWraith"
+                        "_wraithTitle", "_speaks", r"\$wraithOptions", "_speechWraith",
+                        "_dives_into", r"\$NPCList\[_n\]\.hair", "_pregnancyLink",
+                        "_postOrgasmSpeech", r"_names\.push", r"_pre\.push"
                     }))
                     or "<<cheatBodyliquidOnPart" in line
                     or any(re.findall(r"<<set (?:(?:\$|_)[^_][#;\w\.\(\)\[\]\"\'`]*) to \[[\"\'`\w,\s]*\]>>", line))
