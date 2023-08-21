@@ -342,8 +342,8 @@ class ProjectDOL:
                 if not zh and not vip_flag:  # 没汉化/汉化为空
                     continue
 
-                # zh = zh.replace('^(“)', '"')
-                # zh = zh.replace('(”)$', '"')
+                zh = re.sub('^(“)', '"', zh)
+                zh = re.sub('(”)$', '"', zh)
                 if self._is_lack_angle(zh, en):
                     logger.warning(f"\t!!! 可能的尖括号数量错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(en)}")
                     if debug_flag:
