@@ -208,7 +208,7 @@ class ParseTextTwee:
 
     def _parse_clothing(self):
         """json"""
-        return self.parse_type_only({"name_cap:", "description:"})
+        return self.parse_type_only({"name_cap:", "description:", "<<link `"})
 
     def _parse_clothing_sets(self):
         """好麻烦"""
@@ -332,7 +332,7 @@ class ParseTextTwee:
                 or self.is_tag_label(line)
                 or self.is_widget_option(line)
                 or (self.is_widget_link(line) and not self.is_widget_high_rate_link(line))
-                or self.is_widget_set_to(line, {r"\$_text_output", r"\$_output"})
+                or self.is_widget_set_to(line, {r"\$_text_output", r"\$_output", "_linkOption1", "_linkOption2"})
             ):
                 results.append(True)
             elif self.is_only_widgets(line) or self.is_json_line(line):
@@ -403,6 +403,7 @@ class ParseTextTwee:
             elif (
                 self.is_tag_span(line)
                 or self.is_tag_label(line)
+                or self.is_widget_option(line)
                 or self.is_widget_set_to(line, {
                     "_leftaction", "_rightaction", "_feetaction",
                     "_targetlistarms", "_targetlistall", "_mouthaction",
@@ -502,7 +503,10 @@ class ParseTextTwee:
                 or self.is_only_widgets(line)
             ):
                 results.append(False)
-            elif '{"desc":' in line or "you" in line.lower():
+            elif any(_ in line for _ in {
+                "_tentacledata.desc", "$tentacles[0].fullDesc", ".desc.includes",
+                '{"desc":', "you", "You", "YOU"
+            }):
                 results.append(True)
             else:
                 results.append(False)
@@ -714,7 +718,9 @@ class ParseTextTwee:
                 or self.is_json_line(line)
             ):
                 results.append(False)
-            elif self.is_tag_span(line) or self.is_widget_set_to(line, {"_text_output"}):
+            elif self.is_tag_span(line) or self.is_widget_set_to(line, {
+                "_text_output", "_leftaction", "_rightaction"
+            }):
                 results.append(True)
             elif self.is_only_widgets(line):
                 results.append(False)
@@ -814,6 +820,7 @@ class ParseTextTwee:
                 "description: " in line
                 or "{ name :" in line
                 or "preText: " in line
+                or 'level: "None"' in line
                 or line == '<<if $_number isnot "an unknown number of" and $_number isnot "more than one" and $_number gt 1>>'
                 or self.is_tag_span(line)
                 or self.is_widget_set_to(line, {
@@ -1207,6 +1214,7 @@ class ParseTextTwee:
                 or "<<link " in line
                 or not line.startswith("<")
                 or '<<set _bedType to "' in line
+                or "<<print $_plant.plural.toLocaleUpperFirst()>>" in line
             ):
                 results.append(True)
             else:
@@ -1241,6 +1249,7 @@ class ParseTextTwee:
             elif (
                 line.startswith('"')
                 or "<span " in line
+                or self.is_widget_print(line)
                 or self.is_widget_set_to(line, {"_text_output", r"\$_text_output"})
             ):
                 results.append(True)
@@ -1331,7 +1340,9 @@ class ParseTextTwee:
                 self.is_tag_span(line)
                 or self.is_tag_label(line)
                 or self.is_widget_print(line)
-                or self.is_widget_set_to(line, {r"\$_text_output"})
+                or self.is_widget_set_to(line, {
+                    r"\$_text_output", "_colour", r"\$_fringe"
+                })
                 or "<<print either(" in line and ">>" in line
                 or 'name: "' in line or 'name : "' in line
                 or (self.is_widget_link(line) and not self.is_widget_high_rate_link(line))
@@ -1396,6 +1407,7 @@ class ParseTextTwee:
         multirow_error_flag = False
         maybe_json_flag = False
         multirow_run_line_pool_flag = False  # 草!
+        multirow_print_flag = False  # 叠屎山了开始
 
         shop_clothes_hint_flag = False  # 草
         for idx, line in enumerate(self._lines):
@@ -1415,6 +1427,19 @@ class ParseTextTwee:
                 continue
             elif multirow_comment_flag:
                 results.append(False)
+                continue
+
+            """还有跨行print"""
+            if line.endswith("<<print either("):
+                multirow_print_flag = True
+                results.append(False)
+                continue
+            elif multirow_print_flag and line.startswith(")>>"):
+                multirow_print_flag = False
+                results.append(False)
+                continue
+            elif multirow_print_flag:
+                results.append(True)
                 continue
 
             """跨行script，逆天"""
@@ -1538,7 +1563,11 @@ class ParseTextTwee:
                         "_hilarity_ensues", "_linkText", r"\$_theshop", "_coffee",
                         "_wraithTitle", "_speaks", r"\$wraithOptions", "_speechWraith",
                         "_dives_into", r"\$NPCList\[_n\]\.hair", "_pregnancyLink",
-                        "_postOrgasmSpeech", r"_names\.push", r"_pre\.push"
+                        "_postOrgasmSpeech", r"_names\.push", r"_pre\.push", "_shopmusic",
+                        "_bodyWritingOptions", "_reactTone", "_reactPerson", "_shopnameshort",
+                        "_clothesTrait", "_petname", "_leftaction", "_rightaction", "_littlething",
+                        "_bigthing", "_feetaction", "_penisaction", "_mouthaction", "_chestaction",
+                        "_anusaction", "_vaginaaction", r"\$_mirror"
                     }))
                     or "<<cheatBodyliquidOnPart" in line
                     or any(re.findall(r"<<set (?:(?:\$|_)[^_][#;\w\.\(\)\[\]\"\'`]*) to \[[\"\'`\w,\s]*\]>>", line))
@@ -1634,7 +1663,7 @@ class ParseTextTwee:
     @staticmethod
     def is_comment(line: str) -> bool:
         """注释"""
-        return any(line.startswith(_) for _ in {"/*", "<!--", "*/", "*"})
+        return any(line.startswith(_) for _ in {"/*", "<!--", "*/", "*"}) and any(line.endswith(_) for _ in {"*/", "-->"})
 
     @staticmethod
     def is_json_line(line: str) -> bool:
@@ -1654,7 +1683,7 @@ class ParseTextTwee:
     @staticmethod
     def is_tag_span(line: str) -> bool:
         """<span???>xxx"""
-        return any(re.findall(r'<span.*?>[\"\w\.\-+]', line))
+        return any(re.findall(r'<span.*?>[\"\w\.\-+\$]', line))
 
     @staticmethod
     def is_tag_label(line: str) -> bool:
@@ -1768,6 +1797,8 @@ class ParseTextJS:
             return self.parse_pregnancy()
         elif DirNamesJS.TIME.value == self._filedir.name:
             return self.parse_time()
+        elif DirNamesJS.TEMPLATES.value == self._filedir.name:
+            return self.parse_templates()
         return self.parse_normal()
 
     """ 03-JavaScript """
@@ -1874,7 +1905,7 @@ class ParseTextJS:
 
     def _parse_eyes_related(self):
         """怪东西"""
-        return self.parse_type_only({'sentence += "'})
+        return self.parse_type_only({'sentence += '})
 
     def _parse_furniture(self):
         """json"""
@@ -2107,6 +2138,16 @@ class ParseTextJS:
             "School term finishes today.", "School term finishes on ", "School term starts on "
         })
 
+    """ 03-Templates """
+    def parse_templates(self) -> list[bool]:
+        if FileNamesJS.T_MISC_FULL.value == self._filename:
+            return self._parse_t_misc()
+        return self.parse_normal()
+
+    def _parse_t_misc(self):
+        """t-misc"""
+        return self.parse_type_only('Template.add("sin"')
+
     """ 常规 """
     def parse_normal(self) -> list[bool]:
         """常规"""
@@ -2136,6 +2177,8 @@ class ParseTextJS:
                 _ not in line
                 for _ in {"''", "' '", '""', '" "', "``", "` `", "br()"}
             ):
+                results.append(True)
+            elif ("addfemininityfromfactor(" in line and line.endswith(');')) or '"Pregnant Looking Belly"' in line:
                 results.append(True)
             else:
                 results.append(False)
@@ -2171,7 +2214,6 @@ class ParseTextJS:
     @staticmethod
     def is_only_widgets(line: str) -> bool:
         return ParseTextTwee.is_only_widgets(line)
-
 
 
 __all__ = [

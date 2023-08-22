@@ -173,6 +173,7 @@ class DirNamesJS(Enum):
     SPECIAL_MASTURBATION = "special-masturbation"
     PREGNANCY = "04-Pregnancy"
     TIME = "time"
+    TEMPLATES = "03-Templates"
 
 
 class FileNamesJS(Enum):
@@ -203,6 +204,9 @@ class FileNamesJS(Enum):
     """ time """
     TIME_FULL = "time.js"
     TIME_MACROS_FULL = "timeMacros.js"
+
+    """ 03-Templates """
+    T_MISC_FULL = "t-misc.js"
 
 
 HIGH_RATE_LINKS = {

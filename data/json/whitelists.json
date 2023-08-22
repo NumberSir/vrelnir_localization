@@ -26,5 +26,11 @@
   "time": [
     "timeMacros.js",
     "time.js"
+  ],
+  "03-Templates": [
+    "t-misc.js"
+  ],
+  "base-system": [
+    "widgets.js"
   ]
 }
