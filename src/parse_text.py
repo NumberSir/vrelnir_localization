@@ -286,7 +286,7 @@ class ParseTextTwee:
 
     def _parse_clothing_init(self):
         """只有 desc:"""
-        return self.parse_type_only("desc:")
+        return self.parse_type_only({"desc:", "V.outfit = "})
 
     def _parse_wardrobes(self):
         """多了一个<<wearlink_norefresh " """
@@ -1532,6 +1532,9 @@ class ParseTextTwee:
                 or "hint:`" in line
                 or 'museum:"' in line
                 or 'journal: `' in line
+                or 'name:"' in line
+                or 'stolen:"' in line
+                or 'recovered:"' in line
             ):
                 results.append(True)
                 continue
@@ -2048,6 +2051,8 @@ class ParseTextJS:
                 or ('value: "' in line and "<" not in line and ">" not in line)
                 or '"<div class=saveGroup>' in line
                 or '.append("' in line
+                or '", Date: " +' in line
+                or '"Save Name: "' in line
             ):
                 results.append(True)
             else:
