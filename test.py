@@ -1,7 +1,7 @@
 from pathlib import Path
 from src.parse_text import ParseTextTwee, ParseTextJS
 
-FILE_NAME = "overworld-plains/loc-bird/main.twee"
+FILE_NAME = "overworld-forest/loc-forest/main.twee"
 
 
 if __name__ == '__main__':
