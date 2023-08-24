@@ -425,7 +425,8 @@ class ParseTextTwee:
                     "_anusaction", "_actions", "_undressLeftTargets",
                     "_undressRightTargets", "_handGuideOptions", "_penisaction",
                     "_askActions", "_vaginaaction", "_text_output", "_chestaction",
-                    "_thighaction", "_npccr", "_npcff", r"\$_doText", "_youraction"
+                    "_thighaction", "_npccr", "_npcff", r"\$_doText", "_youraction",
+                    "_otheraction", "_enjoying"
                 })
                 or "<<run delete " in line
             ):
@@ -476,7 +477,10 @@ class ParseTextTwee:
 
     def _parse_generation(self):
         """只有 <span """
-        return self.parse_type_only({"<span ", "<<set $_desc", '<<set $NPCList[_n].hair to either("'})
+        return self.parse_type_only({
+            "<span ", "<<set $_desc", '<<set $NPCList[_n].hair to either("',
+            "<<set $NPCList[_slot].fullDescription"
+        })
 
     def _parse_tentacle_adv(self):
         """有点麻烦"""
@@ -895,9 +899,9 @@ class ParseTextTwee:
         """half-json"""
         return self.parse_type_only({
             "name:", "text:", "title:", "<summary", "<<option",
-            'return "Incubus (female)";', 'return "Succubus (male)";',
-            'return "Bull boy (female)";', 'return "Cow girl (male)";',
-            'return "Fox (female)";', 'return "Vixen (male)";'
+            'return "Incubus', 'return "Succubus',
+            'return "Bull boy', 'return "Cow girl',
+            'return "Fox', 'return "Vixen'
         })
 
     def _parse_body_writing(self):
@@ -1341,7 +1345,6 @@ class ParseTextTwee:
                 results.append(False)
                 continue
 
-
             if line.startswith("<<error {"):
                 multirow_error_flag = True
                 results.append(False)
@@ -1523,7 +1526,7 @@ class ParseTextTwee:
                 maybe_json_flag = True
                 results.append(False)
                 continue
-            elif maybe_json_flag and line.endswith(">>"):
+            elif maybe_json_flag and line.endswith(">>") and self.is_only_marks(line):
                 maybe_json_flag = False
                 results.append(False)
                 continue
@@ -1535,6 +1538,8 @@ class ParseTextTwee:
                 or 'name:"' in line
                 or 'stolen:"' in line
                 or 'recovered:"' in line
+                or '"Rest":' in line
+                or '"Stroke":' in line
             ):
                 results.append(True)
                 continue
@@ -1603,7 +1608,10 @@ class ParseTextTwee:
                         "_clothesTrait", "_petname", "_leftaction", "_rightaction", "_littlething",
                         "_bigthing", "_feetaction", "_penisaction", "_mouthaction", "_chestaction",
                         "_anusaction", "_vaginaaction", r"\$_mirror", r"\$_examines", r"\$_reacts",
-                        "_playPronoun", r"\$pubtask", r"\$pubtasksetting"
+                        "_playPronoun", r"\$pubtask", r"\$pubtasksetting", "_elite", "_subject",
+                        "_target", "_shopgreeting", "_predicament", "_gagname", "_shopnamelong",
+                        "_sydneysays", "_leftHand", "_rightHand", "_mouth", "_feet", "_askActions",
+                        "_penis", "_vagina", "_anus", r"\$stallThiefPartner"
                     }))
                     or "<<cheatBodyliquidOnPart" in line
                     or any(re.findall(r"<<set (?:(?:\$|_)[^_][#;\w\.\(\)\[\]\"\'`]*) to \[[\"\'`\w,\s]*\]>>", line))
@@ -1846,6 +1854,8 @@ class ParseTextJS:
             return self.parse_time()
         elif DirNamesJS.TEMPLATES.value == self._filedir.name:
             return self.parse_templates()
+        elif DirNamesJS.EXTERNAL.value == self._filedir.name:
+            return self.parse_external()
         return self.parse_normal()
 
     """ 03-JavaScript """
@@ -2107,7 +2117,7 @@ class ParseTextJS:
 
     def _parse_colours(self):
         """json"""
-        return self.parse_type_only('name_cap: "')
+        return self.parse_type_only({'name_cap: "', 'name: "'})
 
     """ special-masturbation """
     def parse_masturbation(self) -> list[bool]:
@@ -2195,7 +2205,45 @@ class ParseTextJS:
 
     def _parse_t_misc(self):
         """t-misc"""
-        return self.parse_type_only('Template.add("sin"')
+        results = []
+        print_either_flag = False
+        for line in self._lines:
+            line = line.strip()
+            if not line:
+                results.append(False)
+                continue
+
+            if line == "either(":
+                print_either_flag = True
+                results.append(False)
+                continue
+            elif print_either_flag and line == ")":
+                print_either_flag = False
+                results.append(False)
+                continue
+            elif print_either_flag:
+                results.append(True)
+                continue
+
+            if 'Template.add("' in line and line.endswith(";"):
+                results.append(True)
+                continue
+            else:
+                results.append(False)
+
+        return results
+
+    """ external """
+    def parse_external(self) -> list[bool]:
+        if FileNamesJS.COLOR_NAMER_FULL.value == self._filename:
+            return self._parse_color_namer()
+        return self.parse_normal()
+
+    def _parse_color_namer(self):
+        return self.parse_type_between(
+            starts=["var colors = {"],
+            ends=["}"]
+        )
 
     """ 常规 """
     def parse_normal(self) -> list[bool]:
@@ -2249,6 +2297,29 @@ class ParseTextJS:
             any((_ in line.strip() for _ in pattern))
             for line in self._lines
         ]
+
+    def parse_type_between(self, starts: list[str], ends: list[str], contain: bool = False) -> list[bool]:
+        """指文件中只有这两部分之间的内容需要提取"""
+        results = []
+        needed_flag = False
+        for line in self._lines:
+            line = line.strip()
+            if not line:
+                results.append(False)
+                continue
+
+            """跨行注释/script，逆天"""
+            if line in starts:
+                needed_flag = True
+                results.append(contain)
+            elif line in ends:
+                needed_flag = False
+                results.append(contain)
+            elif needed_flag:
+                results.append(True)
+            else:
+                results.append(False)
+        return results
 
     @staticmethod
     def is_json_line(line: str) -> bool:

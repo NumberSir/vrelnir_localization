@@ -286,6 +286,16 @@ class ProjectDOL:
         with open(new_file, "w", encoding="utf-8-sig", newline="") as fp:
             csv.writer(fp).writerows(new_data)
 
+        with open(new_file, "r", encoding="utf-8-sig") as fp:
+            problem_data = fp.readlines()
+
+        for idx, line in enumerate(problem_data):
+            if "﻿" in line:
+                problem_data[idx] = line.strip("﻿")
+
+        with open(new_file, "w", encoding="utf-8-sig") as fp:
+            fp.writelines(problem_data)
+
         if unavailable_file:
             os.makedirs(unavailable_file.parent, exist_ok=True)
             with open(unavailable_file, "w", encoding="utf-8-sig", newline="") as fp:

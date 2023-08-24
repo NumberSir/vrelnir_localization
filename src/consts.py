@@ -174,6 +174,7 @@ class DirNamesJS(Enum):
     PREGNANCY = "04-Pregnancy"
     TIME = "time"
     TEMPLATES = "03-Templates"
+    EXTERNAL = "external"
 
 
 class FileNamesJS(Enum):
@@ -207,6 +208,9 @@ class FileNamesJS(Enum):
 
     """ 03-Templates """
     T_MISC_FULL = "t-misc.js"
+
+    """ external """
+    COLOR_NAMER_FULL = "color-namer.js"
 
 
 HIGH_RATE_LINKS = {
