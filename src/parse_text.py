@@ -172,6 +172,8 @@ class ParseTextTwee:
 
             if "setup.breastsizes" in line:
                 results.append(True)
+            elif '"name": "' in line:
+                results.append(True)
             else:
                 results.append(False)
         return results
@@ -479,7 +481,7 @@ class ParseTextTwee:
         """只有 <span """
         return self.parse_type_only({
             "<span ", "<<set $_desc", '<<set $NPCList[_n].hair to either("',
-            "<<set $NPCList[_slot].fullDescription"
+            "<<set $NPCList[_slot].fullDescription", "<<set $NPCList[_n].fullDescription"
         })
 
     def _parse_tentacle_adv(self):
@@ -579,7 +581,7 @@ class ParseTextTwee:
 
     def _parse_npc_span(self):
         """只有 <span"""
-        return self.parse_type_only("<span ")
+        return self.parse_type_only({"<span ", "<<set $NPCList[_n].fullDescription"})
 
     def _parse_speech_sydney(self):
         """有点麻烦"""
@@ -1608,10 +1610,10 @@ class ParseTextTwee:
                         "_clothesTrait", "_petname", "_leftaction", "_rightaction", "_littlething",
                         "_bigthing", "_feetaction", "_penisaction", "_mouthaction", "_chestaction",
                         "_anusaction", "_vaginaaction", r"\$_mirror", r"\$_examines", r"\$_reacts",
-                        "_playPronoun", r"\$pubtask", r"\$pubtasksetting", "_elite", "_subject",
+                        "_playPronoun", r"\$pubtask", "_elite", "_subject",
                         "_target", "_shopgreeting", "_predicament", "_gagname", "_shopnamelong",
                         "_sydneysays", "_leftHand", "_rightHand", "_mouth", "_feet", "_askActions",
-                        "_penis", "_vagina", "_anus", r"\$stallThiefPartner"
+                        "_penis", "_vagina", "_anus", r"\$stallThiefPartner", r"\$NPCList\[_n\]\.fullDescription"
                     }))
                     or "<<cheatBodyliquidOnPart" in line
                     or any(re.findall(r"<<set (?:(?:\$|_)[^_][#;\w\.\(\)\[\]\"\'`]*) to \[[\"\'`\w,\s]*\]>>", line))
@@ -1625,7 +1627,6 @@ class ParseTextTwee:
                 or '<<run _bodyPartOptions.delete($featsBoosts.tattoos[_l].bodypart)>>' in line
                 or '$_examine' in line
                 or '<<if $pubtask is' in line
-                or '<<if $pubtasksetting is' in line
             ):
                 results.append(True)
             elif ("<" in line and self.is_only_widgets(line)) or (maybe_json_flag and self.is_json_line(line)):
@@ -2044,6 +2045,7 @@ class ParseTextJS:
         """lastChild.innerText"""
         results = []
         inner_text_flag = False
+        inner_html_flag = False
         for line in self._lines:
             line = line.strip()
             if not line:
@@ -2053,10 +2055,22 @@ class ParseTextJS:
             if "lastChild.innerText" in line and not line.endswith(";"):
                 inner_text_flag = True
                 results.append(False)
+                continue
             elif inner_text_flag and line.endswith(';'):
                 inner_text_flag = False
                 results.append(True)
-            elif (
+                continue
+
+            if "innerHTML" in line and not line.endswith(";"):
+                inner_text_flag = True
+                results.append(False)
+                continue
+            elif inner_text_flag and line.endswith(';'):
+                inner_text_flag = False
+                results.append(True)
+                continue
+
+            if (
                 "lastChild.innerText" in line
                 or ('value: "' in line and "<" not in line and ">" not in line)
                 or '"<div class=saveGroup>' in line

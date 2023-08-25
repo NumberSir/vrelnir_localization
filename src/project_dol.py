@@ -395,7 +395,7 @@ class ProjectDOL:
                         raw_targets_temp[idx_] = ""
                         
                     elif "<" in target_row:
-                        if "<<link [[" in target_row and re.findall(r"<<link \[\[(Next->|Next\s->|Next\||Next\s\||Leave\||Refuse\||Return\|Resume\||Confirm\||Continue\||Stop\|)", target_row):  # 高频词
+                        if "<<link [[" in target_row and re.findall(r"<<link \[\[(Next->|Next\s->|Next\||Next\s\||Leave\||Refuse\||Return\||Resume\||Confirm\||Continue\||Stop\|)", target_row):  # 高频词
                             raw_targets[idx_] = target_row\
                                 .replace("[[Next", "[[继续")\
                                 .replace("[[Leave", "[[离开")\
