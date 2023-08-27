@@ -1,7 +1,7 @@
 from pathlib import Path
 from src.parse_text import ParseTextTwee, ParseTextJS
 
-FILE_NAME = "04-Variables/variables-static.twee"
+FILE_NAME = "special-masturbation/effects.js"
 
 
 if __name__ == '__main__':

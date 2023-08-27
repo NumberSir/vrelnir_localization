@@ -59,6 +59,7 @@ FILE_REPOSITORY_ZIP = DIR_TEMP_ROOT / "dol.zip"
 FILE_PARATRANZ_ZIP = DIR_TEMP_ROOT / "paratranz_export.zip"
 FILE_COMMITS = DIR_JSON_ROOT / "commits.json"
 FILE_MODS = DIR_JSON_ROOT / "mod.json"
+FILE_VERSION_EDIT_COMMON = DIR_GAME_TEXTS_COMMON / "01-config" / "sugarcubeConfig.js"
 
 SUFFIX_TWEE = ".twee"
 SUFFIX_JS = ".js"
@@ -198,6 +199,7 @@ class FileNamesJS(Enum):
 
     """ special-masturbation """
     ACTIONS_FULL = "actions.js"
+    EFFECTS_FULL = "effects.js"
 
     """ 04-Pregnancy """
     CHILDREN_STROY_FUNCTIONS_FULL = "childrenStoryFunctions.js"
@@ -264,6 +266,7 @@ __all__ = [
     "FILE_PARATRANZ_ZIP",
     "FILE_COMMITS",
     "FILE_MODS",
+    "FILE_VERSION_EDIT_COMMON",
     "SUFFIX_TWEE",
     "SUFFIX_JS",
     "DirNamesTwee",

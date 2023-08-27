@@ -28,9 +28,14 @@
     "time.js"
   ],
   "03-Templates": [
-    "t-misc.js"
+    "t-misc.js",
+    "t-actions.js",
+    "t-bodyparts.js"
   ],
   "base-system": [
     "widgets.js"
+  ],
+  "external": [
+    "color-namer.js"
   ]
 }

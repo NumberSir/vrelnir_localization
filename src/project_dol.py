@@ -447,6 +447,17 @@ class ProjectDOL:
         with open(DIR_GAME_CSS_COMMON / "base.css", "w", encoding="utf-8") as fp:
             fp.writelines(lines)
 
+    def change_version(self, version: str = ""):
+        """字体间距"""
+        with open(FILE_VERSION_EDIT_COMMON, "r", encoding="utf-8") as fp:
+            lines = fp.readlines()
+        for idx, line in enumerate(lines):
+            if "version: " in line.strip():
+                lines[idx] = f'version: "{version}",\n'
+                break
+        with open(FILE_VERSION_EDIT_COMMON, "w", encoding="utf-8") as fp:
+            fp.writelines(lines)
+
     @staticmethod
     def _is_lack_angle(line_zh: str, line_en: str):
         """<<> 缺一个 >"""

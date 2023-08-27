@@ -1066,6 +1066,9 @@ class ParseTextTwee:
             }):
                 results.append(False)
                 continue
+            elif multirow_set_flag:
+                results.append(True)
+                continue
 
             if self.is_widget_set_to(line, {
                 "_text_output", r"_pre\.push", r"_names\.push"
@@ -1239,6 +1242,7 @@ class ParseTextTwee:
                 or not line.startswith("<")
                 or '<<set _bedType to "' in line
                 or "<<print $_plant.plural.toLocaleUpperFirst()>>" in line
+                or self.is_widget_print(line)
             ):
                 results.append(True)
             else:
@@ -1613,7 +1617,8 @@ class ParseTextTwee:
                         "_playPronoun", r"\$pubtask", "_elite", "_subject",
                         "_target", "_shopgreeting", "_predicament", "_gagname", "_shopnamelong",
                         "_sydneysays", "_leftHand", "_rightHand", "_mouth", "_feet", "_askActions",
-                        "_penis", "_vagina", "_anus", r"\$stallThiefPartner", r"\$NPCList\[_n\]\.fullDescription"
+                        "_penis", "_vagina", "_anus", r"\$stallThiefPartner", r"\$NPCList\[_n\]\.fullDescription",
+                        "_reactSpeech"
                     }))
                     or "<<cheatBodyliquidOnPart" in line
                     or any(re.findall(r"<<set (?:(?:\$|_)[^_][#;\w\.\(\)\[\]\"\'`]*) to \[[\"\'`\w,\s]*\]>>", line))
@@ -1627,6 +1632,7 @@ class ParseTextTwee:
                 or '<<run _bodyPartOptions.delete($featsBoosts.tattoos[_l].bodypart)>>' in line
                 or '$_examine' in line
                 or '<<if $pubtask is' in line
+                or '<<run _featsTattooOptions.push(' in line
             ):
                 results.append(True)
             elif ("<" in line and self.is_only_widgets(line)) or (maybe_json_flag and self.is_json_line(line)):
@@ -2140,17 +2146,6 @@ class ParseTextJS:
             return self._parse_actions()
         return self.parse_normal()
 
-    """ 04-pregnancy """
-    def parse_pregnancy(self) -> list[bool]:
-        """ 04-pregnancy """
-        if FileNamesJS.CHILDREN_STROY_FUNCTIONS_FULL.value == self._filename:
-            return self._parse_children_story_functions()
-        return self.parse_normal()
-
-    def _parse_children_story_functions(self):
-        """就一个 wordList"""
-        return self.parse_type_only({"const wordList", "wordList.push"})
-
     def _parse_actions(self):
         """result.text"""
         results = []
@@ -2191,6 +2186,17 @@ class ParseTextJS:
             else:
                 results.append(False)
         return results
+
+    """ 04-pregnancy """
+    def parse_pregnancy(self) -> list[bool]:
+        """ 04-pregnancy """
+        if FileNamesJS.CHILDREN_STROY_FUNCTIONS_FULL.value == self._filename:
+            return self._parse_children_story_functions()
+        return self.parse_normal()
+
+    def _parse_children_story_functions(self):
+        """就一个 wordList"""
+        return self.parse_type_only({"const wordList", "wordList.push"})
 
     """ time """
     def parse_time(self) -> list[bool]:
@@ -2290,6 +2296,11 @@ class ParseTextJS:
             ):
                 results.append(True)
             elif ("addfemininityfromfactor(" in line and line.endswith(');')) or '"Pregnant Looking Belly"' in line:
+                results.append(True)
+            elif (
+                "altText.toys = " in line
+                or "altText.start = " in line
+            ):
                 results.append(True)
             else:
                 results.append(False)
