@@ -449,6 +449,8 @@ class ProjectDOL:
 
     def change_version(self, version: str = ""):
         """字体间距"""
+        if self._type == "world":
+            FILE_VERSION_EDIT_COMMON = FILE_VERSION_EDIT_WORLD
         with open(FILE_VERSION_EDIT_COMMON, "r", encoding="utf-8") as fp:
             lines = fp.readlines()
         for idx, line in enumerate(lines):
