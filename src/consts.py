@@ -60,6 +60,7 @@ FILE_PARATRANZ_ZIP = DIR_TEMP_ROOT / "paratranz_export.zip"
 FILE_COMMITS = DIR_JSON_ROOT / "commits.json"
 FILE_MODS = DIR_JSON_ROOT / "mod.json"
 FILE_VERSION_EDIT_COMMON = DIR_GAME_TEXTS_COMMON / "01-config" / "sugarcubeConfig.js"
+FILE_VERSION_EDIT_WORLD = DIR_GAME_TEXTS_WORLD / "01-config" / "sugarcubeConfig.js"
 
 SUFFIX_TWEE = ".twee"
 SUFFIX_JS = ".js"
@@ -267,6 +268,7 @@ __all__ = [
     "FILE_COMMITS",
     "FILE_MODS",
     "FILE_VERSION_EDIT_COMMON",
+    "FILE_VERSION_EDIT_WORLD",
     "SUFFIX_TWEE",
     "SUFFIX_JS",
     "DirNamesTwee",
