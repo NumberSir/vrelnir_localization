@@ -388,10 +388,10 @@ class ProjectDOL:
                             raw_targets[idx_] = raw_targets[idx_].replace(".name_cap", ".cn_name_cap")
                         elif "_wornItemData.name_cap" in target_row:
                             raw_targets[idx_] = raw_targets[idx_].replace(".name_cap", ".cn_name_cap")
-                        elif "<<print " in target_row and "setup.colours.eyes[_i].name_cap" in target_row:
-                            raw_targets[idx_] = raw_targets[idx_].replace(".name_cap", ".cn_name_cap")
-                        elif "<<print " in target_row and "setup.colours.hair[_i].name_cap" in target_row:
-                            raw_targets[idx_] = raw_targets[idx_].replace(".name_cap", ".cn_name_cap")
+                        # elif "<<print " in target_row and "setup.colours.eyes[_i].name_cap" in target_row:
+                        #     raw_targets[idx_] = raw_targets[idx_].replace(".name_cap", ".cn_name_cap")
+                        # elif "<<print " in target_row and "setup.colours.hair[_i].name_cap" in target_row:
+                        #     raw_targets[idx_] = raw_targets[idx_].replace(".name_cap", ".cn_name_cap")
                         raw_targets_temp[idx_] = ""
                         
                     elif "<" in target_row:
