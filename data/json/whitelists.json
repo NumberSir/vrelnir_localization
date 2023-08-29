@@ -9,7 +9,8 @@
     "ingame.js",
     "sexShopMenu.js",
     "sexToysInventory.js",
-    "UI.js"
+    "UI.js",
+    "npcCompressor.js"
   ],
   "04-Variables": [
     "colours.js",
@@ -21,7 +22,9 @@
     "slimeControl.js"
   ],
   "04-Pregnancy": [
-    "childrenStoryFunctions.js"
+    "childrenStoryFunctions.js",
+    "pregnancy.js",
+    "storyFunctions.js"
   ],
   "time": [
     "timeMacros.js",
@@ -37,5 +40,8 @@
   ],
   "external": [
     "color-namer.js"
+  ],
+  "base-clothing": [
+    "updateClothes.js"
   ]
 }

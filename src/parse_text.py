@@ -187,7 +187,7 @@ class ParseTextTwee:
             return self._parse_clothing()
         elif FileNamesTwee.CLOTHING_SETS_FULL.value == self._filename:
             return self._parse_clothing_sets()
-        elif FileNamesTwee.IMAGES_FULL.value == self._filename:
+        elif FileNamesTwee.CLOTHING_IMAGES_FULL.value == self._filename:
             return self._parse_clothing_images()
         elif FileNamesTwee.INIT_FULL.value == self._filename:
             return self._parse_clothing_init()
@@ -274,6 +274,9 @@ class ParseTextTwee:
                 or self.is_tag_label(line)
                 or self.is_widget_option(line)
                 or self.is_widget_link(line)
+                or self.is_widget_set_to(line, {
+                    r"\$wearoutfittext"
+                })
             ):
                 results.append(True)
             elif self.is_only_widgets(line):
@@ -288,7 +291,10 @@ class ParseTextTwee:
 
     def _parse_clothing_init(self):
         """只有 desc:"""
-        return self.parse_type_only({"desc:", "V.outfit = "})
+        return self.parse_type_only({
+            "desc:", "V.outfit = ", 'word:"',
+            'name: "'
+        })
 
     def _parse_wardrobes(self):
         """多了一个<<wearlink_norefresh " """
@@ -349,7 +355,10 @@ class ParseTextTwee:
                 or self.is_tag_label(line)
                 or self.is_widget_option(line)
                 or (self.is_widget_link(line) and not self.is_widget_high_rate_link(line))
-                or self.is_widget_set_to(line, {r"\$_text_output", r"\$_output", "_linkOption1", "_linkOption2"})
+                or self.is_widget_set_to(line, {
+                    r"\$_text_output", r"\$_output", "_linkOption1", "_linkOption2",
+                    r"\$_itemNames"
+                })
             ):
                 results.append(True)
             elif self.is_only_widgets(line) or self.is_json_line(line):
@@ -390,6 +399,8 @@ class ParseTextTwee:
             return self._parse_swarm_effects()
         elif FileNamesTwee.COMBAT_WIDGETS_FULL.value == self._filename:
             return self._parse_combat_widgets()
+        elif FileNamesTwee.COMBAT_IMAGES_FULL.value == self._filename:
+            return self._parse_combat_images()
         return self.parse_normal()
 
     def _parse_actions(self):
@@ -419,6 +430,7 @@ class ParseTextTwee:
                 results.append(False)
             elif (
                 self.is_tag_span(line)
+                or self.is_widget_print(line)
                 or self.is_tag_label(line)
                 or self.is_widget_option(line)
                 or self.is_widget_set_to(line, {
@@ -428,9 +440,12 @@ class ParseTextTwee:
                     "_undressRightTargets", "_handGuideOptions", "_penisaction",
                     "_askActions", "_vaginaaction", "_text_output", "_chestaction",
                     "_thighaction", "_npccr", "_npcff", r"\$_doText", "_youraction",
-                    "_otheraction", "_enjoying"
+                    "_otheraction", "_enjoying", "_mydesc", "_smoltext", r"\$_npc"
                 })
                 or "<<run delete " in line
+                or "<<if $NPCList" in line
+                or "<<if ($NPCList" in line
+                or "<<takeKissVirginityNamed" in line
             ):
                 results.append(True)
             elif self.is_only_widgets(line) or self.is_json_line(line):
@@ -480,8 +495,18 @@ class ParseTextTwee:
     def _parse_generation(self):
         """只有 <span """
         return self.parse_type_only({
-            "<span ", "<<set $_desc", '<<set $NPCList[_n].hair to either("',
-            "<<set $NPCList[_slot].fullDescription", "<<set $NPCList[_n].fullDescription"
+            "<span ", "<<set $_desc",
+            '<<set $NPCList[_n].hair to either("',
+            "<<set $NPCList[_slot].fullDescription",
+            "<<set $NPCList[_n].fullDescription",
+            "<<set $NPCList[_n].breastsdesc",
+            "<<set _brdes",
+            "<<set _pd",
+            "<<set $_strapon",
+            "<<set $_modifier",
+            "<<set $NPCList[_n].penisdesc",
+            "<<set $NPCList[_xx].penisdesc",
+            "<<set _dildoType"
         })
 
     def _parse_tentacle_adv(self):
@@ -503,6 +528,8 @@ class ParseTextTwee:
             elif self.is_tag_span(line) or self.is_widget_actions_tentacle(line) or self.is_widget_if(line):
                 results.append(True)
             elif '.desc.includes' in line:
+                results.append(True)
+            elif "fullDesc.includes" in line:
                 results.append(True)
             elif self.is_only_widgets(line):
                 results.append(False)
@@ -570,7 +597,9 @@ class ParseTextTwee:
             elif (
                 self.is_tag_span(line)
                 or self.is_widget_print(line)
-                or self.is_widget_set_to(line, {"_wraith_output"})
+                or self.is_widget_set_to(line, {
+                    "_wraith_output", "_npcDescription", "_insertions"
+                })
             ):
                 results.append(True)
             elif self.is_only_widgets(line) or self.is_json_line(line) or ("<<set " in line and ">>" not in line):
@@ -581,7 +610,9 @@ class ParseTextTwee:
 
     def _parse_npc_span(self):
         """只有 <span"""
-        return self.parse_type_only({"<span ", "<<set $NPCList[_n].fullDescription"})
+        return self.parse_type_only({
+            "<span ", "<<set $NPCList[_n].fullDescription"
+        })
 
     def _parse_speech_sydney(self):
         """有点麻烦"""
@@ -628,7 +659,10 @@ class ParseTextTwee:
             ):
                 results.append(False)
             elif (
-                self.is_widget_set_to(line, {r"\$_text_output", r"\$_sexToy", r"\$_strings"})
+                self.is_widget_set_to(line, {
+                    r"\$_text_output", r"\$_sexToy", r"\$_strings",
+                    r"\$_toyOrFinger"
+                })
                 or line.startswith('"')
                 or line.startswith('`')
                 or line.startswith('<<default>>')
@@ -746,10 +780,30 @@ class ParseTextTwee:
                 "_text_output", "_leftaction", "_rightaction"
             }):
                 results.append(True)
+            elif (
+                "<<if $_npc" in line
+                or "<<if ($NPCList[$_" in line
+                or "<<if $NPCList[$_" in line
+            ):
+                results.append(True)
             elif self.is_only_widgets(line):
                 results.append(False)
             else:
                 results.append(True)
+        return results
+
+    def _parse_combat_images(self):
+        results = []
+        for idx, line in enumerate(self._lines):
+            line = line.strip()
+            if not line:
+                results.append(False)
+                continue
+
+            if "if $NPCList[$_target" in line:
+                results.append(True)
+            else:
+                results.append(False)
         return results
 
     """ base-debug """
@@ -791,7 +845,7 @@ class ParseTextTwee:
             return self._parse_fame()
         elif FileNamesTwee.FEATS_FULL.value == self._filename:
             return self._parse_feats()
-        elif FileNamesTwee.IMAGES_FULL.value == self._filename:
+        elif FileNamesTwee.CLOTHING_IMAGES_FULL.value == self._filename:
             return self._parse_system_images()
         elif FileNamesTwee.MOBILE_STATS_FULL.value == self._filename:
             return self._parse_mobile_stats()
@@ -823,6 +877,10 @@ class ParseTextTwee:
             return self._parse_transformations()
         elif FileNamesTwee.SYSTEM_WIDGETS_FULL.value == self._filename:
             return self._parse_system_widgets()
+        elif FileNamesTwee.NAMED_NPCS_FULL.value == self._filename:
+            return self._parse_named_npcs()
+        elif FileNamesTwee.PERSISTENT_NPCS_FULL.value == self._filename:
+            return self._parse_persistent_npcs()
         return self.parse_normal()
 
     def _parse_characteristic(self):
@@ -1020,12 +1078,11 @@ class ParseTextTwee:
                 continue
 
             """跨行注释/set，逆天"""
-            if line in ["/*", "<!--", "<<set "] or (any(line.startswith(_) for _ in {"/*", "<!--", "<<set "}) and all(
-                    _ not in line for _ in {"*/", "-->", ">>"})):
+            if (line in ["/*", "<!--"] or (any(line.startswith(_) for _ in {"/*", "<!--"}) and all(_ not in line for _ in {"*/", "-->"}))):
                 multirow_comment_flag = True
                 results.append(False)
                 continue
-            elif line in ["*/", "-->", ">>"] or any(line.endswith(_) for _ in {"*/", "-->", ">>"}):
+            elif multirow_comment_flag and (line in ["*/", "-->"] or any(line.endswith(_) for _ in {"*/", "-->"})):
                 multirow_comment_flag = False
                 results.append(False)
                 continue
@@ -1035,6 +1092,15 @@ class ParseTextTwee:
 
             if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
                 results.append(False)
+            elif self.is_tag_span(line) or self.is_widget_set_to(line, {
+                r"\$_npcName\.strapons", "_brdes", r"\$NPCList\[_npcno\]"
+            }):
+                results.append(True)
+            elif "<<set $NPCName[_i" in line and all(_ not in line for _ in {
+                ".gender", ".pronoun", "size to", "1>>", "0>>", ".outfits.pushUnique(",
+                "_val", "_rollover", "9>>", "random", "undefined", "delete", "crossdressing"
+            }):
+                results.append(True)
             elif self.is_tag_span(line):
                 results.append(True)
             elif self.is_only_widgets(line):
@@ -1279,8 +1345,11 @@ class ParseTextTwee:
                 or "<span " in line
                 or self.is_widget_print(line)
                 or self.is_widget_set_to(line, {
-                    "_text_output", r"\$_text_output", "_actionText"
+                    "_text_output", r"\$_text_output", "_actionText",
+                    r"\$description", r"\$_chest"
                 })
+                or "<<set _args[0]" in line
+                or '<<if $_npc.penisdesc' in line
             ):
                 results.append(True)
             elif self.is_only_widgets(line):
@@ -1382,6 +1451,22 @@ class ParseTextTwee:
                 results.append(False)
             else:
                 results.append(True)
+        return results
+
+    def _parse_persistent_npcs(self):
+        results = []
+        for line in self._lines:
+            line = line.strip()
+            if not line:
+                results.append(False)
+                continue
+
+            if self.is_widget_set_to(line, {
+                "_brdes", r"\$per_npc\[\$_i\]\.breastdesc", r"\$per_npc\[\$_i\]\.penisdesc"
+            }):
+                results.append(True)
+            else:
+                results.append(False)
         return results
 
     """ flavour-text-generators """
@@ -1602,25 +1687,27 @@ class ParseTextTwee:
                     or self.is_widget_button(line)
                     or (self.is_widget_link(line) and not self.is_widget_high_rate_link(line))
                     or ("<<set " in line and self.is_widget_set_to(line, {
-                        r"\$_strings", r"\$_text_output", "_text_output",
-                        r"\$_customertype", r"\$_theboy", "_clothesDesc",
-                        "_actionText", r"\$_marked_text", r"\$_plural",
+                        r"\$_strings", r"\$_text_output", "_text_output", r"_container\.name",
+                        r"\$_customertype", r"\$_theboy", "_clothesDesc", r"_container\.feederName",
+                        "_actionText", r"\$_marked_text", r"\$_plural", r"\$NPCList\[0\]\.penisdesc",
                         r"\$_link_text", "_has_feelings_towards", "_causing_a_consequence",
-                        "_hilarity_ensues", "_linkText", r"\$_theshop", "_coffee",
-                        "_wraithTitle", "_speaks", r"\$wraithOptions", "_speechWraith",
-                        "_dives_into", r"\$NPCList\[_n\]\.hair", "_pregnancyLink",
+                        "_hilarity_ensues", "_linkText", r"\$_theshop", "_coffee", "_tempText",
+                        "_wraithTitle", "_speaks", r"\$wraithOptions", "_speechWraith", "_flaunt",
+                        "_dives_into", r"\$NPCList\[_n\]\.hair", "_pregnancyLink", r"_container\.decorations",
                         "_postOrgasmSpeech", r"_names\.push", r"_pre\.push", "_shopmusic",
                         "_bodyWritingOptions", "_reactTone", "_reactPerson", "_shopnameshort",
                         "_clothesTrait", "_petname", "_leftaction", "_rightaction", "_littlething",
                         "_bigthing", "_feetaction", "_penisaction", "_mouthaction", "_chestaction",
                         "_anusaction", "_vaginaaction", r"\$_mirror", r"\$_examines", r"\$_reacts",
-                        "_playPronoun", r"\$pubtask", "_elite", "_subject",
+                        "_playPronoun", r"\$pubtask", "_elite", "_subject", "_title0", "_chest",
                         "_target", "_shopgreeting", "_predicament", "_gagname", "_shopnamelong",
                         "_sydneysays", "_leftHand", "_rightHand", "_mouth", "_feet", "_askActions",
                         "_penis", "_vagina", "_anus", r"\$stallThiefPartner", r"\$NPCList\[_n\]\.fullDescription",
-                        "_reactSpeech"
+                        "_reactSpeech", "_looks", "_fucking", r"\$_eagerly", r"\$_npcpart",
+                        "_colour", "_hairOptions", "_fringeOptions", "_dyeOptions", "_browsDyeOptions",
+                        r"\$_rhythmically", r"\$_wet", "_lubricated", "_afinger", "_anotherfinger", r"\$_toy",
+                        "_nectar", "_Nectar", r"\$_NPCBreastDesc", r"\$_buttplug", "_npc0", "_genitals"
                     }))
-                    or "<<cheatBodyliquidOnPart" in line
                     or any(re.findall(r"<<set (?:(?:\$|_)[^_][#;\w\.\(\)\[\]\"\'`]*) to \[[\"\'`\w,\s]*\]>>", line))
                 )
             ):
@@ -1633,6 +1720,13 @@ class ParseTextTwee:
                 or '$_examine' in line
                 or '<<if $pubtask is' in line
                 or '<<run _featsTattooOptions.push(' in line
+                or '<<if $NPCList[_nn].penis' in line
+                or '<<if $watersportsdisable is "f" and $consensual is 0 and $enemyanger gte random(20, 200) and ($NPCList[_nn].penis is "none" or !$NPCList[_nn].penisdesc.includes("strap-on")) and _condomResult isnot "contained" and _args[0] isnot "short">>' in line
+                or '<<if $NPCList[0].penisdesc' in line
+                or '<<if $NPCList[_n].condom' in line
+                or '<<takeKissVirginityNamed' in line
+                or "<<cheatBodyliquidOnPart" in line
+                or "<<generateRole" in line
             ):
                 results.append(True)
             elif ("<" in line and self.is_only_widgets(line)) or (maybe_json_flag and self.is_json_line(line)):
@@ -1863,6 +1957,10 @@ class ParseTextJS:
             return self.parse_templates()
         elif DirNamesJS.EXTERNAL.value == self._filedir.name:
             return self.parse_external()
+        elif DirNamesJS.BASE_CLOTHING.value == self._filedir.name:
+            return self.parse_clothing()
+        elif DirNamesJS.BASE_SYSTEM.value == self._filedir.name:
+            return self.parse_system()
         return self.parse_normal()
 
     """ 03-JavaScript """
@@ -1888,6 +1986,8 @@ class ParseTextJS:
             return self._parse_ingame()
         elif FileNamesJS.UI_FULL.value == self._filename:
             return self._parse_ui()
+        elif FileNamesJS.NPC_COMPRESSOR_FULL.value == self._filename:
+            return self._parse_npc_compressor()
         return self.parse_normal()
 
     def _parse_bedroom_pills(self):
@@ -2117,9 +2217,46 @@ class ParseTextJS:
                 results.append(True)
             elif "text =" in line and "let text" not in line and "const text" not in line:
                 results.append(True)
+            elif "npc.breastdesc =" in line or "npc.breastsdesc =" in line:
+                results.append(True)
             else:
                 results.append(False)
 
+        return results
+
+    def _parse_npc_compressor(self):
+        results = []
+        multiconst_flag = False
+        for line in self._lines:
+            line = line.strip()
+            if not line:
+                results.append(False)
+                continue
+
+            if "DescList" in line or "descList" in line and not line.endswith(";"):
+                multiconst_flag = True
+                results.append(False)
+                continue
+            elif multiconst_flag and line.endswith(";"):
+                multiconst_flag = False
+                results.append(False)
+                continue
+            elif multiconst_flag and line.endswith('",'):
+                results.append(True)
+                continue
+            elif multiconst_flag:
+                results.append(False)
+                continue
+
+            if (
+                "const breastdesc" in line
+                or "const breastsdesc" in line
+                or ("descList" in line and "]" in line)
+                or ("DescList" in line and "]" in line)
+            ):
+                results.append(True)
+            else:
+                results.append(False)
         return results
 
     """ 04-variables """
@@ -2144,6 +2281,10 @@ class ParseTextJS:
         """ special-masturbation """
         if FileNamesJS.ACTIONS_FULL.value == self._filename:
             return self._parse_actions()
+        elif FileNamesJS.EFFECTS_FULL.value == self._filename:
+            return self._parse_effects()
+        elif FileNamesJS.MACROS_MASTURBATION_FULL.value == self._filename:
+            return self._parse_macros_masturbation()
         return self.parse_normal()
 
     def _parse_actions(self):
@@ -2181,22 +2322,81 @@ class ParseTextJS:
                 results.append(True)
                 continue
 
-            if any(_ in line for _ in {"result.text", "text:", "result.options.push"}):
+            if any(_ in line for _ in {
+                "result.text", "text:", "result.options.push", ".name;"
+            }):
                 results.append(True)
             else:
                 results.append(False)
         return results
 
+    def _parse_effects(self):
+        results = []
+        append_fragment_flag = False
+        for line in self._lines:
+            line = line.strip()
+            if not line:
+                results.append(False)
+                continue
+
+            if line == "fragment.append(":
+                append_fragment_flag = True
+                results.append(False)
+            elif append_fragment_flag and line == ");":
+                append_fragment_flag = False
+                results.append(False)
+            elif (
+                append_fragment_flag
+                and not self.is_only_marks(line)
+                and line not in {
+                    "Wikifier.wikifyEval(", "span(",
+                    "altText.selectedToy", "altText.toys =",
+                    "toy1.name"
+                }
+            ):
+                results.append(True)
+            elif "fragment.append(" in line and any(
+                _ not in line
+                for _ in {"''", "' '", '""', '" "', "``", "` `", "br()"}
+            ):
+                results.append(True)
+            elif (
+                "altText.toys = " in line
+                or "altText.start = " in line
+                or "<span class" in line
+            ):
+                results.append(True)
+            else:
+                results.append(False)
+        return results
+
+    def _parse_macros_masturbation(self):
+        return self.parse_type_only({"namecap"})
+
     """ 04-pregnancy """
     def parse_pregnancy(self) -> list[bool]:
         """ 04-pregnancy """
-        if FileNamesJS.CHILDREN_STROY_FUNCTIONS_FULL.value == self._filename:
+        if FileNamesJS.CHILDREN_STORY_FUNCTIONS_FULL.value == self._filename:
             return self._parse_children_story_functions()
+        elif FileNamesJS.PREGNANCY_FULL.value == self._filename:
+            return self._parse_pregnancy()
+        elif FileNamesJS.STORY_FUNCTIONS_FULL.value == self._filename:
+            return self._parse_story_functions()
         return self.parse_normal()
 
     def _parse_children_story_functions(self):
         """就一个 wordList"""
         return self.parse_type_only({"const wordList", "wordList.push"})
+
+    def _parse_pregnancy(self):
+        return self.parse_type_only({
+            "names = ['", "names.pushUnique"
+        })
+
+    def _parse_story_functions(self):
+        return self.parse_type_only({
+            "name = ['"
+        })
 
     """ time """
     def parse_time(self) -> list[bool]:
@@ -2221,6 +2421,10 @@ class ParseTextJS:
     def parse_templates(self) -> list[bool]:
         if FileNamesJS.T_MISC_FULL.value == self._filename:
             return self._parse_t_misc()
+        elif FileNamesJS.T_ACTIONS_FULL.value == self._filename:
+            return self._parse_t_actions()
+        elif FileNamesJS.T_BODYPARTS_FULL.value == self._filename:
+            return self._parse_t_bodyparts()
         return self.parse_normal()
 
     def _parse_t_misc(self):
@@ -2250,8 +2454,15 @@ class ParseTextJS:
                 continue
             else:
                 results.append(False)
-
         return results
+
+    def _parse_t_actions(self):
+        """t-actions"""
+        return self.parse_type_only("either(")
+
+    def _parse_t_bodyparts(self):
+        """t-actions"""
+        return self.parse_type_only("either(")
 
     """ external """
     def parse_external(self) -> list[bool]:
@@ -2264,6 +2475,37 @@ class ParseTextJS:
             starts=["var colors = {"],
             ends=["}"]
         )
+
+    """ base-clothing """
+    def parse_clothing(self):
+        if FileNamesJS.UDPATE_CLOTHES_FULL.value == self._filename:
+            return self._parse_update_clothes()
+        return self.parse_normal()
+
+    def _parse_update_clothes(self):
+        results = []
+        for line in self._lines:
+            line = line.strip()
+            if not line:
+                results.append(False)
+                continue
+
+            if line.startswith("V") and ".name =" in line:
+                results.append(True)
+            elif "name: " in line:
+                results.append(True)
+            else:
+                results.append(False)
+        return results
+
+    """ base-system """
+    def parse_system(self):
+        if FileNamesJS.WIDGETS_FULL.value == self._filename:
+            return self._parse_widgets()
+        return self.parse_normal()
+
+    def _parse_widgets(self):
+        return self.parse_type_only({".name_cap,", "addfemininityfromfactor(", "playerAwareTheyArePregnant()"})
 
     """ 常规 """
     def parse_normal(self) -> list[bool]:

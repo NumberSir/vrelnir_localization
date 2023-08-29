@@ -388,10 +388,6 @@ class ProjectDOL:
                             raw_targets[idx_] = raw_targets[idx_].replace(".name_cap", ".cn_name_cap")
                         elif "_wornItemData.name_cap" in target_row:
                             raw_targets[idx_] = raw_targets[idx_].replace(".name_cap", ".cn_name_cap")
-                        elif "<<print " in target_row and "setup.colours.eyes[_i].name_cap" in target_row:
-                            raw_targets[idx_] = raw_targets[idx_].replace(".name_cap", ".cn_name_cap")
-                        elif "<<print " in target_row and "setup.colours.hair[_i].name_cap" in target_row:
-                            raw_targets[idx_] = raw_targets[idx_].replace(".name_cap", ".cn_name_cap")
                         raw_targets_temp[idx_] = ""
                         
                     elif "<" in target_row:
@@ -418,17 +414,13 @@ class ProjectDOL:
                             raw_targets[idx_] = raw_targets[idx_].replace(".name_cap", ".cn_name_cap")
                         elif "_wornItemData.name_cap" in target_row:
                             raw_targets[idx_] = raw_targets[idx_].replace(".name_cap", ".cn_name_cap")
-                        elif "<<print " in target_row and "setup.colours.eyes[_i].name_cap" in target_row:
-                            raw_targets[idx_] = raw_targets[idx_].replace(".name_cap", ".cn_name_cap")
-                        elif "<<print " in target_row and "setup.colours.hair[_i].name_cap" in target_row:
-                            raw_targets[idx_] = raw_targets[idx_].replace(".name_cap", ".cn_name_cap")
                     elif target_row.strip() == "].select($_rng)>>":  # 怪东西
                         raw_targets[idx_] = ""
 
         if target_file.name.endswith(".js"):
             try:
                 self._acorn.parse("".join(raw_targets))
-                LOGGER_COLOR.info(f"<g>语法检测通过</g> {target_file}")
+                LOGGER_COLOR.info(f"<g>JS 语法检测通过</g> {target_file}")
             except JSSyntaxError as err:
                 LOGGER_COLOR.error(f"{target_file} | {err.err_code(raw_targets)}")
         with open(target_file, "w", encoding="utf-8") as fp:

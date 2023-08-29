@@ -107,7 +107,7 @@ class FileNamesTwee(Enum):
     CAPTIONTEXT_FULL = "captiontext.twee"
     CLOTHING = "clothing-"  # 没有FULL代表文件名中包含这个文本
     CLOTHING_SETS_FULL = "clothing-sets.twee"
-    IMAGES_FULL = "images.twee"
+    CLOTHING_IMAGES_FULL = "images.twee"
     INIT_FULL = "init.twee"
     WARDROBES_FULL = "wardrobes.twee"
 
@@ -127,6 +127,7 @@ class FileNamesTwee(Enum):
     SWARMS_FULL = "swarms.twee"
     SWARM_EFFECTS_FULL = "swarm-effects.twee"
     COMBAT_WIDGETS_FULL = "widgets.twee"
+    COMBAT_IMAGES_FULL = "images.twee"
 
     """ base-hair """
     HAIR_STYLES_FULL = "hair-styles.twee"
@@ -159,6 +160,7 @@ class FileNamesTwee(Enum):
     TIPS_FULL = "tips.twee"
     TRANSFORMATIONS_FULL = "transformations.twee"
     SYSTEM_WIDGETS_FULL = "widgets.twee"
+    PERSISTENT_NPCS_FULL = "persistent-npcs.twee"
 
     """ flavour-text-generators """
     BODY_COMMENTS_FULL = "body-comments.csv"
@@ -176,6 +178,8 @@ class DirNamesJS(Enum):
     TIME = "time"
     TEMPLATES = "03-Templates"
     EXTERNAL = "external"
+    BASE_SYSTEM = "base-system"
+    BASE_CLOTHING = "base-clothing"
 
 
 class FileNamesJS(Enum):
@@ -192,6 +196,7 @@ class FileNamesJS(Enum):
     SEXSHOP_MENU_FULL = "sexShopMenu.js"
     SEXTOY_INVENTORY_FULL = "sexToysInventory.js"
     UI_FULL = "UI.js"
+    NPC_COMPRESSOR_FULL = "npcCompressor.js"
 
     """ 04-variables """
     COLOURS_FULL = "colours.js"
@@ -200,9 +205,12 @@ class FileNamesJS(Enum):
     """ special-masturbation """
     ACTIONS_FULL = "actions.js"
     EFFECTS_FULL = "effects.js"
+    MACROS_MASTURBATION_FULL = "macros-masturbation.js"
 
     """ 04-Pregnancy """
-    CHILDREN_STROY_FUNCTIONS_FULL = "childrenStoryFunctions.js"
+    CHILDREN_STORY_FUNCTIONS_FULL = "childrenStoryFunctions.js"
+    PREGNANCY_FULL = "pregnancy.js"
+    STORY_FUNCTIONS_FULL = "storyFunctions.js"
 
     """ time """
     TIME_FULL = "time.js"
@@ -210,9 +218,17 @@ class FileNamesJS(Enum):
 
     """ 03-Templates """
     T_MISC_FULL = "t-misc.js"
+    T_ACTIONS_FULL = "t-actions.js"
+    T_BODYPARTS_FULL = "t-bodyparts.js"
 
     """ external """
     COLOR_NAMER_FULL = "color-namer.js"
+
+    """ base-system """
+    WIDGETS_FULL = "widgets.js"
+
+    """ base-clothing """
+    UDPATE_CLOTHES_FULL = "updateClothes.js"
 
 
 HIGH_RATE_LINKS = {
