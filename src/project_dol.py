@@ -342,6 +342,7 @@ class ProjectDOL:
         with open(target_file, "r", encoding="utf-8") as fp:
             raw_targets: list[str] = fp.readlines()
         raw_targets_temp = raw_targets.copy()
+        needed_replace_outfit_name_cap_flag = False
 
         with open(csv_file, "r", encoding="utf-8") as fp:
             for row in csv.reader(fp):
@@ -371,10 +372,21 @@ class ProjectDOL:
                     if not target_row.strip():
                         continue
 
+                    if '<<widget "listdancingclothes">>' in target_row:
+                        needed_replace_outfit_name_cap_flag = True
+                    elif needed_replace_outfit_name_cap_flag and "<</widget>>" in target_row:
+                        needed_replace_outfit_name_cap_flag = False
+
                     if "replace(/[^a-zA-Z" in target_row.strip():
                         raw_targets[idx_] = target_row.replace("replace(/[^a-zA-Z", "replace(/[^a-zA-Z\\u4e00-\\u9fa5")
                         continue
                     if en == target_row.strip():
+                        if "clothing-set" in csv_file.name and "_outfit.name" in target_row:
+                            raw_targets[idx_] = target_row.replace(en, zh)
+                            raw_targets_temp[idx_] = ""
+                            if not needed_replace_outfit_name_cap_flag:
+                                raw_targets[idx_] = raw_targets[idx_].replace(".cn_name_cap", ".name")
+                            continue
                         raw_targets[idx_] = target_row.replace(en, zh)
                         if "<<print" in target_row and re.findall(r"<<print.*?\.writing>>", zh):
                             raw_targets[idx_] = raw_targets[idx_].replace(".writing>>", ".writ_cn>>")

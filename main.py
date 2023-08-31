@@ -82,18 +82,18 @@ async def main():
         return
     await dol.update_dicts()
 
-    # """ 覆写汉化 用的是 `paratranz` 文件夹里的内容覆写 """
-    # blacklist_dirs = []
-    # blacklist_files = []
-    # await dol.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=True)
-    #
-    # """ 偏偏要改这一个 """
-    # dol.fuck_css()
-    # dol.change_version("0.4.1.7-chs-alpha1.2.5")
-    #
-    # """ 编译成游戏 """
-    # dol.compile()
-    # dol.run()
+    """ 覆写汉化 用的是 `paratranz` 文件夹里的内容覆写 """
+    blacklist_dirs = []
+    blacklist_files = []
+    await dol.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=True)
+    
+    """ 偏偏要改这一个 """
+    dol.fuck_css()
+    dol.change_version("0.4.1.7-chs-alpha1.2.6-pre")
+    
+    """ 编译成游戏 """
+    dol.compile()
+    dol.run()
     # =====
     end = time.time()
     return end-start
