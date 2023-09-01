@@ -10,7 +10,8 @@
     "sexShopMenu.js",
     "sexToysInventory.js",
     "UI.js",
-    "npcCompressor.js"
+    "npcCompressor.js",
+    "colour-namer.js"
   ],
   "04-Variables": [
     "colours.js",

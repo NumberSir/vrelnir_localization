@@ -338,6 +338,7 @@ class ProjectDOL:
 
     async def _apply_for_gather(self, csv_file: Path, target_file: Path, idx: int, full: int, debug_flag: bool = False):
         """gather 用"""
+
         vip_flag = target_file.name == "clothing-sets.twee"
         with open(target_file, "r", encoding="utf-8") as fp:
             raw_targets: list[str] = fp.readlines()
@@ -383,9 +384,9 @@ class ProjectDOL:
                     if en == target_row.strip():
                         if "clothing-set" in csv_file.name and "_outfit.name" in target_row:
                             raw_targets[idx_] = target_row.replace(en, zh)
-                            raw_targets_temp[idx_] = ""
                             if not needed_replace_outfit_name_cap_flag:
                                 raw_targets[idx_] = raw_targets[idx_].replace(".cn_name_cap", ".name")
+                            raw_targets_temp[idx_] = ""
                             continue
                         raw_targets[idx_] = target_row.replace(en, zh)
                         if "<<print" in target_row and re.findall(r"<<print.*?\.writing>>", zh):
@@ -401,6 +402,7 @@ class ProjectDOL:
                         elif "_wornItemData.name_cap" in target_row:
                             raw_targets[idx_] = raw_targets[idx_].replace(".name_cap", ".cn_name_cap")
                         raw_targets_temp[idx_] = ""
+                        continue
                         
                     elif "<" in target_row:
                         if "<<link [[" in target_row and re.findall(r"<<link \[\[(Next->|Next\s->|Next\||Next\s\||Leave\||Refuse\||Return\||Resume\||Confirm\||Continue\||Stop\|)", target_row):  # 高频词

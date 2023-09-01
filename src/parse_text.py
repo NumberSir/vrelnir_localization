@@ -216,6 +216,8 @@ class ParseTextTwee:
                 "_text_output", r"\$_pair", r"\$_a"
             }):
                 results.append(True)
+            elif "<<run $_output " in line:
+                results.append(True)
             elif self.is_only_widgets(line):
                 results.append(False)
             else:
@@ -232,7 +234,7 @@ class ParseTextTwee:
         results = []
         multirow_comment_flag = False
         multirow_json_flag = False
-        for line in self._lines:
+        for idx, line in enumerate(self._lines):
             line = line.strip()
             if not line:
                 results.append(False)
@@ -256,7 +258,7 @@ class ParseTextTwee:
                 multirow_json_flag = True
                 results.append(False)
                 continue
-            elif any(_ in line for _ in {"}>>", "})>>"}):
+            elif multirow_json_flag and any(_ in line for _ in {"}>>", "})>>"}):
                 multirow_json_flag = False
                 results.append(False)
                 continue
@@ -267,7 +269,9 @@ class ParseTextTwee:
                 results.append(False)
                 continue
 
-            if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
+            if "<<set _notEquipped[$_slot]" in line:
+                results.append(True)
+            elif self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
                 results.append(False)
             elif (
                 self.is_tag_span(line)
@@ -275,8 +279,11 @@ class ParseTextTwee:
                 or self.is_widget_option(line)
                 or self.is_widget_link(line)
                 or self.is_widget_set_to(line, {
-                    r"\$wearoutfittext"
+                    r"\$wearoutfittext", "_wardrobeName"
                 })
+                or "$_value2.name" in line
+                or "<<print $_label" in line
+                or "<<set $_options to []>>" in line
             ):
                 results.append(True)
             elif self.is_only_widgets(line):
@@ -1092,6 +1099,8 @@ class ParseTextTwee:
 
             if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
                 results.append(False)
+            elif "_npc" == line:
+                results.append(True)
             elif self.is_tag_span(line) or self.is_widget_set_to(line, {
                 r"\$_npcName\.strapons", "_brdes", r"\$NPCList\[_npcno\]"
             }):
@@ -1387,7 +1396,6 @@ class ParseTextTwee:
         multirow_comment_flag = False
         multirow_error_flag = False
         multirow_script_flag = False
-        maybe_json_flag = False
         for line in self._lines:
             line = line.strip()
             if not line:
@@ -1417,6 +1425,9 @@ class ParseTextTwee:
                 results.append(False)
                 continue
             elif multirow_script_flag:
+                if 'name : "' in line or 'name: "' in line:
+                    results.append(True)
+                    continue
                 results.append(False)
                 continue
 
@@ -1988,6 +1999,8 @@ class ParseTextJS:
             return self._parse_ui()
         elif FileNamesJS.NPC_COMPRESSOR_FULL.value == self._filename:
             return self._parse_npc_compressor()
+        elif FileNamesJS.COLOUR_NAMER_FULL.value == self._filename:
+            return self._parse_colour_namer()
         return self.parse_normal()
 
     def _parse_bedroom_pills(self):
@@ -2026,11 +2039,24 @@ class ParseTextJS:
 
     def _parse_base(self):
         """ T.text_output """
-        return self.parse_type_only({
-            'T.text_output = "cracked ";',
-            'T.text_output = "scratched ";',
-            'T.text_output = alt === "metal" ? "tarnished " : "discoloured ";'
-        })
+        results = []
+        for idx, line in enumerate(self._lines):
+            line = line.strip()
+            if not line:
+                results.append(False)
+                continue
+
+            if any(_ in line for _ in {
+                'T.text_output = "cracked ";',
+                'T.text_output = "scratched ";',
+                'T.text_output = alt === "metal" ? "tarnished " : "discoloured ";',
+                'T.text_output = kw + " ";',
+                'T.text_output = worn.colour'
+            }):
+                results.append(True)
+            else:
+                results.append(False)
+        return results
 
     def _parse_debug_menu(self):
         """..."""
@@ -2183,6 +2209,8 @@ class ParseTextJS:
                 or '.append("' in line
                 or '", Date: " +' in line
                 or '"Save Name: "' in line
+                or 'saveButton.value' in line
+                or 'loadButton.value' in line
             ):
                 results.append(True)
             else:
@@ -2253,6 +2281,26 @@ class ParseTextJS:
                 or "const breastsdesc" in line
                 or ("descList" in line and "]" in line)
                 or ("DescList" in line and "]" in line)
+            ):
+                results.append(True)
+            else:
+                results.append(False)
+        return results
+
+    def _parse_colour_namer(self):
+        results = []
+        for line in self._lines:
+            line = line.strip()
+            if not line:
+                results.append(False)
+                continue
+
+            if (
+                'return "' in line
+                or 'main = "' in line
+                or 'main === "' in line
+                or 'colour = "' in line
+                or "`rgb" in line
             ):
                 results.append(True)
             else:
@@ -2395,7 +2443,7 @@ class ParseTextJS:
 
     def _parse_story_functions(self):
         return self.parse_type_only({
-            "name = ['"
+            "name = (caps ?", "name = caps ?", "name = name[0]"
         })
 
     """ time """

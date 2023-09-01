@@ -66,6 +66,8 @@ async def main():
     """ 删库跑路 """
     await dol.drop_all_dirs()
     # 测试用
+    # await dol._drop_dict()
+    # await dol._drop_paratranz()
     # await dol._drop_gitgud()
     # await dol.unzip_latest_repository()
 
@@ -85,12 +87,12 @@ async def main():
     """ 覆写汉化 用的是 `paratranz` 文件夹里的内容覆写 """
     blacklist_dirs = []
     blacklist_files = []
-    await dol.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=True)
-    
+    await dol.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=False)
+
     """ 偏偏要改这一个 """
     dol.fuck_css()
-    dol.change_version("0.4.1.7-chs-alpha1.2.6-pre")
-    
+    dol.change_version("0.4.1.7-chs-alpha1.3.0")
+
     """ 编译成游戏 """
     dol.compile()
     dol.run()

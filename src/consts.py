@@ -198,6 +198,7 @@ class FileNamesJS(Enum):
     SEXTOY_INVENTORY_FULL = "sexToysInventory.js"
     UI_FULL = "UI.js"
     NPC_COMPRESSOR_FULL = "npcCompressor.js"
+    COLOUR_NAMER_FULL = "colour-namer.js"
 
     """ 04-variables """
     COLOURS_FULL = "colours.js"

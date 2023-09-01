@@ -1,7 +1,7 @@
 from pathlib import Path
 from src.parse_text import ParseTextTwee, ParseTextJS
 
-FILE_NAME = "special-masturbation/macros-masturbation.js"
+FILE_NAME = "03-JavaScript/colour-namer.js"
 
 
 if __name__ == '__main__':
