@@ -50,53 +50,124 @@ from src import (
     Paratranz,
     ProjectDOL,
     PARATRANZ_TOKEN,
-
+    PARATRANZ_PROJECT_WE_ID
 )
-from src.ast import Acorn,JSSyntaxError
+from src.ast import Acorn, JSSyntaxError
+
+
+async def process_common(dol_common: ProjectDOL, pt: Paratranz, version: str):
+    """
+    原版处理流程
+    1. 下载源码
+    2. 创建生肉词典
+    3. 下载汉化词典
+    4. 替换生肉词典
+    5. 替换游戏原文
+    """
+    """ 删库跑路 """
+    await dol_common.drop_all_dirs()
+
+    """ 获取最新版本 """
+    await dol_common.fetch_latest_version()
+
+    """ 下载源码 """
+    await dol_common.download_from_gitgud()
+
+    """ 创建生肉词典 """
+    await dol_common.create_dicts()
+
+    """ 下载汉化词典 成品在 `raw_dicts` 文件夹里 """
+    download_flag = await pt.download_from_paratranz()  # 如果下载，需要在 consts 里填上管理员的 token, 在网站个人设置里找
+    if not download_flag:
+        return
+
+    """ 替换生肉词典 """
+    await dol_common.update_dicts()
+
+    """ 替换游戏原文 用的是 `paratranz` 文件夹里的内容覆写 """
+    blacklist_dirs = []
+    blacklist_files = []
+    await dol_common.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=False)
+
+    """ 有些额外需要更改的 """
+    dol_common.change_css()
+    dol_common.change_version(version)
+
+    """ 编译成游戏 """
+    dol_common.compile()
+    dol_common.run()
+
+
+async def process_world_expansion(dol_we: ProjectDOL, pt_common: Paratranz, pt_we: Paratranz, version: str):
+    """
+    世界扩展处理流程
+    1. 下载源码
+    2. 创建生肉词典
+    3. 下载原版汉化词典
+    4. 去重生肉词典
+    5. 下载世扩汉化词典
+    6. 替换生肉词典
+    7. 替换游戏原文
+    """
+
+    """ 删库跑路 """
+    # await dol_we.drop_all_dirs()
+    #
+    # """ 获取最新版本 """
+    # await dol_we.fetch_latest_version()
+    #
+    # """ 下载源码 """
+    # await dol_we.download_from_gitgud()
+    #
+    # """ 创建生肉词典 """
+    # await dol_we.create_dicts()
+    #
+    # """ 下载原版汉化词典 """
+    # download_flag = await pt_common.download_from_paratranz()
+    # if not download_flag:
+    #     return
+    #
+    # """ 去重生肉词典 """
+    # await dol_we.shear_off_repetition()
+    #
+    # """ 下载世扩汉化词典 """
+    # download_flag = await pt_we.download_from_paratranz()  # 如果下载，需要在 consts 里填上管理员的 token, 在网站个人设置里找
+    # if not download_flag:
+    #     return
+    # await dol_we.update_dicts()
+    #
+    # """ 覆写汉化 用的是 `paratranz` 文件夹里的内容覆写 """
+    # blacklist_dirs = []
+    # blacklist_files = []
+    # await dol_we.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=False)
+    # await dol_we.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=False, type_manual="common")
+    #
+    # """ 有些额外需要更改的 """
+    # dol_we.change_css()
+    # dol_we.change_version(version)
+
+    """ 编译成游戏 """
+    dol_we.compile()
+    dol_we.run()
 
 async def main():
     start = time.time()
     # =====
-    dol = ProjectDOL(type_="common")  # 改成 “dev” 则下载最新开发版分支的内容common原版 world世界扩展
-    pt = Paratranz()
+    dol_common = ProjectDOL(type_="common")  # 改成 “dev” 则下载最新开发版分支的内容common原版 world世界扩展
+    dol_we = ProjectDOL(type_="world")
+
+    pt_common = Paratranz(type_="common")
+    pt_we = Paratranz(type_="world")
     if not PARATRANZ_TOKEN:
         logger.error("未填写 PARATRANZ_TOKEN, 汉化包下载可能失败，请前往 https://paratranz.cn/users/my 的设置栏中查看自己的 token, 并在 .env 中填写\n")
         return
 
-    """ 删库跑路 """
-    await dol.drop_all_dirs()
-    # 测试用
-    # await dol._drop_dict()
-    # await dol._drop_paratranz()
-    # await dol._drop_gitgud()
-    # await dol.unzip_latest_repository()
+    # 编译原版用，编译世扩请注释掉这个
+    # await process_common(dol_common, pt_common, version="0.4.1.7-chs-alpha1.3.1-pre")
 
-    """ 获取最新版本 """
-    await dol.fetch_latest_version()
+    # 编译世扩用，编译原版请注释掉这个
+    await process_world_expansion(dol_we, pt_common, pt_we, version="0.4.1.7-we-chs-alpha1.3.1-pre")
 
-    """ 提取键值 """
-    await dol.download_from_gitgud()
-    await dol.create_dicts()
-
-    """ 更新导出的字典 成品在 `raw_dicts` 文件夹里 """
-    download_flag = await pt.download_from_paratranz()  # 如果下载，需要在 consts 里填上管理员的 token, 在网站个人设置里找
-    if not download_flag:
-        return
-    await dol.update_dicts()
-
-    """ 覆写汉化 用的是 `paratranz` 文件夹里的内容覆写 """
-    blacklist_dirs = []
-    blacklist_files = []
-    await dol.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=False)
-
-    """ 偏偏要改这一个 """
-    dol.fuck_css()
-    dol.change_version("0.4.1.7-chs-alpha1.3.0")
-
-    """ 编译成游戏 """
-    dol.compile()
-    dol.run()
-    # =====
     end = time.time()
     return end-start
 

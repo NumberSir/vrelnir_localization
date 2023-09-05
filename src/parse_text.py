@@ -284,6 +284,7 @@ class ParseTextTwee:
                 or "$_value2.name" in line
                 or "<<print $_label" in line
                 or "<<set $_options to []>>" in line
+                or "(No access)" in line
             ):
                 results.append(True)
             elif self.is_only_widgets(line):
@@ -453,6 +454,7 @@ class ParseTextTwee:
                 or "<<if $NPCList" in line
                 or "<<if ($NPCList" in line
                 or "<<takeKissVirginityNamed" in line
+                or "<<set _feetaction" in line
             ):
                 results.append(True)
             elif self.is_only_widgets(line) or self.is_json_line(line):
@@ -507,6 +509,7 @@ class ParseTextTwee:
             "<<set $NPCList[_slot].fullDescription",
             "<<set $NPCList[_n].fullDescription",
             "<<set $NPCList[_n].breastsdesc",
+            "<<set $NPCList[_n].breastdesc",
             "<<set _brdes",
             "<<set _pd",
             "<<set $_strapon",
@@ -534,9 +537,11 @@ class ParseTextTwee:
                 results.append(False)
             elif self.is_tag_span(line) or self.is_widget_actions_tentacle(line) or self.is_widget_if(line):
                 results.append(True)
-            elif '.desc.includes' in line:
-                results.append(True)
-            elif "fullDesc.includes" in line:
+            elif (
+                '.desc.includes' in line
+                or "fullDesc.includes" in line
+                or "<<takeHandholdingVirginity" in line
+            ):
                 results.append(True)
             elif self.is_only_widgets(line):
                 results.append(False)
@@ -618,7 +623,8 @@ class ParseTextTwee:
     def _parse_npc_span(self):
         """只有 <span"""
         return self.parse_type_only({
-            "<span ", "<<set $NPCList[_n].fullDescription"
+            "<span ", "<<set $NPCList[_n].fullDescription",
+            "<<set $NPCList[_n].breastdesc"
         })
 
     def _parse_speech_sydney(self):
@@ -637,7 +643,9 @@ class ParseTextTwee:
             ):
                 results.append(False)
             elif (
-                self.is_widget_set_to(line, {"_sydneyText"})
+                self.is_widget_set_to(line, {
+                    "_sexToy", "_sydneyText"
+                })
                 or line.startswith("`")
             ):
                 results.append(True)
@@ -704,7 +712,7 @@ class ParseTextTwee:
             elif self.is_widget_set_to(line, {
                 r"\$_text_output", "_text_output", "_targetlistall",
                 "_leftaction", "_feetaction", "_mouthaction",
-                "_targetlistarms", "_rightaction"
+                "_targetlistarms", "_rightaction", r"\$struggle\.descriptions",
             }):
                 results.append(True)
             elif self.is_only_widgets(line):
@@ -784,7 +792,8 @@ class ParseTextTwee:
             ):
                 results.append(False)
             elif self.is_tag_span(line) or self.is_widget_set_to(line, {
-                "_text_output", "_leftaction", "_rightaction"
+                "_text_output", "_leftaction", "_rightaction",
+                r"\$player\.virginity"
             }):
                 results.append(True)
             elif (
@@ -917,6 +926,8 @@ class ParseTextTwee:
                     "_childType", r"\$_pregnancyRisk", r"\$_number",
                     "_milkCapacityTextConfig", r"\$_heatRutDisplay"
                 })
+                or "bad.pushUnique" in line
+                or "good.pushUnique" in line
             ):
                 results.append(True)
             elif (
@@ -1037,7 +1048,9 @@ class ParseTextTwee:
 
     def _parse_fame(self):
         """set $_output to"""
-        return self.parse_type_only({"<<set $_output"})
+        return self.parse_type_only({
+            "<<set $_output"
+        })
 
     def _parse_feats(self):
         """json"""
@@ -1099,7 +1112,13 @@ class ParseTextTwee:
 
             if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
                 results.append(False)
-            elif "_npc" == line:
+            elif line == "_npc":
+                results.append(True)
+            elif (
+                "<<set $NPCList[_ii].breastsdesc" in line
+                or "<<set $NPCList[_ii].breastdesc" in line
+                or "<<set $NPCList[_ii].penisdesc" in line
+            ):
                 results.append(True)
             elif self.is_tag_span(line) or self.is_widget_set_to(line, {
                 r"\$_npcName\.strapons", "_brdes", r"\$NPCList\[_npcno\]"
@@ -1224,6 +1243,7 @@ class ParseTextTwee:
                 or self.is_tag_span(line)
                 or self.is_tag_label(line)
                 or self.is_tag_input(line)
+                or self.is_widget_print(line)
                 or (self.is_widget_link(line) and not self.is_widget_high_rate_link(line))
                 or self.is_widget_set_to(line, {
                     "_buttonName", "_name", "_penisNames", "_breastDescriptionNPC",
@@ -1355,7 +1375,7 @@ class ParseTextTwee:
                 or self.is_widget_print(line)
                 or self.is_widget_set_to(line, {
                     "_text_output", r"\$_text_output", "_actionText",
-                    r"\$description", r"\$_chest"
+                    r"\$description", r"\$_chest", r"\$_pool"
                 })
                 or "<<set _args[0]" in line
                 or '<<if $_npc.penisdesc' in line
@@ -1473,7 +1493,8 @@ class ParseTextTwee:
                 continue
 
             if self.is_widget_set_to(line, {
-                "_brdes", r"\$per_npc\[\$_i\]\.breastdesc", r"\$per_npc\[\$_i\]\.penisdesc"
+                "_brdes", r"\$per_npc\[\$_i\]\.breastdesc", r"\$per_npc\[\$_i\]\.penisdesc",
+                r"\$per_npc\[\$_i\]\.breastsdesc", "_out"
             }):
                 results.append(True)
             else:
@@ -1535,6 +1556,10 @@ class ParseTextTwee:
         multirow_run_line_pool_flag = False  # 草!
         multirow_print_flag = False  # 叠屎山了开始
 
+        # 这两个是家具的
+        multirow_wallpaper_flag = False
+        multirow_poster_flag = False
+
         shop_clothes_hint_flag = False  # 草
         for idx, line in enumerate(self._lines):
             line = line.strip()
@@ -1560,7 +1585,7 @@ class ParseTextTwee:
                 multirow_print_flag = True
                 results.append(False)
                 continue
-            elif multirow_print_flag and line.startswith(")>>"):
+            elif multirow_print_flag and (line.startswith(")>>") or line.endswith(')>></span>"')):
                 if line != ")>>":
                     results.append(True)
                 else:
@@ -1633,15 +1658,16 @@ class ParseTextTwee:
                 results.append(False)
                 continue
             elif maybe_json_flag and (
-                '"Orphan":"orphan"' in line
-                or "hint:`" in line
-                or 'museum:"' in line
-                or 'journal: `' in line
-                or 'name:"' in line
-                or 'stolen:"' in line
-                or 'recovered:"' in line
-                or '"Rest":' in line
-                or '"Stroke":' in line
+                '"Orphan":"orphan"' in line or "hint:`" in line
+                or 'museum:"' in line or 'journal: `' in line
+                or 'name:"' in line or 'stolen:"' in line
+                or 'recovered:"' in line or '"Rest":' in line
+                or '"Stroke":' in line or '"Vines"' in line
+                or '"Tentacles"' in line or '"Plainwhite"' in line
+                or '"Wavywhite"' in line or '"Cowgirls"' in line
+                or '"Hearts"' in line or '"Trees"' in line
+                or '"Crosses"' in line or '"Cowgirl"' in line
+                or '"Cat"' in line or '"Puppy"' in line
             ):
                 results.append(True)
                 continue
@@ -1710,16 +1736,20 @@ class ParseTextTwee:
                         "_clothesTrait", "_petname", "_leftaction", "_rightaction", "_littlething",
                         "_bigthing", "_feetaction", "_penisaction", "_mouthaction", "_chestaction",
                         "_anusaction", "_vaginaaction", r"\$_mirror", r"\$_examines", r"\$_reacts",
-                        "_playPronoun", r"\$pubtask", "_elite", "_subject", "_title0", "_chest",
+                        "_playPronoun", r"\$pubtask", "_elite", "_subject", r"_title\d", "_chest",
                         "_target", "_shopgreeting", "_predicament", "_gagname", "_shopnamelong",
                         "_sydneysays", "_leftHand", "_rightHand", "_mouth", "_feet", "_askActions",
                         "_penis", "_vagina", "_anus", r"\$stallThiefPartner", r"\$NPCList\[_n\]\.fullDescription",
-                        "_reactSpeech", "_looks", "_fucking", r"\$_eagerly", r"\$_npcpart",
+                        "_reactSpeech", "_looks", "_fucking", r"\$_eagerly", r"\$_npcpart", r"_npc\d",
                         "_colour", "_hairOptions", "_fringeOptions", "_dyeOptions", "_browsDyeOptions",
                         r"\$_rhythmically", r"\$_wet", "_lubricated", "_afinger", "_anotherfinger", r"\$_toy",
-                        "_nectar", "_Nectar", r"\$_NPCBreastDesc", r"\$_buttplug", "_npc0", "_genitals"
+                        "_nectar", "_Nectar", r"\$_NPCBreastDesc", r"\$_buttplug", "_npc0", "_genitals", r"\$_sexToy",
+                        "_impregnator", "_toyName", "_crowd", r"\$vorecreature", "_toy", "_sextoy", "_reactTitle",
+                        r"\$_topic", "_pubfameOptions", r"\$boughtfurniturename", "_exposing", "_revealed_thing",
+                        r"_tentacle\.desc", r"_tentacle\.fullDesc", r"\$_breed", "_sydneyText", "_featsTattooOptions",
+                        "_penOptions", "_bodyPartOptions", "_output", "_speakPool", "_colorOptions",
+                        "_hairNames", "_fringeNames", "_dyeNames", "_secondaryColorOptions"
                     }))
-                    or any(re.findall(r"<<set (?:(?:\$|_)[^_][#;\w\.\(\)\[\]\"\'`]*) to \[[\"\'`\w,\s]*\]>>", line))
                 )
             ):
                 results.append(True)
@@ -1738,6 +1768,9 @@ class ParseTextTwee:
                 or '<<takeKissVirginityNamed' in line
                 or "<<cheatBodyliquidOnPart" in line
                 or "<<generateRole" in line
+                or "<<takeVirginity" in line
+                or "<<recordSperm " in line
+                or "<<NPCVirginityTakenByOther" in line
             ):
                 results.append(True)
             elif ("<" in line and self.is_only_widgets(line)) or (maybe_json_flag and self.is_json_line(line)):
@@ -1875,7 +1908,7 @@ class ParseTextTwee:
     @staticmethod
     def is_widget_set_to(line: str, keys: set[str]) -> bool:
         """<<set xxx yyy>>"""
-        pattern = re.compile("<<set\s(?:" + r"|".join(keys) + ")[\'\"\w\s\[\]\$\+\.\(\)\{\}:\-]*(?:to|\+|\+=|\().*?[\w\{\"\'`]+(?:\w| \w|<<|\"\w)")
+        pattern = re.compile("<<set\s(?:" + r"|".join(keys) + ")[\'\"\w\s\[\]\$\+\.\(\)\{\}:\-]*(?:to|\+|\+=|\(|\=).*?[\[\w\{\"\'`]+(?:\w| \w|<<|\"\w| |])")
         return any(re.findall(pattern, line))
 
     @staticmethod
@@ -1906,7 +1939,7 @@ class ParseTextTwee:
     @staticmethod
     def is_widget_high_rate_link(line: str) -> bool:
         """高频选项"""
-        return any(re.findall(r"<<link \[\[(Next\||Next\s\||Leave\||Refuse\||Return\||Resume\||Confirm\||Continue\||Stop\|)", line))
+        return any(re.findall(r"<<link \[\[(Next\||Next\s\||Leave\||Refuse\||Return\||Resume\||Confirm\||Continue\||Stop\||Phase\|)", line))
 
     @staticmethod
     def is_widget_actions_tentacle(line: str) -> bool:
@@ -2001,6 +2034,8 @@ class ParseTextJS:
             return self._parse_npc_compressor()
         elif FileNamesJS.COLOUR_NAMER_FULL.value == self._filename:
             return self._parse_colour_namer()
+        elif FileNamesJS.CLOTHING_SHOP_V2_FULL.value == self._filename:
+            return self._parse_clothing_shop_v2()
         return self.parse_normal()
 
     def _parse_bedroom_pills(self):
@@ -2013,7 +2048,9 @@ class ParseTextJS:
                 results.append(False)
                 continue
 
-            if any(_ in line for _ in {"name:", "description:", "onTakeMessage:", "warning_label:"}) and not line.startswith("*"):
+            if any(_ in line for _ in {
+                "name:", "description:", "onTakeMessage:", "warning_label:"
+            }) and not line.startswith("*"):
                 if line.endswith(":"):
                     next_flag = True
                     results.append(False)
@@ -2029,7 +2066,12 @@ class ParseTextJS:
                 '<span class="hpi_auto_label">',
                 'class="hpi_take_pills"',
                 "item.autoTake() ?",
-                "item.hpi_take_pills ?"
+                "item.hpi_take_pills ?",
+                "</a>",
+                '"Effective for "',
+                'return "',
+                "return this.autoTake()",
+                "const itemName"
             })):
                 results.append(True)
             else:
@@ -2167,7 +2209,12 @@ class ParseTextJS:
                 results.append(True)
                 continue
 
-            if ".textContent" in line or "(elem !== null)" in line:
+            if (
+                ".textContent" in line
+                or "(elem !== null)" in line
+                or "invItem.worn" in line
+                or "<span class=" in line
+            ):
                 results.append(True)
             else:
                 results.append(False)
@@ -2245,7 +2292,11 @@ class ParseTextJS:
                 results.append(True)
             elif "text =" in line and "let text" not in line and "const text" not in line:
                 results.append(True)
-            elif "npc.breastdesc =" in line or "npc.breastsdesc =" in line:
+            elif (
+                "npc.breastdesc =" in line
+                or "npc.breastsdesc =" in line
+                or "const breastSizes =" in line
+            ):
                 results.append(True)
             else:
                 results.append(False)
@@ -2267,6 +2318,9 @@ class ParseTextJS:
                 continue
             elif multiconst_flag and line.endswith(";"):
                 multiconst_flag = False
+                if "fullDescription =" in line:
+                    results.append(True)
+                    continue
                 results.append(False)
                 continue
             elif multiconst_flag and line.endswith('",'):
@@ -2281,6 +2335,8 @@ class ParseTextJS:
                 or "const breastsdesc" in line
                 or ("descList" in line and "]" in line)
                 or ("DescList" in line and "]" in line)
+                or "const plant =" in line
+                or "const man =" in line
             ):
                 results.append(True)
             else:
@@ -2306,6 +2362,12 @@ class ParseTextJS:
             else:
                 results.append(False)
         return results
+
+    def _parse_clothing_shop_v2(self):
+        return self.parse_type_only({
+            "const optionsFrom",
+            "const optionsTo"
+        })
 
     """ 04-variables """
     def parse_variables(self) -> list[bool]:
@@ -2371,8 +2433,15 @@ class ParseTextJS:
                 continue
 
             if any(_ in line for _ in {
-                "result.text", "text:", "result.options.push", ".name;"
+                "result.text", "text:", "result.options.push", ".name;",
             }):
+                results.append(True)
+            elif (
+                line.startswith("? '")
+                or line.startswith('? "')
+                or line.startswith(': "')
+                or line.startswith(": '")
+            ):
                 results.append(True)
             else:
                 results.append(False)
@@ -2412,6 +2481,12 @@ class ParseTextJS:
                 "altText.toys = " in line
                 or "altText.start = " in line
                 or "<span class" in line
+                or "toy1.name" in line
+                or line.startswith('? "')
+                or line.startswith(': "')
+                or line.startswith("altText.")
+                or "T.text_output" in line
+                or "altText.lubricated" in line
             ):
                 results.append(True)
             else:
@@ -2419,7 +2494,7 @@ class ParseTextJS:
         return results
 
     def _parse_macros_masturbation(self):
-        return self.parse_type_only({"namecap"})
+        return self.parse_type_only({"namecap", "name : name"})
 
     """ 04-pregnancy """
     def parse_pregnancy(self) -> list[bool]:
@@ -2438,7 +2513,7 @@ class ParseTextJS:
 
     def _parse_pregnancy(self):
         return self.parse_type_only({
-            "names = ['", "names.pushUnique"
+            "names = ['", "names.pushUnique", "spermOwner.name +", "spermOwner.fullDescription +"
         })
 
     def _parse_story_functions(self):

@@ -18,16 +18,18 @@ GITHUB_ACTION_ISBETA = len(SYSTEM_ARGV) > 2 and SYSTEM_ARGV[2] == "beta"
 PARATRANZ_TOKEN = os.getenv("PARATRANZ_TOKEN") or ""  # 必填，在个人设置里
 PARATRANZ_BASE_URL = "https://paratranz.cn/api"
 PARATRANZ_HEADERS = {"Authorization": PARATRANZ_TOKEN}
-PARATRANZ_PROJECT_ID = 4780  # DOL 项目 ID
+PARATRANZ_PROJECT_DOL_ID = 4780  # DOL 项目 ID
+PARATRANZ_PROJECT_WE_ID = 8131  # DOL-WE 项目 ID
 
 """源代码仓库"""
 REPOSITORY_URL_COMMON = "https://gitgud.io/Vrelnir/degrees-of-lewdity"
 REPOSITORY_ZIP_URL_COMMON = "https://gitgud.io/Vrelnir/degrees-of-lewdity/-/archive/master/degrees-of-lewdity-master.zip"
+REPOSITORY_COMMITS_URL_COMMON = "https://gitgud.io/api/v4/projects/8430/repository/commits"
 REPOSITORY_URL_WORLD = "https://gitgud.io/Wub/degrees-of-lewdity-world-expansion"
 REPOSITORY_ZIP_URL_WORLD = "https://gitgud.io/Wub/degrees-of-lewdity-world-expansion/-/archive/master/degrees-of-lewdity-world-expansion-master.zip"
+REPOSITORY_COMMITS_URL_WORLD = "https://gitgud.io/api/v4/projects/20811/repository/commits"
 REPOSITORY_URL_DEV = "https://gitgud.io/Vrelnir/degrees-of-lewdity"
 REPOSITORY_ZIP_URL_DEV = "https://gitgud.io/Vrelnir/degrees-of-lewdity/-/archive/dev/degrees-of-lewdity-dev.zip"
-REPOSITORY_URL_COMMITS = "https://gitgud.io/api/v4/projects/8430/repository/commits"
 
 """本地目录"""
 DIR_ROOT = Path(__file__).parent.parent
@@ -45,6 +47,7 @@ DIR_GAME_CSS_COMMON = DIR_GAME_ROOT_COMMON / "modules" / "css"
 DIR_GAME_ROOT_WORLD_NAME = "degrees-of-lewdity-world-expansion-master"
 DIR_GAME_ROOT_WORLD = DIR_ROOT / DIR_GAME_ROOT_WORLD_NAME
 DIR_GAME_TEXTS_WORLD = DIR_GAME_ROOT_WORLD / "game"
+DIR_GAME_CSS_WORLD = DIR_GAME_ROOT_WORLD / "modules" / "css"
 
 DIR_GAME_ROOT_DEV_NAME = "degrees-of-lewdity-dev"
 DIR_GAME_ROOT_DEV = DIR_ROOT / DIR_GAME_ROOT_DEV_NAME
@@ -199,6 +202,7 @@ class FileNamesJS(Enum):
     UI_FULL = "UI.js"
     NPC_COMPRESSOR_FULL = "npcCompressor.js"
     COLOUR_NAMER_FULL = "colour-namer.js"
+    CLOTHING_SHOP_V2_FULL = "clothing-shop-v2.js"
 
     """ 04-variables """
     COLOURS_FULL = "colours.js"
@@ -255,14 +259,16 @@ __all__ = [
     "PARATRANZ_BASE_URL",
     "PARATRANZ_HEADERS",
     "PARATRANZ_TOKEN",
-    "PARATRANZ_PROJECT_ID",
+    "PARATRANZ_PROJECT_DOL_ID",
+    "PARATRANZ_PROJECT_WE_ID",
     "REPOSITORY_URL_COMMON",
     "REPOSITORY_ZIP_URL_COMMON",
+    "REPOSITORY_COMMITS_URL_COMMON",
     "REPOSITORY_URL_WORLD",
     "REPOSITORY_ZIP_URL_WORLD",
+    "REPOSITORY_COMMITS_URL_WORLD",
     "REPOSITORY_URL_DEV",
     "REPOSITORY_ZIP_URL_DEV",
-    "REPOSITORY_URL_COMMITS",
     "DIR_ROOT",
     "DIR_DATA_ROOT",
     "DIR_JSON_ROOT",
@@ -272,6 +278,7 @@ __all__ = [
     "DIR_GAME_ROOT_COMMON",
     "DIR_GAME_TEXTS_COMMON",
     "DIR_GAME_CSS_COMMON",
+    "DIR_GAME_CSS_WORLD",
     "DIR_GAME_ROOT_WORLD_NAME",
     "DIR_GAME_ROOT_WORLD",
     "DIR_GAME_TEXTS_WORLD",

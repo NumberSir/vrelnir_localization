@@ -3,6 +3,8 @@
 *.iml
 *.zip
 .env
+.vscode
+.idea
 
 __pycache__
 dol
@@ -13,3 +15,4 @@ raw_dicts
 commits.json
 dolandriod
 dol-chinese
+degrees-of-lewdity-world-expansion-master

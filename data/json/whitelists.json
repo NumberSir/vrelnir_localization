@@ -11,7 +11,8 @@
     "sexToysInventory.js",
     "UI.js",
     "npcCompressor.js",
-    "colour-namer.js"
+    "colour-namer.js",
+    "clothing-shop-v2.js"
   ],
   "04-Variables": [
     "colours.js",
@@ -20,7 +21,8 @@
   "special-masturbation": [
     "actions.js",
     "effects.js",
-    "slimeControl.js"
+    "slimeControl.js",
+    "macros-masturbation.js"
   ],
   "04-Pregnancy": [
     "childrenStoryFunctions.js",

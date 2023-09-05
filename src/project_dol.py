@@ -35,8 +35,9 @@ class ProjectDOL:
             self._whitelists: dict[str, list] = json.load(fp)
         self._type: str = type_
         self._version: str = None
-        self._commit: dict[str, Any]  = None
-        self._acorn =Acorn()
+        self._mention_name = "" if self._type == "common" else "世扩"
+        self._commit: dict[str, Any] = None
+        self._acorn = Acorn()
         if FILE_COMMITS.exists():
             with open(FILE_COMMITS, "r", encoding="utf-8") as fp:
                 self._commit: dict[str, Any] = json.load(fp)
@@ -46,12 +47,12 @@ class ProjectDOL:
         self._raw_dicts_file_lists: list[Path] = None
         self._game_texts_file_lists: list[Path] = None
 
-    @staticmethod
-    def _init_dirs(version: str):
+    def _init_dirs(self, version: str):
         """创建目标文件夹"""
         os.makedirs(DIR_TEMP_ROOT, exist_ok=True)
-        os.makedirs(DIR_RAW_DICTS / version / "csv", exist_ok=True)
+        os.makedirs(DIR_RAW_DICTS / self._type / version / "csv", exist_ok=True)
 
+    """ 获取最新版本 """
     async def fetch_latest_version(self, is_quiet: bool = True):
         async with httpx.AsyncClient() as client:
             if self._type == "common":
@@ -62,17 +63,17 @@ class ProjectDOL:
                 url = f"{REPOSITORY_URL_DEV}/-/raw/dev/version"
             response = await client.get(url)
             if not is_quiet:
-                logger.info(f"当前仓库最新版本: {response.text}")
+                logger.info(f"当前{self._mention_name}仓库最新版本: {response.text}")
             self._version = response.text
         self._init_dirs(self._version)
 
-    """生成字典"""
+    """ 下载源码 """
     async def download_from_gitgud(self):
         """从 gitgud 下载源仓库文件"""
         if not self._version:
             await self.fetch_latest_version()
         if self._is_latest:  # 下载慢，是最新就不要重复下载了
-            dol_path_zip = DIR_ROOT / "dol.zip"
+            dol_path_zip = DIR_ROOT / f"dol{self._mention_name}.zip"
             if dol_path_zip.exists():
                 shutil.move(dol_path_zip, DIR_TEMP_ROOT)
                 await self.unzip_latest_repository()
@@ -82,7 +83,7 @@ class ProjectDOL:
 
     async def fetch_latest_repository(self):
         """获取最新仓库内容"""
-        logger.info("===== 开始获取最新仓库内容 ...")
+        logger.info(f"===== 开始获取最新{self._mention_name}仓库内容 ...")
         async with httpx.AsyncClient() as client:
             if self._type == "common":
                 zip_url = REPOSITORY_ZIP_URL_COMMON
@@ -105,20 +106,20 @@ class ProjectDOL:
             if not flag:
                 logger.error("***** 无法正常下载最新仓库源码！请检查你的网络连接是否正常！")
             tasks = [
-                chunk_download(zip_url, client, start, end, idx, len(chunks), FILE_REPOSITORY_ZIP)
+                chunk_download(zip_url, client, start, end, idx, len(chunks), DIR_TEMP_ROOT / f"dol{self._mention_name}.zip")
                 for idx, (start, end) in enumerate(chunks)
             ]
             await asyncio.gather(*tasks)
-        logger.info("##### 最新仓库内容已获取! \n")
+        logger.info(f"##### 最新{self._mention_name}仓库内容已获取! \n")
 
-    @staticmethod
-    async def unzip_latest_repository():
+    async def unzip_latest_repository(self):
         """解压到本地"""
-        logger.info("===== 开始解压最新仓库内容 ...")
-        with ZipFile(FILE_REPOSITORY_ZIP) as zfp:
-            zfp.extractall(DIR_GAME_ROOT_COMMON.parent)
-        logger.info("##### 最新仓库内容已解压! \n")
+        logger.info(f"===== 开始解压{self._mention_name}最新仓库内容 ...")
+        with ZipFile(DIR_TEMP_ROOT / f"dol{self._mention_name}.zip") as zfp:
+            zfp.extractall(DIR_ROOT)
+        logger.info(f"##### 最新{self._mention_name}仓库内容已解压! \n")
 
+    """ 创建生肉词典 """
     async def create_dicts(self):
         """创建字典"""
         await self._fetch_all_text_files()
@@ -127,7 +128,7 @@ class ProjectDOL:
 
     async def _fetch_all_text_files(self):
         """获取所有文本文件"""
-        logger.info("===== 开始获取所有文本文件位置 ...")
+        logger.info(f"===== 开始获取{self._mention_name}所有文本文件位置 ...")
         self._game_texts_file_lists = []
         if self._type == "common":
             texts_dir = DIR_GAME_TEXTS_COMMON
@@ -156,7 +157,7 @@ class ProjectDOL:
                 else:
                     self._game_texts_file_lists.append(Path(root).absolute() / file)
 
-        logger.info("##### 所有文本文件位置已获取 !\n")
+        logger.info(f"##### {self._mention_name}所有文本文件位置已获取 !\n")
 
     async def _create_all_text_files_dir(self):
         """创建目录防报错"""
@@ -170,19 +171,19 @@ class ProjectDOL:
             dir_name = DIR_GAME_ROOT_DEV_NAME
         for file in self._game_texts_file_lists:
             target_dir = file.parent.parts[file.parts.index(dir_name)+1:]
-            target_dir_csv = (DIR_RAW_DICTS / self._version / "csv").joinpath(*target_dir)
+            target_dir_csv = (DIR_RAW_DICTS / self._type / self._version / "csv").joinpath(*target_dir)
             if not target_dir_csv.exists():
                 os.makedirs(target_dir_csv, exist_ok=True)
 
     async def _process_texts(self):
         """处理翻译文本为键值对"""
-        logger.info("===== 开始处理翻译文本为键值对 ...")
+        logger.info(f"===== 开始处理{self._mention_name}翻译文本为键值对 ...")
         tasks = [
             self._process_for_gather(idx, file)
             for idx, file in enumerate(self._game_texts_file_lists)
         ]
         await asyncio.gather(*tasks)
-        logger.info("##### 翻译文本已处理为键值对 ! \n")
+        logger.info(f"##### {self._mention_name}翻译文本已处理为键值对 ! \n")
 
     async def _process_for_gather(self, idx: int, file: Path):
         target_file = Path().joinpath(*file.parts[file.parts.index("game")+1:]).with_suffix("")
@@ -211,35 +212,78 @@ class ProjectDOL:
             logger.error(f"lines: {len(lines)} - parsed: {len(able_lines)}| {file}")
             results_lines_csv = None
         if results_lines_csv:
-            with open(DIR_RAW_DICTS / self._version / "csv" / "game" / f"{target_file}.csv", "w", encoding="utf-8-sig", newline="") as fp:
+            with open(DIR_RAW_DICTS / self._type / self._version / "csv" / "game" / f"{target_file}.csv", "w", encoding="utf-8-sig", newline="") as fp:
                 csv.writer(fp).writerows(results_lines_csv)
         # logger.info(f"\t- ({idx + 1} / {len(self._game_texts_file_lists)}) {target_file} 处理完毕")
 
-    """更新字典"""
+    """ 去重生肉词典 """
+    async def shear_off_repetition(self):
+        """目前仅限世扩"""
+        logger.info(f"===== 开始去重{self._mention_name}文本 ...")
+        # 不要对原版调用去重
+        if self._type == "common":
+            raise Exception("不要对原版调用去重")
+
+        for root, dir_list, file_list in os.walk(DIR_RAW_DICTS / self._type / self._version / "csv" / "game"):
+            if "失效词条" in root:
+                continue
+            for file in file_list:
+                common_file_path = DIR_PARATRANZ / "common" / "utf8" / Path().joinpath(*(Path(root) / file).parts[10:])
+                if not common_file_path.exists():
+                    continue
+                mod_file_path = Path(root) / file
+
+                with open(mod_file_path, "r", encoding="utf-8") as fp:
+                    mod_data = list(csv.reader(fp))
+
+                with open(common_file_path, "r", encoding="utf-8") as fp:
+                    common_data = list(csv.reader(fp))
+                    common_ens: dict = {
+                        row[-2] if len(row) > 2 else row[1]: idx_
+                        for idx_, row in enumerate(common_data)
+                    }  # 旧英文: 旧英文行键
+
+                # mod 中的键也在原版中，直接删掉
+                for idx, row in enumerate(mod_data.copy()):
+                    if row[-1] in common_ens:
+                        mod_data[idx] = None
+
+                mod_data = [_ for _ in mod_data if _]
+                if not mod_data:
+                    os.remove(mod_file_path)
+                    continue
+
+                with open(mod_file_path, "w", encoding="utf-8-sig", newline="") as fp:
+                    csv.writer(fp).writerows(mod_data)
+
+            if not os.listdir(Path(root)):
+                shutil.rmtree(Path(root))
+        logger.info(f"##### {self._mention_name}所有文本已去重 !\n")
+
+    """ 替换生肉词典 """
     async def update_dicts(self):
         """更新字典"""
         if not self._version:
             await self.fetch_latest_version()
-        logger.info("===== 开始更新字典 ...")
-        # await self._create_unavailable_files_dir()
+        logger.info(f"===== 开始更新{self._mention_name}字典 ...")
         file_mapping: dict = {}
-        for root, dir_list, file_list in os.walk(DIR_PARATRANZ / "utf8"):  # 导出的旧字典
+        for root, dir_list, file_list in os.walk(DIR_PARATRANZ / self._type / "utf8"):  # 导出的旧字典
             if "失效词条" in root:
                 continue
             for file in file_list:
-                file_mapping[Path(root).absolute() / file] = DIR_RAW_DICTS / self._version / "csv" / "game" / Path(root).relative_to(DIR_PARATRANZ / "utf8") / file
+                file_mapping[Path(root).absolute() / file] = DIR_RAW_DICTS / self._type / self._version / "csv" / "game" / Path(root).relative_to(DIR_PARATRANZ / self._type / "utf8") / file
 
         tasks = [
             self._update_for_gather(old_file, new_file, idx, len(file_mapping))
             for idx, (old_file, new_file) in enumerate(file_mapping.items())
         ]
         await asyncio.gather(*tasks)
-        logger.info("##### 字典更新完毕 !\n")
+        logger.info(f"##### {self._mention_name}字典更新完毕 !\n")
 
     async def _update_for_gather(self, old_file: Path, new_file: Path, idx: int, full: int):
         """gather 用"""
         if not new_file.exists():
-            unavailable_file = DIR_RAW_DICTS / self._version / "csv" / "game" / "失效词条" / Path().joinpath(*old_file.parts[old_file.parts.index("utf8")+1:])
+            unavailable_file = DIR_RAW_DICTS / self._type / self._version / "csv" / "game" / "失效词条" / Path().joinpath(*old_file.parts[old_file.parts.index("utf8")+1:])
             os.makedirs(unavailable_file.parent, exist_ok=True)
             with open(old_file, "r", encoding="utf-8") as fp:
                 unavailables = list(csv.reader(fp))
@@ -281,7 +325,7 @@ class ProjectDOL:
             if old_en not in new_ens:
                 # logger.info(f"\t- old: {old_en}")
                 unavailables.append(old_data[idx_])
-        unavailable_file = DIR_RAW_DICTS / self._version / "csv" / "game" / "失效词条" / os.path.join(*old_file.parts[1:]) if unavailables else None
+        unavailable_file = DIR_RAW_DICTS / self._type / self._version / "csv" / "game" / "失效词条" / os.path.join(*old_file.parts[1:]) if unavailables else None
 
         with open(new_file, "w", encoding="utf-8-sig", newline="") as fp:
             csv.writer(fp).writerows(new_data)
@@ -291,7 +335,7 @@ class ProjectDOL:
 
         for idx, line in enumerate(problem_data):
             if "﻿" in line:
-                problem_data[idx] = line.strip("﻿")
+                problem_data[idx] = line.replace("﻿", "")
 
         with open(new_file, "w", encoding="utf-8-sig") as fp:
             fp.writelines(problem_data)
@@ -303,20 +347,23 @@ class ProjectDOL:
 
         # logger.info(f"\t- ({idx + 1} / {full}) {new_file.__str__().split('game')[1]} 更新完毕")
 
-    """应用字典"""
-    async def apply_dicts(self, blacklist_dirs: list[str] = None, blacklist_files: list[str] = None, debug_flag: bool = False):
+    """ 替换游戏原文 """
+    async def apply_dicts(self, blacklist_dirs: list[str] = None, blacklist_files: list[str] = None, debug_flag: bool = False, type_manual: str = None):
         """汉化覆写游戏文件"""
         if not self._version:
             await self.fetch_latest_version()
+
         if self._type == "common":
             DIR_GAME_TEXTS = DIR_GAME_TEXTS_COMMON
         elif self._type == "world":
             DIR_GAME_TEXTS = DIR_GAME_TEXTS_WORLD
         else:
             DIR_GAME_TEXTS = DIR_GAME_TEXTS_DEV
-        logger.info("===== 开始覆写汉化 ...")
+        logger.info(f"===== 开始覆写{self._mention_name}汉化 ...")
+
+        type_manual = type_manual or self._type
         file_mapping: dict = {}
-        for root, dir_list, file_list in os.walk(DIR_RAW_DICTS / self._version / "csv"):
+        for root, dir_list, file_list in os.walk(DIR_RAW_DICTS / type_manual / self._version / "csv"):
             if any(_ in root for _ in blacklist_dirs):
                 continue
             if "失效词条" in root:
@@ -325,18 +372,18 @@ class ProjectDOL:
                 if any(_ in file for _ in blacklist_files):
                     continue
                 if file.endswith(".js.csv"):
-                    file_mapping[Path(root).absolute() / file] = DIR_GAME_TEXTS / Path(root).relative_to(DIR_RAW_DICTS / self._version / "csv" / "game") / f"{file.split('.')[0]}.js"
+                    file_mapping[Path(root).absolute() / file] = DIR_GAME_TEXTS / Path(root).relative_to(DIR_RAW_DICTS / type_manual / self._version / "csv" / "game") / f"{file.split('.')[0]}.js"
                 else:
-                    file_mapping[Path(root).absolute() / file] = DIR_GAME_TEXTS / Path(root).relative_to(DIR_RAW_DICTS / self._version / "csv" / "game") / f"{file.split('.')[0]}.twee"
+                    file_mapping[Path(root).absolute() / file] = DIR_GAME_TEXTS / Path(root).relative_to(DIR_RAW_DICTS / type_manual / self._version / "csv" / "game") / f"{file.split('.')[0]}.twee"
 
         tasks = [
-            self._apply_for_gather(csv_file, twee_file, idx, len(file_mapping), debug_flag=debug_flag)
+            self._apply_for_gather(csv_file, twee_file, debug_flag=debug_flag)
             for idx, (csv_file, twee_file) in enumerate(file_mapping.items())
         ]
         await asyncio.gather(*tasks)
-        logger.info("##### 汉化覆写完毕 !\n")
+        logger.info(f"##### {self._mention_name}汉化覆写完毕 !\n")
 
-    async def _apply_for_gather(self, csv_file: Path, target_file: Path, idx: int, full: int, debug_flag: bool = False):
+    async def _apply_for_gather(self, csv_file: Path, target_file: Path, debug_flag: bool = False):
         """gather 用"""
 
         vip_flag = target_file.name == "clothing-sets.twee"
@@ -357,17 +404,17 @@ class ProjectDOL:
                 zh = re.sub('^(“)', '"', zh)
                 zh = re.sub('(”)$', '"', zh)
                 if self._is_lack_angle(zh, en):
-                    logger.warning(f"\t!!! 可能的尖括号数量错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(en)}")
+                    logger.warning(f"\t!!! 可能的尖括号数量错误：{en} | {zh} | https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if self._type == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
                     if debug_flag:
-                        webbrowser.open(f"https://paratranz.cn/projects/4780/strings?text={quote(en)}")
+                        webbrowser.open(f"https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if self._type == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
                 if self._is_lack_square(zh, en):
-                    logger.warning(f"\t!!! 可能的方括号数量错误：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(en)}")
+                    logger.warning(f"\t!!! 可能的方括号数量错误：{en} | {zh} | https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if self._type == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
                     if debug_flag:
-                        webbrowser.open(f"https://paratranz.cn/projects/4780/strings?text={quote(en)}")
+                        webbrowser.open(f"https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if self._type == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
                 if self._is_different_event(zh, en):
-                    logger.warning(f"\t!!! 可能的事件名称错翻：{en} | {zh} | https://paratranz.cn/projects/4780/strings?text={quote(en)}")
+                    logger.warning(f"\t!!! 可能的事件名称错翻：{en} | {zh} | https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if self._type == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
                     if debug_flag:
-                        webbrowser.open(f"https://paratranz.cn/projects/4780/strings?text={quote(en)}")
+                        webbrowser.open(f"https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if self._type == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
 
                 for idx_, target_row in enumerate(raw_targets_temp):
                     if not target_row.strip():
@@ -405,7 +452,7 @@ class ProjectDOL:
                         continue
                         
                     elif "<" in target_row:
-                        if "<<link [[" in target_row and re.findall(r"<<link \[\[(Next->|Next\s->|Next\||Next\s\||Leave\||Refuse\||Return\||Resume\||Confirm\||Continue\||Stop\|)", target_row):  # 高频词
+                        if "<<link [[" in target_row and re.findall(r"<<link \[\[(Next->|Next\s->|Next\||Next\s\||Leave\||Refuse\||Return\||Resume\||Confirm\||Continue\||Stop\||Phase\|)", target_row):  # 高频词
                             raw_targets[idx_] = target_row\
                                 .replace("[[Next", "[[继续")\
                                 .replace("[[Leave", "[[离开")\
@@ -414,7 +461,8 @@ class ProjectDOL:
                                 .replace("[[Resume", "[[返回")\
                                 .replace("[[Confirm", "[[确认")\
                                 .replace("[[Continue", "[[继续")\
-                                .replace("[[Stop", "[[停止")
+                                .replace("[[Stop", "[[停止")\
+                                .replace("[[Phase", "[[穿越")
                         elif '<<link "Next"' in target_row:
                             raw_targets[idx_] = target_row.replace('"Next"', '"下一个"')
                         elif "<<print" in target_row and re.findall(r"<<print.*?\.writing>>", target_row):
@@ -441,38 +489,6 @@ class ProjectDOL:
             fp.writelines(raw_targets)
 
         # logger.info(f"\t- ({idx + 1} / {full}) {target_file.__str__().split('game')[1]} 覆写完毕")
-
-    def fuck_css(self):
-        """字体间距"""
-        with open(DIR_GAME_CSS_COMMON / "base.css", "r", encoding="utf-8") as fp:
-            lines = fp.readlines()
-        for idx, line in enumerate(lines):
-            if line.strip() == "#savesListContainer .savesListRow { max-height: 2.4em; };":
-                lines[idx] = line.replace("2.4em;", "7em;")
-                break
-        with open(DIR_GAME_CSS_COMMON / "base.css", "w", encoding="utf-8") as fp:
-            fp.writelines(lines)
-
-    def change_version(self, version: str = ""):
-        """修改版本号"""
-        if self._type == "world":
-            with open(FILE_VERSION_EDIT_WORLD, "r", encoding="utf-8") as fp:
-                lines = fp.readlines()
-            for idx, line in enumerate(lines):
-                if "version: " in line.strip():
-                    lines[idx] = f'version: "{version}",\n'
-                    break
-            with open(FILE_VERSION_EDIT_WORLD, "w", encoding="utf-8") as fp:
-                fp.writelines(lines)
-        else:
-            with open(FILE_VERSION_EDIT_COMMON, "r", encoding="utf-8") as fp:
-                lines = fp.readlines()
-            for idx, line in enumerate(lines):
-                if "version: " in line.strip():
-                    lines[idx] = f'version: "{version}",\n'
-                    break
-            with open(FILE_VERSION_EDIT_COMMON, "w", encoding="utf-8") as fp:
-                fp.writelines(lines)
 
     @staticmethod
     def _is_lack_angle(line_zh: str, line_en: str):
@@ -602,22 +618,11 @@ class ProjectDOL:
             return True
         return False
 
-    """ 删删删 """
-    async def drop_all_dirs(self, force = False):
-        """恢复到最初时的样子"""
-        if not force:
-            await self.get_lastest_commit()
-        logger.warning("===== 开始删库跑路 ...")
-        await self._drop_temp()
-        await self._drop_gitgud()
-        await self._drop_dict()
-        await self._drop_paratranz()
-        logger.warning("##### 删库跑路完毕 !\n")
-
     async def get_lastest_commit(self) -> None:
         ref_name = self.get_type("master", "master", "dev")
+        url_commits = self.get_type(REPOSITORY_COMMITS_URL_COMMON, REPOSITORY_COMMITS_URL_WORLD, None)
         async with httpx.AsyncClient() as client:
-            response = await client.get(REPOSITORY_URL_COMMITS, params = {"ref_name": ref_name})
+            response = await client.get(url_commits, params={"ref_name": ref_name})
             if response.status_code != 200:
                 logger.error("获取源仓库 commit 出错！")
                 return None
@@ -629,22 +634,10 @@ class ProjectDOL:
         self._is_latest = bool(self._commit and latest_commit["id"] == self._commit["id"])
         if self._is_latest:
             return None
-        logger.info("===== 开始写入最新 commit ...")
+        logger.info(f"===== 开始写入{self._mention_name}最新 commit ...")
         with open(FILE_COMMITS, "w") as fp:
             json.dump(latest_commit, fp, ensure_ascii=False, indent=2)
-            logger.info("#### 最新 commit 已写入！")
-           
-    async def _drop_temp(self):
-        """删掉临时文件"""
-        if DIR_TEMP_ROOT.exists():
-            if not self._is_latest:
-                shutil.rmtree(DIR_TEMP_ROOT, ignore_errors=True)
-                return
-            if not FILE_REPOSITORY_ZIP.exists():
-                return
-            shutil.move(FILE_REPOSITORY_ZIP, DIR_ROOT)  # type: ignore
-            shutil.rmtree(DIR_TEMP_ROOT, ignore_errors=True)
-        logger.warning("\t- 缓存目录已删除")
+            logger.info(f"#### {self._mention_name}最新 commit 已写入！")
 
     def get_type(self, common, world, dev):
         if self._type == "common":
@@ -659,22 +652,90 @@ class ProjectDOL:
         """获得游戏目录"""
         return self.get_type(DIR_GAME_ROOT_COMMON, DIR_GAME_ROOT_WORLD, DIR_GAME_ROOT_DEV)
 
+    """其他要修改的东西"""
+    def change_css(self):
+        """字体间距"""
+        css_dir = DIR_GAME_CSS_COMMON if self._type == "common" else DIR_GAME_CSS_WORLD
+        with open(css_dir / "base.css", "r", encoding="utf-8") as fp:
+            lines = fp.readlines()
+        for idx, line in enumerate(lines):
+            match line.strip():
+                case "#savesListContainer .savesListRow { max-height: 2.4em; };":
+                    lines[idx] = line.replace("2.4em;", "7em;")
+                    break
+                case 'content:" months";':
+                    lines[idx] = line.replace("months", "月数")
+                    break
+                case 'content:" weeks";':
+                    lines[idx] = line.replace("weeks", "周数")
+                    break
+                case _:
+                    continue
+        with open(css_dir / "base.css", "w", encoding="utf-8") as fp:
+            fp.writelines(lines)
+
+    def change_version(self, version: str = ""):
+        """修改版本号"""
+        if self._type == "world":
+            with open(FILE_VERSION_EDIT_WORLD, "r", encoding="utf-8") as fp:
+                lines = fp.readlines()
+            for idx, line in enumerate(lines):
+                if "version: " in line.strip():
+                    lines[idx] = f'version: "{version}",\n'
+                    break
+            with open(FILE_VERSION_EDIT_WORLD, "w", encoding="utf-8") as fp:
+                fp.writelines(lines)
+        else:
+            with open(FILE_VERSION_EDIT_COMMON, "r", encoding="utf-8") as fp:
+                lines = fp.readlines()
+            for idx, line in enumerate(lines):
+                if "version: " in line.strip():
+                    lines[idx] = f'version: "{version}",\n'
+                    break
+            with open(FILE_VERSION_EDIT_COMMON, "w", encoding="utf-8") as fp:
+                fp.writelines(lines)
+
+    """ 删删删 """
+    async def drop_all_dirs(self, force=False):
+        """恢复到最初时的样子"""
+        if not force:
+            await self.get_lastest_commit()
+        logger.warning("===== 开始删库跑路 ...")
+        await self._drop_temp()
+        await self._drop_gitgud()
+        await self._drop_dict()
+        await self._drop_paratranz()
+        logger.warning("##### 删库跑路完毕 !\n")
+           
+    async def _drop_temp(self):
+        """删掉临时文件"""
+        if DIR_TEMP_ROOT.exists():
+            if not self._is_latest:
+                shutil.rmtree(DIR_TEMP_ROOT, ignore_errors=True)
+                return
+            if FILE_REPOSITORY_ZIP.exists():
+                shutil.move(FILE_REPOSITORY_ZIP, DIR_ROOT)
+            if (DIR_TEMP_ROOT / f"dol{self._mention_name}.zip").exists():
+                shutil.move(DIR_TEMP_ROOT / f"dol{self._mention_name}.zip", DIR_ROOT)
+            shutil.rmtree(DIR_TEMP_ROOT, ignore_errors=True)
+        logger.warning("\t- 缓存目录已删除")
+
     async def _drop_gitgud(self):
         """删掉游戏库"""
         shutil.rmtree(self.game_dir, ignore_errors=True)
-        logger.warning("\t- 游戏目录已删除")
+        logger.warning(f"\t- {self._mention_name}游戏目录已删除")
 
     async def _drop_dict(self):
         """删掉生成的字典"""
         if not self._version:
             await self.fetch_latest_version()
-        shutil.rmtree(DIR_RAW_DICTS / self._version, ignore_errors=True)
-        logger.warning("\t- 字典目录已删除")
+        shutil.rmtree(DIR_RAW_DICTS / self._type / self._version, ignore_errors=True)
+        logger.warning(f"\t- {self._mention_name}字典目录已删除")
 
     async def _drop_paratranz(self):
         """删掉下载的汉化包"""
-        shutil.rmtree(DIR_PARATRANZ, ignore_errors=True)
-        logger.warning("\t- 汉化目录已删除")
+        shutil.rmtree(DIR_PARATRANZ / self._type, ignore_errors=True)
+        logger.warning(f"\t- {self._mention_name}汉化目录已删除")
 
     """ 编译游戏 """
     def compile(self):
