@@ -1,3 +1,4 @@
+import contextlib
 import csv
 import re
 from src.ast import  Acorn,JSSyntaxError
@@ -74,8 +75,11 @@ class ProjectDOL:
             await self.fetch_latest_version()
         if self._is_latest:  # 下载慢，是最新就不要重复下载了
             dol_path_zip = DIR_ROOT / f"dol{self._mention_name}.zip"
-            if dol_path_zip.exists():
-                shutil.move(dol_path_zip, DIR_TEMP_ROOT)
+            if (DIR_ROOT / "dol.zip").exists() or (DIR_ROOT / f"dol{self._mention_name}.zip").exists():
+                with contextlib.suppress(shutil.Error, FileNotFoundError):
+                    shutil.move(DIR_ROOT / "dol.zip", DIR_TEMP_ROOT)
+                with contextlib.suppress(shutil.Error, FileNotFoundError):
+                    shutil.move(dol_path_zip, DIR_TEMP_ROOT)
                 await self.unzip_latest_repository()
                 return
         await self.fetch_latest_repository()
@@ -227,6 +231,7 @@ class ProjectDOL:
         for root, dir_list, file_list in os.walk(DIR_RAW_DICTS / self._type / self._version / "csv" / "game"):
             if "失效词条" in root:
                 continue
+
             for file in file_list:
                 common_file_path = DIR_PARATRANZ / "common" / "utf8" / Path().joinpath(*(Path(root) / file).parts[10:])
                 if not common_file_path.exists():
@@ -243,6 +248,7 @@ class ProjectDOL:
                         for idx_, row in enumerate(common_data)
                     }  # 旧英文: 旧英文行键
 
+                cp = mod_data.copy()
                 # mod 中的键也在原版中，直接删掉
                 for idx, row in enumerate(mod_data.copy()):
                     if row[-1] in common_ens:
@@ -250,11 +256,10 @@ class ProjectDOL:
 
                 mod_data = [_ for _ in mod_data if _]
                 if not mod_data:
-                    os.remove(mod_file_path)
                     continue
 
                 with open(mod_file_path, "w", encoding="utf-8-sig", newline="") as fp:
-                    csv.writer(fp).writerows(mod_data)
+                    csv.writer(fp).writerows(cp)
 
             if not os.listdir(Path(root)):
                 shutil.rmtree(Path(root))
@@ -362,6 +367,13 @@ class ProjectDOL:
         logger.info(f"===== 开始覆写{self._mention_name}汉化 ...")
 
         type_manual = type_manual or self._type
+        # 脑子转不过来，先这样写吧
+        if type_manual != self._type:
+            os.makedirs(DIR_RAW_DICTS / "common" / self._version / "csv" / "game", exist_ok=True)
+            for tree in os.listdir(DIR_PARATRANZ / "common" / "utf8"):
+                with contextlib.suppress(shutil.Error, FileNotFoundError):
+                    shutil.move(DIR_PARATRANZ / "common" / "utf8" / tree, DIR_RAW_DICTS / "common" / self._version / "csv" / "game")
+
         file_mapping: dict = {}
         for root, dir_list, file_list in os.walk(DIR_RAW_DICTS / type_manual / self._version / "csv"):
             if any(_ in root for _ in blacklist_dirs):
@@ -372,25 +384,25 @@ class ProjectDOL:
                 if any(_ in file for _ in blacklist_files):
                     continue
                 if file.endswith(".js.csv"):
-                    file_mapping[Path(root).absolute() / file] = DIR_GAME_TEXTS / Path(root).relative_to(DIR_RAW_DICTS / type_manual / self._version / "csv" / "game") / f"{file.split('.')[0]}.js"
+                    file_mapping[Path(root).absolute() / file] = DIR_GAME_TEXTS / Path(root).relative_to(DIR_RAW_DICTS / type_manual / self._version / "csv" / "game") / f"{file.split('.')[0]}.js".replace("utf8\\", "")
                 else:
-                    file_mapping[Path(root).absolute() / file] = DIR_GAME_TEXTS / Path(root).relative_to(DIR_RAW_DICTS / type_manual / self._version / "csv" / "game") / f"{file.split('.')[0]}.twee"
+                    file_mapping[Path(root).absolute() / file] = DIR_GAME_TEXTS / Path(root).relative_to(DIR_RAW_DICTS / type_manual / self._version / "csv" / "game") / f"{file.split('.')[0]}.twee".replace("utf8\\", "")
 
         tasks = [
-            self._apply_for_gather(csv_file, twee_file, debug_flag=debug_flag)
+            self._apply_for_gather(csv_file, twee_file, debug_flag=debug_flag, type_manual=type_manual)
             for idx, (csv_file, twee_file) in enumerate(file_mapping.items())
         ]
         await asyncio.gather(*tasks)
         logger.info(f"##### {self._mention_name}汉化覆写完毕 !\n")
 
-    async def _apply_for_gather(self, csv_file: Path, target_file: Path, debug_flag: bool = False):
+    async def _apply_for_gather(self, csv_file: Path, target_file: Path, debug_flag: bool = False, type_manual: str = None):
         """gather 用"""
-
         vip_flag = target_file.name == "clothing-sets.twee"
         with open(target_file, "r", encoding="utf-8") as fp:
             raw_targets: list[str] = fp.readlines()
         raw_targets_temp = raw_targets.copy()
         needed_replace_outfit_name_cap_flag = False
+        type_manual = type_manual or self._type
 
         with open(csv_file, "r", encoding="utf-8") as fp:
             for row in csv.reader(fp):
@@ -404,17 +416,17 @@ class ProjectDOL:
                 zh = re.sub('^(“)', '"', zh)
                 zh = re.sub('(”)$', '"', zh)
                 if self._is_lack_angle(zh, en):
-                    logger.warning(f"\t!!! 可能的尖括号数量错误：{en} | {zh} | https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if self._type == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
+                    logger.warning(f"\t!!! 可能的尖括号数量错误：{en} | {zh} | https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
                     if debug_flag:
-                        webbrowser.open(f"https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if self._type == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
+                        webbrowser.open(f"https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
                 if self._is_lack_square(zh, en):
-                    logger.warning(f"\t!!! 可能的方括号数量错误：{en} | {zh} | https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if self._type == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
+                    logger.warning(f"\t!!! 可能的方括号数量错误：{en} | {zh} | https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
                     if debug_flag:
-                        webbrowser.open(f"https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if self._type == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
+                        webbrowser.open(f"https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
                 if self._is_different_event(zh, en):
-                    logger.warning(f"\t!!! 可能的事件名称错翻：{en} | {zh} | https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if self._type == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
+                    logger.warning(f"\t!!! 可能的事件名称错翻：{en} | {zh} | https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
                     if debug_flag:
-                        webbrowser.open(f"https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if self._type == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
+                        webbrowser.open(f"https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
 
                 for idx_, target_row in enumerate(raw_targets_temp):
                     if not target_row.strip():
@@ -663,11 +675,11 @@ class ProjectDOL:
                 case "#savesListContainer .savesListRow { max-height: 2.4em; };":
                     lines[idx] = line.replace("2.4em;", "7em;")
                     break
-                case 'content:" months";':
-                    lines[idx] = line.replace("months", "月数")
+                case 'content: " months";':
+                    lines[idx] = line.replace(" months", "月数")
                     break
-                case 'content:" weeks";':
-                    lines[idx] = line.replace("weeks", "周数")
+                case 'content: " weeks";':
+                    lines[idx] = line.replace(" weeks", "周数")
                     break
                 case _:
                     continue
@@ -715,8 +727,10 @@ class ProjectDOL:
                 return
             if FILE_REPOSITORY_ZIP.exists():
                 shutil.move(FILE_REPOSITORY_ZIP, DIR_ROOT)
+
             if (DIR_TEMP_ROOT / f"dol{self._mention_name}.zip").exists():
                 shutil.move(DIR_TEMP_ROOT / f"dol{self._mention_name}.zip", DIR_ROOT)
+
             shutil.rmtree(DIR_TEMP_ROOT, ignore_errors=True)
         logger.warning("\t- 缓存目录已删除")
 
@@ -730,6 +744,7 @@ class ProjectDOL:
         if not self._version:
             await self.fetch_latest_version()
         shutil.rmtree(DIR_RAW_DICTS / self._type / self._version, ignore_errors=True)
+        shutil.rmtree(DIR_RAW_DICTS / "common" / self._version, ignore_errors=True)
         logger.warning(f"\t- {self._mention_name}字典目录已删除")
 
     async def _drop_paratranz(self):

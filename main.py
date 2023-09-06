@@ -110,8 +110,8 @@ async def process_world_expansion(dol_we: ProjectDOL, pt_common: Paratranz, pt_w
     7. 替换游戏原文
     """
 
-    """ 删库跑路 """
-    await dol_we.drop_all_dirs()
+    # """ 删库跑路 """
+    # await dol_we.drop_all_dirs()
 
     """ 获取最新版本 """
     await dol_we.fetch_latest_version()
@@ -150,6 +150,7 @@ async def process_world_expansion(dol_we: ProjectDOL, pt_common: Paratranz, pt_w
     dol_we.compile()
     dol_we.run()
 
+
 async def main():
     start = time.time()
     # =====
@@ -166,7 +167,7 @@ async def main():
     # await process_common(dol_common, pt_common, version="0.4.1.7-chs-alpha1.3.1-pre")
 
     # 编译世扩用，编译原版请注释掉这个
-    await process_world_expansion(dol_we, pt_common, pt_we, version="0.4.1.7-we-chs-alpha1.3.1-pre")
+    await process_world_expansion(dol_we, pt_common, pt_we, version="0.4.1.7-chs-alpha1.3.1-we-alpha1.0.0-pre")
 
     end = time.time()
     return end-start

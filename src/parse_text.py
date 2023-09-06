@@ -367,6 +367,7 @@ class ParseTextTwee:
                     r"\$_text_output", r"\$_output", "_linkOption1", "_linkOption2",
                     r"\$_itemNames"
                 })
+                or "__" in line
             ):
                 results.append(True)
             elif self.is_only_widgets(line) or self.is_json_line(line):
@@ -1747,8 +1748,8 @@ class ParseTextTwee:
                         "_impregnator", "_toyName", "_crowd", r"\$vorecreature", "_toy", "_sextoy", "_reactTitle",
                         r"\$_topic", "_pubfameOptions", r"\$boughtfurniturename", "_exposing", "_revealed_thing",
                         r"_tentacle\.desc", r"_tentacle\.fullDesc", r"\$_breed", "_sydneyText", "_featsTattooOptions",
-                        "_penOptions", "_bodyPartOptions", "_output", "_speakPool", "_colorOptions",
-                        "_hairNames", "_fringeNames", "_dyeNames", "_secondaryColorOptions"
+                        "_penOptions", "_bodyPartOptions", "_output", "_speakPool", "_colorOptions", r"\$_clothing",
+                        "_hairNames", "_fringeNames", "_dyeNames", "_secondaryColorOptions", "_liq", "_yourclit",
                     }))
                 )
             ):
@@ -1771,6 +1772,7 @@ class ParseTextTwee:
                 or "<<takeVirginity" in line
                 or "<<recordSperm " in line
                 or "<<NPCVirginityTakenByOther" in line
+                or "<<run $rebuy_" in line
             ):
                 results.append(True)
             elif ("<" in line and self.is_only_widgets(line)) or (maybe_json_flag and self.is_json_line(line)):
@@ -1908,7 +1910,7 @@ class ParseTextTwee:
     @staticmethod
     def is_widget_set_to(line: str, keys: set[str]) -> bool:
         """<<set xxx yyy>>"""
-        pattern = re.compile("<<set\s(?:" + r"|".join(keys) + ")[\'\"\w\s\[\]\$\+\.\(\)\{\}:\-]*(?:to|\+|\+=|\(|\=).*?[\[\w\{\"\'`]+(?:\w| \w|<<|\"\w| |])")
+        pattern = re.compile("<<set\s(?:" + r"|".join(keys) + ")[\'\"\w\s\[\]\$\+\.\(\)\{\}:\-\&£]*(?:to|\+|\+=|\(|\=).*?[\[\w\{\"\'`]+(?:\w| \w|<<|\"\w| |])")
         return any(re.findall(pattern, line))
 
     @staticmethod
@@ -2487,6 +2489,7 @@ class ParseTextJS:
                 or line.startswith("altText.")
                 or "T.text_output" in line
                 or "altText.lubricated" in line
+                or '? " semen-lubricated"' in line
             ):
                 results.append(True)
             else:
