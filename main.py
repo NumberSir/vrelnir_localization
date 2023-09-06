@@ -110,8 +110,8 @@ async def process_world_expansion(dol_we: ProjectDOL, pt_common: Paratranz, pt_w
     7. 替换游戏原文
     """
 
-    # """ 删库跑路 """
-    # await dol_we.drop_all_dirs()
+    """ 删库跑路 """
+    await dol_we.drop_all_dirs()
 
     """ 获取最新版本 """
     await dol_we.fetch_latest_version()
