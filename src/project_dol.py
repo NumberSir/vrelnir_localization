@@ -237,6 +237,8 @@ class ProjectDOL:
                 if not common_file_path.exists():
                     continue
                 mod_file_path = Path(root) / file
+                logger.info(f"common: {common_file_path.__str__()}")
+                logger.info(f"mod: {mod_file_path.__str__()}\n")
 
                 with open(mod_file_path, "r", encoding="utf-8") as fp:
                     mod_data = list(csv.reader(fp))
@@ -248,7 +250,6 @@ class ProjectDOL:
                         for idx_, row in enumerate(common_data)
                     }  # 旧英文: 旧英文行键
 
-                cp = mod_data.copy()
                 # mod 中的键也在原版中，直接删掉
                 for idx, row in enumerate(mod_data.copy()):
                     if row[-1] in common_ens:
@@ -256,10 +257,11 @@ class ProjectDOL:
 
                 mod_data = [_ for _ in mod_data if _]
                 if not mod_data:
+                    os.remove(mod_file_path)
                     continue
 
                 with open(mod_file_path, "w", encoding="utf-8-sig", newline="") as fp:
-                    csv.writer(fp).writerows(cp)
+                    csv.writer(fp).writerows(mod_data)
 
             if not os.listdir(Path(root)):
                 shutil.rmtree(Path(root))
@@ -726,10 +728,12 @@ class ProjectDOL:
                 shutil.rmtree(DIR_TEMP_ROOT, ignore_errors=True)
                 return
             if FILE_REPOSITORY_ZIP.exists():
-                shutil.move(FILE_REPOSITORY_ZIP, DIR_ROOT)
+                with contextlib.suppress(shutil.Error, FileNotFoundError):
+                    shutil.move(FILE_REPOSITORY_ZIP, DIR_ROOT)
 
             if (DIR_TEMP_ROOT / f"dol{self._mention_name}.zip").exists():
-                shutil.move(DIR_TEMP_ROOT / f"dol{self._mention_name}.zip", DIR_ROOT)
+                with contextlib.suppress(shutil.Error, FileNotFoundError):
+                    shutil.move(DIR_TEMP_ROOT / f"dol{self._mention_name}.zip", DIR_ROOT)
 
             shutil.rmtree(DIR_TEMP_ROOT, ignore_errors=True)
         logger.warning("\t- 缓存目录已删除")

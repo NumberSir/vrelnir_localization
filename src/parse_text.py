@@ -740,7 +740,7 @@ class ParseTextTwee:
                 results.append(False)
             elif self.is_widget_set_to(line, {
                 "_leftaction", "_rightaction", "_feetaction",
-                "_targetlistarms", "_targetlistall"
+                "_targetlistarms", "_targetlistall", "_swarmname"
             }):
                 results.append(True)
             elif self.is_only_widgets(line):
@@ -1750,6 +1750,7 @@ class ParseTextTwee:
                         r"_tentacle\.desc", r"_tentacle\.fullDesc", r"\$_breed", "_sydneyText", "_featsTattooOptions",
                         "_penOptions", "_bodyPartOptions", "_output", "_speakPool", "_colorOptions", r"\$_clothing",
                         "_hairNames", "_fringeNames", "_dyeNames", "_secondaryColorOptions", "_liq", "_yourclit",
+                        r"\$NPCList\[0\]\.fullDescription"
                     }))
                 )
             ):
@@ -1773,6 +1774,7 @@ class ParseTextTwee:
                 or "<<recordSperm " in line
                 or "<<NPCVirginityTakenByOther" in line
                 or "<<run $rebuy_" in line
+                or "<<swarminit" in line
             ):
                 results.append(True)
             elif ("<" in line and self.is_only_widgets(line)) or (maybe_json_flag and self.is_json_line(line)):
@@ -2123,7 +2125,7 @@ class ParseTextJS:
             elif inner_html_flag:
                 if any(_ in line for _ in {
                     "<abbr>", "<span>", "<option", "<button",
-                    "<h3>"
+                    "<h3>", "<<swarminit"
                 }):
                     results.append(True)
                     continue

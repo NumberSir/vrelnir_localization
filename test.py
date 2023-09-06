@@ -1,7 +1,7 @@
 from pathlib import Path
 from src.parse_text import ParseTextTwee, ParseTextJS
 
-FILE_NAME = "base-clothing/wardrobes.twee"
+FILE_NAME = "base-combat/swarms.twee"
 
 
 if __name__ == '__main__':

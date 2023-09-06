@@ -27,7 +27,6 @@
   "tentacles": [
     "tentacle-images.twee"
   ],
-  "base-debug": [],
   "base-system": [
     "physicalAdjustments.twee",
     "bdsm.twee",
