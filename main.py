@@ -84,18 +84,18 @@ async def process_common(dol_common: ProjectDOL, pt: Paratranz, version: str):
     """ 替换生肉词典 """
     await dol_common.update_dicts()
 
-    # """ 替换游戏原文 用的是 `paratranz` 文件夹里的内容覆写 """
-    # blacklist_dirs = []
-    # blacklist_files = []
-    # await dol_common.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=False)
-    #
-    # """ 有些额外需要更改的 """
-    # dol_common.change_css()
-    # dol_common.change_version(version)
-    #
-    # """ 编译成游戏 """
-    # dol_common.compile()
-    # dol_common.run()
+    """ 替换游戏原文 用的是 `paratranz` 文件夹里的内容覆写 """
+    blacklist_dirs = []
+    blacklist_files = []
+    await dol_common.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=False)
+
+    """ 有些额外需要更改的 """
+    dol_common.change_css()
+    dol_common.change_version(version)
+
+    """ 编译成游戏 """
+    dol_common.compile()
+    dol_common.run()
 
 
 async def process_world_expansion(dol_we: ProjectDOL, pt_common: Paratranz, pt_we: Paratranz, version: str):
@@ -136,19 +136,19 @@ async def process_world_expansion(dol_we: ProjectDOL, pt_common: Paratranz, pt_w
         return
     await dol_we.update_dicts()
 
-    # """ 覆写汉化 用的是 `paratranz` 文件夹里的内容覆写 """
-    # blacklist_dirs = []
-    # blacklist_files = []
-    # await dol_we.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=False)
-    # await dol_we.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=False, type_manual="common")
-    #
-    # """ 有些额外需要更改的 """
-    # dol_we.change_css()
-    # dol_we.change_version(version)
-    #
-    # """ 编译成游戏 """
-    # dol_we.compile()
-    # dol_we.run()
+    """ 覆写汉化 用的是 `paratranz` 文件夹里的内容覆写 """
+    blacklist_dirs = []
+    blacklist_files = []
+    await dol_we.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=False)
+    await dol_we.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=False, type_manual="common")
+
+    """ 有些额外需要更改的 """
+    dol_we.change_css()
+    dol_we.change_version(version)
+
+    """ 编译成游戏 """
+    dol_we.compile()
+    dol_we.run()
 
 
 async def main():
