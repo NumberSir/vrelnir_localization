@@ -134,9 +134,11 @@ async def process_world_expansion(dol_we: ProjectDOL, pt_common: Paratranz, pt_w
     download_flag = await pt_we.download_from_paratranz()  # 如果下载，需要在 consts 里填上管理员的 token, 在网站个人设置里找
     if not download_flag:
         return
+
+    """ 替换生肉词典 """
     await dol_we.update_dicts()
 
-    """ 覆写汉化 用的是 `paratranz` 文件夹里的内容覆写 """
+    """ 替换游戏原文 """
     blacklist_dirs = []
     blacklist_files = []
     await dol_we.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=False)
@@ -163,11 +165,11 @@ async def main():
         logger.error("未填写 PARATRANZ_TOKEN, 汉化包下载可能失败，请前往 https://paratranz.cn/users/my 的设置栏中查看自己的 token, 并在 .env 中填写\n")
         return
 
-    # 编译原版用，编译世扩请注释掉这个
-    # await process_common(dol_common, pt_common, version="0.4.1.7-chs-alpha1.4.0-pre")
+    """编译原版用，编译世扩请注释掉这个"""
+    await process_common(dol_common, pt_common, version="0.4.1.7-chs-alpha1.4.0")
 
-    # 编译世扩用，编译原版请注释掉这个
-    await process_world_expansion(dol_we, pt_common, pt_we, version="0.4.1.7-chs-alpha1.4.0-pre-we-alpha1.0.1-pre")
+    """编译世扩用，编译原版请注释掉这个"""
+    # await process_world_expansion(dol_we, pt_common, pt_we, version="0.4.1.7-we-chs-alpha1.0.0")
 
     end = time.time()
     return end-start

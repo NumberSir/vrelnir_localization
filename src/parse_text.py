@@ -456,6 +456,7 @@ class ParseTextTwee:
                 or "<<if ($NPCList" in line
                 or "<<takeKissVirginityNamed" in line
                 or "<<set _feetaction" in line
+                or "<<set _targetlist" in line
             ):
                 results.append(True)
             elif self.is_only_widgets(line) or self.is_json_line(line):
@@ -542,6 +543,7 @@ class ParseTextTwee:
                 '.desc.includes' in line
                 or "fullDesc.includes" in line
                 or "<<takeHandholdingVirginity" in line
+                or "<<set _Slimy" in line
             ):
                 results.append(True)
             elif self.is_only_widgets(line):
@@ -714,7 +716,10 @@ class ParseTextTwee:
                 r"\$_text_output", "_text_output", "_targetlistall",
                 "_leftaction", "_feetaction", "_mouthaction",
                 "_targetlistarms", "_rightaction", r"\$struggle\.descriptions",
+                "_fulldesc"
             }):
+                results.append(True)
+            elif self.is_widget_print(line):
                 results.append(True)
             elif self.is_only_widgets(line):
                 results.append(False)
@@ -1252,6 +1257,11 @@ class ParseTextTwee:
                 })
             ):
                 results.append(True)
+            elif (
+                "<<set _npcList[clone($NPCNameList[$_i])]" in line
+                or "<<run delete _npcList" in line
+            ):
+                results.append(True)
             elif "<" in line and self.is_only_widgets(line):
                 results.append(False)
             else:
@@ -1669,6 +1679,7 @@ class ParseTextTwee:
                 or '"Hearts"' in line or '"Trees"' in line
                 or '"Crosses"' in line or '"Cowgirl"' in line
                 or '"Cat"' in line or '"Puppy"' in line
+                or "'Owl plushie'" in line
             ):
                 results.append(True)
                 continue
@@ -1703,8 +1714,15 @@ class ParseTextTwee:
                 multirow_run_flag = False
                 results.append(False)
                 continue
-            elif multirow_run_flag and "Enable indexedDB" in line:
+            elif multirow_run_flag and (
+                "Enable indexedDB" in line
+            ):
                 multirow_run_flag = False
+                results.append(True)
+                continue
+            elif multirow_run_flag and (
+                "'Owl plushie'" in line
+            ):
                 results.append(True)
                 continue
             elif multirow_run_flag:
@@ -1750,7 +1768,8 @@ class ParseTextTwee:
                         r"_tentacle\.desc", r"_tentacle\.fullDesc", r"\$_breed", "_sydneyText", "_featsTattooOptions",
                         "_penOptions", "_bodyPartOptions", "_output", "_speakPool", "_colorOptions", r"\$_clothing",
                         "_hairNames", "_fringeNames", "_dyeNames", "_secondaryColorOptions", "_liq", "_yourclit",
-                        r"\$NPCList\[0\]\.fullDescription"
+                        r"\$NPCList\[0\]\.fullDescription", "_kylarUnderLower", "_pants", r"_kylarUndies\.desc",
+                        r"_kylarUndies\.colourDesc", r"\$audiencedesc", r"\$_alongsidearray"
                     }))
                 )
             ):
@@ -1775,6 +1794,7 @@ class ParseTextTwee:
                 or "<<NPCVirginityTakenByOther" in line
                 or "<<run $rebuy_" in line
                 or "<<swarminit" in line
+                or "<<set _buy = Time.dayState" in line
             ):
                 results.append(True)
             elif ("<" in line and self.is_only_widgets(line)) or (maybe_json_flag and self.is_json_line(line)):
@@ -2361,6 +2381,8 @@ class ParseTextJS:
                 or 'main === "' in line
                 or 'colour = "' in line
                 or "`rgb" in line
+                or "aux = " in line
+                or "= aux" in line
             ):
                 results.append(True)
             else:

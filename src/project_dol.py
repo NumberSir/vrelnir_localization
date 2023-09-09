@@ -237,8 +237,6 @@ class ProjectDOL:
                 if not common_file_path.exists():
                     continue
                 mod_file_path = Path(root) / file
-                logger.info(f"common: {common_file_path.__str__()}")
-                logger.info(f"mod: {mod_file_path.__str__()}\n")
 
                 with open(mod_file_path, "r", encoding="utf-8") as fp:
                     mod_data = list(csv.reader(fp))
@@ -676,10 +674,10 @@ class ProjectDOL:
             match line.strip():
                 case "#savesListContainer .savesListRow { max-height: 2.4em; };":
                     lines[idx] = line.replace("2.4em;", "7em;")
-                    break
+                    continue
                 case 'content: " months";':
                     lines[idx] = line.replace(" months", "月数")
-                    break
+                    continue
                 case 'content: " weeks";':
                     lines[idx] = line.replace(" weeks", "周数")
                     break

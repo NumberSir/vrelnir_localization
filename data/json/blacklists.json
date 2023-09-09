@@ -40,5 +40,17 @@
   ],
   "tools": [
     "dynamicRendering.twee"
+  ],
+  "base-debug": [
+    "clothesTesting.twee",
+    "debug.twee",
+    "debug-events.twee",
+    "scoped-var-test.twee",
+    "test demon.twee",
+    "test encounters.twee",
+    "testing-encountersUI.twee",
+    "testing-renderer.twee",
+    "testing-room.twee",
+    "testing-skinColor.twee"
   ]
 }
