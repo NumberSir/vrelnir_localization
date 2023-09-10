@@ -64,33 +64,33 @@ async def process_common(dol_common: ProjectDOL, pt: Paratranz, version: str):
     4. 替换生肉词典
     5. 替换游戏原文
     """
-    """ 删库跑路 """
-    await dol_common.drop_all_dirs()
-
-    """ 获取最新版本 """
-    await dol_common.fetch_latest_version()
-
-    """ 下载源码 """
-    await dol_common.download_from_gitgud()
-
-    """ 创建生肉词典 """
-    await dol_common.create_dicts()
-
-    """ 下载汉化词典 成品在 `raw_dicts` 文件夹里 """
-    download_flag = await pt.download_from_paratranz()  # 如果下载，需要在 consts 里填上管理员的 token, 在网站个人设置里找
-    if not download_flag:
-        return
-
-    """ 替换生肉词典 """
-    await dol_common.update_dicts()
-
-    """ 替换游戏原文 用的是 `paratranz` 文件夹里的内容覆写 """
-    blacklist_dirs = []
-    blacklist_files = []
-    await dol_common.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=False)
-
-    """ 有些额外需要更改的 """
-    dol_common.change_css()
+    # """ 删库跑路 """
+    # await dol_common.drop_all_dirs()
+    #
+    # """ 获取最新版本 """
+    # await dol_common.fetch_latest_version()
+    #
+    # """ 下载源码 """
+    # await dol_common.download_from_gitgud()
+    #
+    # """ 创建生肉词典 """
+    # await dol_common.create_dicts()
+    #
+    # """ 下载汉化词典 成品在 `raw_dicts` 文件夹里 """
+    # download_flag = await pt.download_from_paratranz()  # 如果下载，需要在 consts 里填上管理员的 token, 在网站个人设置里找
+    # if not download_flag:
+    #     return
+    #
+    # """ 替换生肉词典 """
+    # await dol_common.update_dicts()
+    #
+    # """ 替换游戏原文 用的是 `paratranz` 文件夹里的内容覆写 """
+    # blacklist_dirs = []
+    # blacklist_files = []
+    # await dol_common.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=False)
+    #
+    # """ 有些额外需要更改的 """
+    # dol_common.change_css()
     dol_common.change_version(version)
 
     """ 编译成游戏 """
@@ -166,10 +166,10 @@ async def main():
         return
 
     """编译原版用，编译世扩请注释掉这个"""
-    await process_common(dol_common, pt_common, version="0.4.1.7-chs-alpha1.4.0")
+    # await process_common(dol_common, pt_common, version="0.4.1.7-chs-alpha1.4.1-pre")
 
     """编译世扩用，编译原版请注释掉这个"""
-    # await process_world_expansion(dol_we, pt_common, pt_we, version="0.4.1.7-we-chs-alpha1.0.0")
+    await process_world_expansion(dol_we, pt_common, pt_we, version="0.4.1.7-we-chs-alpha1.0.1-pre")
 
     end = time.time()
     return end-start

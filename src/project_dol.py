@@ -80,6 +80,8 @@ class ProjectDOL:
                     shutil.move(DIR_ROOT / "dol.zip", DIR_TEMP_ROOT)
                 with contextlib.suppress(shutil.Error, FileNotFoundError):
                     shutil.move(dol_path_zip, DIR_TEMP_ROOT)
+                with contextlib.suppress(shutil.Error, FileNotFoundError):
+                    shutil.move(DIR_ROOT / f"dol世扩.zip", DIR_TEMP_ROOT)
                 await self.unzip_latest_repository()
                 return
         await self.fetch_latest_repository()
@@ -419,10 +421,10 @@ class ProjectDOL:
                     logger.warning(f"\t!!! 可能的尖括号数量错误：{en} | {zh} | https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
                     if debug_flag:
                         webbrowser.open(f"https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
-                if self._is_lack_square(zh, en):
-                    logger.warning(f"\t!!! 可能的方括号数量错误：{en} | {zh} | https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
-                    if debug_flag:
-                        webbrowser.open(f"https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
+                # if self._is_lack_square(zh, en):
+                #     logger.warning(f"\t!!! 可能的方括号数量错误：{en} | {zh} | https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
+                #     if debug_flag:
+                #         webbrowser.open(f"https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
                 if self._is_different_event(zh, en):
                     logger.warning(f"\t!!! 可能的事件名称错翻：{en} | {zh} | https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
                     if debug_flag:
@@ -488,8 +490,8 @@ class ProjectDOL:
                             raw_targets[idx_] = raw_targets[idx_].replace(".name_cap", ".cn_name_cap")
                         elif "_wornItemData.name_cap" in target_row:
                             raw_targets[idx_] = raw_targets[idx_].replace(".name_cap", ".cn_name_cap")
-                    elif target_row.strip() == "].select($_rng)>>":  # 怪东西
-                        raw_targets[idx_] = ""
+                    # elif target_row.strip() == "].select($_rng)>>":  # 怪东西
+                    #     raw_targets[idx_] = ""
 
         if target_file.name.endswith(".js"):
             try:
@@ -732,6 +734,10 @@ class ProjectDOL:
             if (DIR_TEMP_ROOT / f"dol{self._mention_name}.zip").exists():
                 with contextlib.suppress(shutil.Error, FileNotFoundError):
                     shutil.move(DIR_TEMP_ROOT / f"dol{self._mention_name}.zip", DIR_ROOT)
+
+            if (DIR_TEMP_ROOT / "dol世扩.zip").exists():
+                with contextlib.suppress(shutil.Error, FileNotFoundError):
+                    shutil.move(DIR_TEMP_ROOT / "dol世扩.zip", DIR_ROOT)
 
             shutil.rmtree(DIR_TEMP_ROOT, ignore_errors=True)
         logger.warning("\t- 缓存目录已删除")

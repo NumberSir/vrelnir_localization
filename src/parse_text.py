@@ -449,7 +449,8 @@ class ParseTextTwee:
                     "_undressRightTargets", "_handGuideOptions", "_penisaction",
                     "_askActions", "_vaginaaction", "_text_output", "_chestaction",
                     "_thighaction", "_npccr", "_npcff", r"\$_doText", "_youraction",
-                    "_otheraction", "_enjoying", "_mydesc", "_smoltext", r"\$_npc"
+                    "_otheraction", "_enjoying", "_mydesc", "_smoltext", r"\$_npc",
+                    r"\$_pussyDesc", r"\$_penis", "_penis"
                 })
                 or "<<run delete " in line
                 or "<<if $NPCList" in line
@@ -735,8 +736,9 @@ class ParseTextTwee:
             if not line:
                 results.append(False)
                 continue
-
-            if (
+            if "$worn.upper.name," in line or "$worn.lower.name," in line:
+                results.append(True)
+            elif (
                 self.is_comment(line)
                 or self.is_event(line)
                 or self.is_only_marks(line)
@@ -799,7 +801,7 @@ class ParseTextTwee:
                 results.append(False)
             elif self.is_tag_span(line) or self.is_widget_set_to(line, {
                 "_text_output", "_leftaction", "_rightaction",
-                r"\$player\.virginity"
+                r"\$player\.virginity", r"\$_alongside"
             }):
                 results.append(True)
             elif (
@@ -1260,6 +1262,7 @@ class ParseTextTwee:
             elif (
                 "<<set _npcList[clone($NPCNameList[$_i])]" in line
                 or "<<run delete _npcList" in line
+                or ".toUpperFirst()" in line
             ):
                 results.append(True)
             elif "<" in line and self.is_only_widgets(line):
@@ -1386,11 +1389,21 @@ class ParseTextTwee:
                 or self.is_widget_print(line)
                 or self.is_widget_set_to(line, {
                     "_text_output", r"\$_text_output", "_actionText",
-                    r"\$description", r"\$_chest", r"\$_pool"
+                    r"\$description", r"\$_chest", r"\$_pool",
+                    "_bottoms", "_parts", r"_tops\.push", r"_bottoms\.push"
                 })
                 or "<<set _args[0]" in line
                 or '<<if $_npc.penisdesc' in line
             ):
+                results.append(True)
+            elif any(_ == line for _ in {
+                "$worn.over_upper.name\\",
+                "$worn.over_lower.name\\",
+                "$worn.upper.name\\",
+                "$worn.lower.name\\",
+                "$worn.under_lower.name\\",
+                "$worn.genitals.name"
+            }):
                 results.append(True)
             elif self.is_only_widgets(line):
                 results.append(False)
@@ -1769,7 +1782,10 @@ class ParseTextTwee:
                         "_penOptions", "_bodyPartOptions", "_output", "_speakPool", "_colorOptions", r"\$_clothing",
                         "_hairNames", "_fringeNames", "_dyeNames", "_secondaryColorOptions", "_liq", "_yourclit",
                         r"\$NPCList\[0\]\.fullDescription", "_kylarUnderLower", "_pants", r"_kylarUndies\.desc",
-                        r"_kylarUndies\.colourDesc", r"\$audiencedesc", r"\$_alongsidearray"
+                        r"_kylarUndies\.colourDesc", r"\$audiencedesc", r"\$_alongsidearray", r"\$_linkName",
+                        "_clothesColorOptions", "_clothes", "_fringeTypeByName", "_fringeLengthByName", "_fringeColorByName",
+                        "_hairColorByName", "_name", "_fizzyNectar", r"\$_type", r"\$_babiesText", r"\$arcadeExposure",
+                        "_them", "_hooks", "_lewdOrDeviant"
                     }))
                 )
             ):
@@ -1795,6 +1811,12 @@ class ParseTextTwee:
                 or "<<run $rebuy_" in line
                 or "<<swarminit" in line
                 or "<<set _buy = Time.dayState" in line
+                or "<<optionsfrom " in line
+                or "<<initNNPCVirginity " in line
+                or "<<if $npc.includes(_npcId)>>" in line
+                or "$NPCList[$npcrow[$npc.indexOf(_npcId)]].virginity" in line
+                or "<<run _virginList.delete" in line
+                or "<<run _options" in line
             ):
                 results.append(True)
             elif ("<" in line and self.is_only_widgets(line)) or (maybe_json_flag and self.is_json_line(line)):
@@ -2564,7 +2586,8 @@ class ParseTextJS:
     def _parse_time_macros(self):
         """只有几句话"""
         return self.parse_type_only({
-            "School term finishes today.", "School term finishes on ", "School term starts on "
+            "School term finishes today.", "School term finishes on ", "School term starts on ",
+            "ampm = hour"
         })
 
     """ 03-Templates """

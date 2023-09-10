@@ -42,7 +42,6 @@
     "dynamicRendering.twee"
   ],
   "base-debug": [
-    "clothesTesting.twee",
     "debug.twee",
     "debug-events.twee",
     "scoped-var-test.twee",
