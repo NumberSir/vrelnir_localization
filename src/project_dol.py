@@ -444,12 +444,12 @@ class ProjectDOL:
                         continue
                     if en == target_row.strip():
                         if "clothing-set" in csv_file.name and "_outfit.name" in target_row:
-                            raw_targets[idx_] = target_row.replace(en, zh)
+                            raw_targets[idx_] = target_row.replace(en, zh).replace(" \n", "\n").lstrip(" ")
                             if not needed_replace_outfit_name_cap_flag:
                                 raw_targets[idx_] = raw_targets[idx_].replace(".cn_name_cap", ".name")
                             raw_targets_temp[idx_] = ""
                             continue
-                        raw_targets[idx_] = target_row.replace(en, zh)
+                        raw_targets[idx_] = target_row.replace(en, zh).replace(" \n", "\n").lstrip(" ")
                         if "<<print" in target_row and re.findall(r"<<print.*?\.writing>>", zh):
                             raw_targets[idx_] = raw_targets[idx_].replace(".writing>>", ".writ_cn>>")
                         elif ".name_cap" not in target_row:
@@ -476,9 +476,10 @@ class ProjectDOL:
                                 .replace("[[Confirm", "[[确认")\
                                 .replace("[[Continue", "[[继续")\
                                 .replace("[[Stop", "[[停止")\
-                                .replace("[[Phase", "[[穿越")
+                                .replace("[[Phase", "[[穿越")\
+                                .replace(" \n", "\n").lstrip(" ")
                         elif '<<link "Next"' in target_row:
-                            raw_targets[idx_] = target_row.replace('"Next"', '"下一个"')
+                            raw_targets[idx_] = target_row.replace('"Next"', '"下一个"').replace(" \n", "\n").lstrip(" ")
                         elif "<<print" in target_row and re.findall(r"<<print.*?\.writing>>", target_row):
                             raw_targets[idx_] = raw_targets[idx_].replace(".writing>>", ".writ_cn>>")
                         elif ".name_cap" not in target_row:
