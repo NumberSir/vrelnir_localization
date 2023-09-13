@@ -180,6 +180,9 @@ class ProjectDOL:
             target_dir_csv = (DIR_RAW_DICTS / self._type / self._version / "csv").joinpath(*target_dir)
             if not target_dir_csv.exists():
                 os.makedirs(target_dir_csv, exist_ok=True)
+            target_dir_json = (DIR_RAW_DICTS / self._type / self._version / "json").joinpath(*target_dir)
+            if not target_dir_json.exists():
+                os.makedirs(target_dir_json, exist_ok=True)
 
     async def _process_texts(self):
         """处理翻译文本为键值对"""
@@ -214,13 +217,45 @@ class ProjectDOL:
                 for idx_, _ in enumerate(lines)
                 if able_lines[idx_]
             ]
+            results_lines_json = await self._build_json_results_with_passage(lines, able_lines)
         except IndexError:
             logger.error(f"lines: {len(lines)} - parsed: {len(able_lines)}| {file}")
             results_lines_csv = None
+            results_lines_json = None
         if results_lines_csv:
             with open(DIR_RAW_DICTS / self._type / self._version / "csv" / "game" / f"{target_file}.csv", "w", encoding="utf-8-sig", newline="") as fp:
                 csv.writer(fp).writerows(results_lines_csv)
+        if results_lines_json:
+            with open(DIR_RAW_DICTS / self._type / self._version / "json" / "game" / f"{target_file}.json", "w", encoding="utf-8", newline="") as fp:
+                json.dump(results_lines_json, fp, ensure_ascii=False, indent=2)
         # logger.info(f"\t- ({idx + 1} / {len(self._game_texts_file_lists)}) {target_file} 处理完毕")
+
+    async def _build_json_results_with_passage(self, lines: list[str], able_lines: list[bool]) -> list[dict]:
+        """导出成带 passage 注释的行文本"""
+        results_lines_json = []
+        passage_name = None
+        for idx, line in enumerate(lines):
+            if line.startswith("::"):
+                tmp_ = line.lstrip(":: ")
+                if "[" not in line:
+                    passage_name = tmp_.strip()
+                else:
+                    for idx_, char in enumerate(tmp_):
+                        if char != "[":
+                            continue
+                        passage_name = tmp_[:idx_-1].strip()
+                        break
+                    else:
+                        raise
+
+            if able_lines[idx]:
+                results_lines_json.append({
+                    "passage": passage_name,
+                    "key": f"{idx + 1}_{'_'.join(self._version[2:].split('.'))}|",
+                    "original": line.strip(),
+                    "translation": ""
+                })
+        return results_lines_json
 
     """ 去重生肉词典 """
     async def shear_off_repetition(self):
@@ -278,16 +313,20 @@ class ProjectDOL:
             if "失效词条" in root:
                 continue
             for file in file_list:
-                file_mapping[Path(root).absolute() / file] = DIR_RAW_DICTS / self._type / self._version / "csv" / "game" / Path(root).relative_to(DIR_PARATRANZ / self._type / "utf8") / file
+                file_mapping[Path(root).absolute() / file] = (
+                    DIR_RAW_DICTS / self._type / self._version / "csv" / "game" / Path(root).relative_to(DIR_PARATRANZ / self._type / "utf8") / file,
+                    DIR_RAW_DICTS / self._type / self._version / "json" / "game" / Path(root).relative_to(DIR_PARATRANZ / self._type / "utf8") / f'{file.removesuffix(".csv")}.json',
+                )
 
         tasks = [
-            self._update_for_gather(old_file, new_file, idx, len(file_mapping))
-            for idx, (old_file, new_file) in enumerate(file_mapping.items())
+            self._update_for_gather(old_file, new_file, json_file)
+            for old_file, (new_file, json_file) in file_mapping.items()
         ]
         await asyncio.gather(*tasks)
+        await self._integrate_json()
         logger.info(f"##### {self._mention_name}字典更新完毕 !\n")
 
-    async def _update_for_gather(self, old_file: Path, new_file: Path, idx: int, full: int):
+    async def _update_for_gather(self, old_file: Path, new_file: Path, json_file: Path):
         """gather 用"""
         if not new_file.exists():
             unavailable_file = DIR_RAW_DICTS / self._type / self._version / "csv" / "game" / "失效词条" / Path().joinpath(*old_file.parts[old_file.parts.index("utf8")+1:])
@@ -312,12 +351,20 @@ class ProjectDOL:
                 for idx_, row in enumerate(new_data)
             }  # 旧英文: 旧英文行键
 
+        with open(json_file, "r", encoding="utf-8") as fp:
+            json_data: list[dict] = json.load(fp)
+
         # 1. 未变的键和汉化直接替换
         for idx_, row in enumerate(new_data):
             if row[-1] in old_ens:
                 new_data[idx_][0] = old_data[old_ens[row[-1]]][0]
                 if len(old_data[old_ens[row[-1]]]) >= 3:
-                    new_data[idx_].append(old_data[old_ens[row[-1]]][-1].strip())
+                    ts = old_data[old_ens[row[-1]]][-1].strip()
+                    new_data[idx_].append(ts)
+                    try:
+                        json_data[idx_]["translation"] = ts
+                    except IndexError as e:
+                        logger.error(f"json与csv长度不同: {json_file}")
 
         # 2. 不存在的英文移入失效词条
         unavailables = []
@@ -340,6 +387,9 @@ class ProjectDOL:
         with open(new_file, "r", encoding="utf-8-sig") as fp:
             problem_data = fp.readlines()
 
+        with open(json_file, "w", encoding="utf-8") as fp:
+            json.dump(json_data, fp, ensure_ascii=False, indent=2)
+
         for idx, line in enumerate(problem_data):
             if "﻿" in line:
                 problem_data[idx] = line.replace("﻿", "")
@@ -352,7 +402,21 @@ class ProjectDOL:
             with open(unavailable_file, "w", encoding="utf-8-sig", newline="") as fp:
                 csv.writer(fp).writerows(unavailables)
 
-        # logger.info(f"\t- ({idx + 1} / {full}) {new_file.__str__().split('game')[1]} 更新完毕")
+    async def _integrate_json(self):
+        """把 json 字典合并成一个大的"""
+        integrated_dict = []
+        for root, dir_list, file_list in os.walk(DIR_RAW_DICTS / self._type / self._version / "json" / "game"):
+            for file in file_list:
+                with open(Path(root) / file, "r", encoding="utf-8") as fp:
+                    json_data: list[dict] = json.load(fp)
+
+                json_data = [
+                    item for item in json_data
+                    if item["original"] != item["translation"]
+                ]
+                integrated_dict.extend(json_data)
+        with open(DIR_RAW_DICTS / self._type / self._version / "json" / "game" / "integrated_dict.json", "w", encoding="utf-8") as fp:
+            json.dump(integrated_dict, fp, ensure_ascii=False, indent=2)
 
     """ 替换游戏原文 """
     async def apply_dicts(self, blacklist_dirs: list[str] = None, blacklist_files: list[str] = None, debug_flag: bool = False, type_manual: str = None):
