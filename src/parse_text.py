@@ -1816,7 +1816,7 @@ class ParseTextTwee:
                         "_hairColorByName", "_name", "_fizzyNectar", r"\$_type", r"\$_babiesText", r"\$arcadeExposure",
                         "_them", "_hooks", "_lewdOrDeviant", r"\$_boundType", r"_stripOptions\[\$worn",
                         r"\$_removed\.pushUnique", r"\$_broken\.pushUnique", r"\$_randomitem", r"\$hawk_loot",
-                        r"\$_liquids\.push", "_plural_beast_type", r"\$temple_wall_victim"
+                        r"\$_liquids\.push", "_plural_beast_type", r"\$temple_wall_victim", "_playerRole"
                     }))
                 )
             ):

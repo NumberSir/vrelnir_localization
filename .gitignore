@@ -2,6 +2,7 @@
 *.xml
 *.iml
 *.zip
+*.7z
 .env
 .vscode
 .idea
