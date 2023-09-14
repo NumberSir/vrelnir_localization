@@ -213,7 +213,8 @@ class ParseTextTwee:
             elif self.is_tag_span(line) or self.is_widget_set_to(line, {
                 r"\$_text_output", "_wearing", r"\$_output",
                 "_finally", r"\$_verb", "_output",
-                "_text_output", r"\$_pair", r"\$_a"
+                "_text_output", r"\$_pair", r"\$_a",
+                r"\$_clothes", r"\$_highestLevelCovered"
             }):
                 results.append(True)
             elif "<<run $_output " in line:
@@ -450,7 +451,8 @@ class ParseTextTwee:
                     "_askActions", "_vaginaaction", "_text_output", "_chestaction",
                     "_thighaction", "_npccr", "_npcff", r"\$_doText", "_youraction",
                     "_otheraction", "_enjoying", "_mydesc", "_smoltext", r"\$_npc",
-                    r"\$_pussyDesc", r"\$_penis", "_penis"
+                    r"\$_pussyDesc", r"\$_penis", "_penis", "_pron", "_eagerclimax",
+                    "_dick", r"\$_pp"
                 })
                 or "<<run delete " in line
                 or "<<if $NPCList" in line
@@ -458,6 +460,7 @@ class ParseTextTwee:
                 or "<<takeKissVirginityNamed" in line
                 or "<<set _feetaction" in line
                 or "<<set _targetlist" in line
+                or "<<set _anonymous" in line
             ):
                 results.append(True)
             elif self.is_only_widgets(line) or self.is_json_line(line):
@@ -614,9 +617,14 @@ class ParseTextTwee:
                 self.is_tag_span(line)
                 or self.is_widget_print(line)
                 or self.is_widget_set_to(line, {
-                    "_wraith_output", "_npcDescription", "_insertions"
+                    "_wraith_output", "_npcDescription", "_insertions",
+                    "_action"
                 })
             ):
+                results.append(True)
+            elif any(_ in line for _ in {
+                "<<wheeze"
+            }):
                 results.append(True)
             elif self.is_only_widgets(line) or self.is_json_line(line) or ("<<set " in line and ">>" not in line):
                 results.append(False)
@@ -987,7 +995,8 @@ class ParseTextTwee:
             "name:", "text:", "title:", "<summary", "<<option",
             'return "Incubus', 'return "Succubus',
             'return "Bull boy', 'return "Cow girl',
-            'return "Fox', 'return "Vixen'
+            'return "Fox', 'return "Vixen', "Display Format:",
+            "<label>S", "<<link"
         })
 
     def _parse_body_writing(self):
@@ -1263,6 +1272,7 @@ class ParseTextTwee:
                 "<<set _npcList[clone($NPCNameList[$_i])]" in line
                 or "<<run delete _npcList" in line
                 or ".toUpperFirst()" in line
+                or "<<if _npcList[$NPCName[_npcId].nam] is undefined>>" in line
             ):
                 results.append(True)
             elif "<" in line and self.is_only_widgets(line):
@@ -1495,7 +1505,7 @@ class ParseTextTwee:
                 or self.is_widget_print(line)
                 or self.is_widget_set_to(line, {
                     r"\$_text_output", "_colour", r"\$_fringe",
-                    "_out"
+                    "_out", "_part", "_bug"
                 })
                 or "<<print either(" in line and ">>" in line
                 or 'name: "' in line or 'name : "' in line
@@ -1585,7 +1595,7 @@ class ParseTextTwee:
         multirow_poster_flag = False
 
         shop_clothes_hint_flag = False  # 草
-        for idx, line in enumerate(self._lines):
+        for line in self._lines:
             line = line.strip()
             if not line:
                 results.append(False)
@@ -1675,6 +1685,12 @@ class ParseTextTwee:
             """突如其来的json"""
             if ((line.startswith("<<set ") or line.startswith("<<error {")) and ">>" not in line) or line.endswith("[") or line.endswith("{") or line.endswith("("):
                 maybe_json_flag = True
+                if any(_ in line for _ in {
+                    "<<set _hairColorByName",
+                    "<<set _fringeColorByName"
+                }):
+                    results.append(True)
+                    continue
                 results.append(False)
                 continue
             elif maybe_json_flag and line.endswith(">>") and self.is_only_marks(line):
@@ -1693,6 +1709,19 @@ class ParseTextTwee:
                 or '"Crosses"' in line or '"Cowgirl"' in line
                 or '"Cat"' in line or '"Puppy"' in line
                 or "'Owl plushie'" in line
+                or '"Loose"' in line
+                or '"Messy"' in line
+                or '"Pigtails"' in line
+                or '"Ponytail"' in line
+                or '"Short"' in line
+                or '"Straight"' in line
+                or '"Twintails"' in line
+                or '"Curl"' in line
+                or '"Neat"' in line
+                or '"Dreads"' in line
+                or '"Ruffled"' in line
+                or '"Shaved"' in line
+                or '"Sidecut"' in line
             ):
                 results.append(True)
                 continue
@@ -1785,7 +1814,9 @@ class ParseTextTwee:
                         r"_kylarUndies\.colourDesc", r"\$audiencedesc", r"\$_alongsidearray", r"\$_linkName",
                         "_clothesColorOptions", "_clothes", "_fringeTypeByName", "_fringeLengthByName", "_fringeColorByName",
                         "_hairColorByName", "_name", "_fizzyNectar", r"\$_type", r"\$_babiesText", r"\$arcadeExposure",
-                        "_them", "_hooks", "_lewdOrDeviant"
+                        "_them", "_hooks", "_lewdOrDeviant", r"\$_boundType", r"_stripOptions\[\$worn",
+                        r"\$_removed\.pushUnique", r"\$_broken\.pushUnique", r"\$_randomitem", r"\$hawk_loot",
+                        r"\$_liquids\.push", "_plural_beast_type", r"\$temple_wall_victim"
                     }))
                 )
             ):
@@ -1812,11 +1843,10 @@ class ParseTextTwee:
                 or "<<swarminit" in line
                 or "<<set _buy = Time.dayState" in line
                 or "<<optionsfrom " in line
-                or "<<initNNPCVirginity " in line
-                or "<<if $npc.includes(_npcId)>>" in line
-                or "$NPCList[$npcrow[$npc.indexOf(_npcId)]].virginity" in line
-                or "<<run _virginList.delete" in line
                 or "<<run _options" in line
+                or "<<listbox " in line
+                or "<<run _potentialLoveInterests.delete" in line
+                or "<<run _selectedToy.colour_options.forEach" in line
             ):
                 results.append(True)
             elif ("<" in line and self.is_only_widgets(line)) or (maybe_json_flag and self.is_json_line(line)):

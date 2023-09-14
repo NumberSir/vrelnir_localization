@@ -84,13 +84,13 @@ async def process_common(dol_common: ProjectDOL, pt: Paratranz, version: str):
     """ 替换生肉词典 """
     await dol_common.update_dicts()
 
-    """ 替换游戏原文 用的是 `paratranz` 文件夹里的内容覆写 """
-    blacklist_dirs = []
-    blacklist_files = []
-    await dol_common.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=False)
-
-    """ 有些额外需要更改的 """
-    dol_common.change_css()
+    # """ 替换游戏原文 用的是 `paratranz` 文件夹里的内容覆写 """
+    # blacklist_dirs = []
+    # blacklist_files = []
+    # await dol_common.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=False)
+    #
+    # """ 有些额外需要更改的 """
+    # dol_common.change_css()
     # dol_common.change_version(version)
     #
     # """ 编译成游戏 """
