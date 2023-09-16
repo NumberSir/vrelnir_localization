@@ -199,6 +199,8 @@ class ProjectDOL:
 
         with open(file, "r", encoding="utf-8") as fp:
             lines = fp.readlines()
+        with open(file, "r", encoding="utf-8") as fp:
+            content = fp.read()
         if file.name.endswith(SUFFIX_TWEE):
             pt = ParseTextTwee(lines, file)
         elif file.name.endswith(SUFFIX_JS):
@@ -217,7 +219,7 @@ class ProjectDOL:
                 for idx_, _ in enumerate(lines)
                 if able_lines[idx_]
             ]
-            results_lines_json = await self._build_json_results_with_passage(lines, able_lines)
+            results_lines_json = await self._build_json_results_with_passage(lines, able_lines, content, file.__str__().split("game\\")[1])
         except IndexError:
             logger.error(f"lines: {len(lines)} - parsed: {len(able_lines)}| {file}")
             results_lines_csv = None
@@ -230,12 +232,15 @@ class ProjectDOL:
                 json.dump(results_lines_json, fp, ensure_ascii=False, indent=2)
         # logger.info(f"\t- ({idx + 1} / {len(self._game_texts_file_lists)}) {target_file} 处理完毕")
 
-    async def _build_json_results_with_passage(self, lines: list[str], able_lines: list[bool]) -> list[dict]:
+    async def _build_json_results_with_passage(self, lines: list[str], able_lines: list[bool], content: str, file: str) -> list[dict]:
         """导出成带 passage 注释的行文本"""
         results_lines_json = []
         passage_name = None
+        pos_relative = None
+        pos_global = 0
         for idx, line in enumerate(lines):
             if line.startswith("::"):
+                pos_relative = 0
                 tmp_ = line.lstrip(":: ")
                 if "[" not in line:
                     passage_name = tmp_.strip()
@@ -249,12 +254,24 @@ class ProjectDOL:
                         raise
 
             if able_lines[idx]:
+                pos_start = 0
+                if line != line.lstrip():  # 前面的 \t \s 也要算上
+                    for char in line:
+                        if char == line.strip()[0]:
+                            break
+                        pos_start += 1
                 results_lines_json.append({
-                    "passage": passage_name,
+                    "passage": passage_name,  # 非 twee 文件为 null
                     "key": f"{idx + 1}_{'_'.join(self._version[2:].split('.'))}|",
                     "original": line.strip(),
-                    "translation": ""
+                    "translation": "",
+                    "pos": pos_relative + pos_start if pos_relative is not None else pos_global + pos_start  # 非 twee 文件为 null
                 })
+                if content[pos_global + pos_start] != line.lstrip()[0]:
+                    logger.error(f"pos可能不对！{file} | {passage_name} | {line}".replace("\t", "\\t").replace("\n", "\\n"))
+            if pos_relative is not None and not line.startswith("::"):
+                pos_relative += len(line)
+            pos_global += len(line)
         return results_lines_json
 
     """ 去重生肉词典 """
@@ -489,10 +506,10 @@ class ProjectDOL:
                 #     logger.warning(f"\t!!! 可能的方括号数量错误：{en} | {zh} | https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
                 #     if debug_flag:
                 #         webbrowser.open(f"https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
-                if self._is_different_event(zh, en):
-                    logger.warning(f"\t!!! 可能的事件名称错翻：{en} | {zh} | https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
-                    if debug_flag:
-                        webbrowser.open(f"https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
+                # if self._is_different_event(zh, en):
+                #     logger.warning(f"\t!!! 可能的事件名称错翻：{en} | {zh} | https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
+                #     if debug_flag:
+                #         webbrowser.open(f"https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
 
                 for idx_, target_row in enumerate(raw_targets_temp):
                     if not target_row.strip():
