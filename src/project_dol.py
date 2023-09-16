@@ -262,6 +262,7 @@ class ProjectDOL:
                         pos_start += 1
                 results_lines_json.append({
                     "passage": passage_name,  # 非 twee 文件为 null
+                    "filepath": file,
                     "key": f"{idx + 1}_{'_'.join(self._version[2:].split('.'))}|",
                     "original": line.strip(),
                     "translation": "",
