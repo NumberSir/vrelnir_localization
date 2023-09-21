@@ -362,8 +362,9 @@ class ParseTextTwee:
                 self.is_tag_span(line)
                 or '<<wearlink_norefresh "' in line
                 or self.is_tag_label(line)
+                or self.is_widget_print(line)
                 or self.is_widget_option(line)
-                or (self.is_widget_link(line) and not self.is_widget_high_rate_link(line))
+                or self.is_widget_link(line)
                 or self.is_widget_set_to(line, {
                     r"\$_text_output", r"\$_output", "_linkOption1", "_linkOption2",
                     r"\$_itemNames"
@@ -509,21 +510,44 @@ class ParseTextTwee:
 
     def _parse_generation(self):
         """只有 <span """
-        return self.parse_type_only({
-            "<span ", "<<set $_desc",
-            '<<set $NPCList[_n].hair to either("',
-            "<<set $NPCList[_slot].fullDescription",
-            "<<set $NPCList[_n].fullDescription",
-            "<<set $NPCList[_n].breastsdesc",
-            "<<set $NPCList[_n].breastdesc",
-            "<<set _brdes",
-            "<<set _pd",
-            "<<set $_strapon",
-            "<<set $_modifier",
-            "<<set $NPCList[_n].penisdesc",
-            "<<set $NPCList[_xx].penisdesc",
-            "<<set _dildoType"
-        })
+        results = []
+        multirow_d_flag = False
+        for line in self._lines:
+            line = line.strip()
+            if not line:
+                results.append(False)
+                continue
+
+            if "set _d to" in line:
+                multirow_d_flag = True
+                results.append(True)
+                continue
+            elif multirow_d_flag and "]>>" in line:
+                multirow_d_flag = False
+                results.append(False)
+                continue
+            elif multirow_d_flag:
+                results.append(True)
+                continue
+
+            if (
+                self.is_tag_span(line)
+                or self.is_widget_set_to(line, {
+                    r"\$NPCList\[_n\]\.hair",
+                    r"\$_desc",
+                    r"\$NPCList\[_slot\]\.fullDescription",
+                    r"\$NPCList\[_n\]\.fullDescription",
+                    r"\$NPCList\[_n\]\.breastsdesc",
+                    r"\$NPCList\[_n\]\.breastdesc",
+                    r"\$NPCList\[_n\]\.penisdesc",
+                    r"\$NPCList\[_xx\]\.penisdesc",
+                    "_brdes", "_pd", r"\$_strapon", "_dildoType", r"\$_modifier"
+                })
+            ):
+                results.append(True)
+            else:
+                results.append(False)
+        return results
 
     def _parse_tentacle_adv(self):
         """有点麻烦"""
@@ -940,10 +964,12 @@ class ParseTextTwee:
                 or self.is_widget_set_to(line, {
                     "_trimester",  "_vaginaWetnessTextConfig",
                     "_childType", r"\$_pregnancyRisk", r"\$_number",
-                    "_milkCapacityTextConfig", r"\$_heatRutDisplay"
+                    "_milkCapacityTextConfig", r"\$_heatRutDisplay",
+                    r"\$_bellyText"
                 })
                 or "bad.pushUnique" in line
                 or "good.pushUnique" in line
+                or ">>." in line
             ):
                 results.append(True)
             elif (
@@ -1261,7 +1287,7 @@ class ParseTextTwee:
                 or self.is_tag_label(line)
                 or self.is_tag_input(line)
                 or self.is_widget_print(line)
-                or (self.is_widget_link(line) and not self.is_widget_high_rate_link(line))
+                or self.is_widget_link(line)
                 or self.is_widget_set_to(line, {
                     "_buttonName", "_name", "_penisNames", "_breastDescriptionNPC",
                     "_breastsDescriptionNPC", "_hairColorNPCText", "_eyeColorNPCText"
@@ -1362,6 +1388,7 @@ class ParseTextTwee:
                 or '<<set _bedType to "' in line
                 or "<<print $_plant.plural.toLocaleUpperFirst()>>" in line
                 or self.is_widget_print(line)
+                or self.is_widget_set_to(line, {r"\$tendingvars\.harvest_name"})
             ):
                 results.append(True)
             else:
@@ -1509,7 +1536,7 @@ class ParseTextTwee:
                 })
                 or "<<print either(" in line and ">>" in line
                 or 'name: "' in line or 'name : "' in line
-                or (self.is_widget_link(line) and not self.is_widget_high_rate_link(line))
+                or self.is_widget_link(line)
             ):
                 results.append(True)
             elif "<" in line and self.is_only_widgets(line):
@@ -1783,7 +1810,7 @@ class ParseTextTwee:
                     or self.is_widget_print(line)
                     or self.is_widget_option(line)
                     or self.is_widget_button(line)
-                    or (self.is_widget_link(line) and not self.is_widget_high_rate_link(line))
+                    or self.is_widget_link(line)
                     or ("<<set " in line and self.is_widget_set_to(line, {
                         r"\$_strings", r"\$_text_output", "_text_output", r"_container\.name",
                         r"\$_customertype", r"\$_theboy", "_clothesDesc", r"_container\.feederName",
@@ -1817,7 +1844,8 @@ class ParseTextTwee:
                         "_them", "_hooks", "_lewdOrDeviant", r"\$_boundType", r"_stripOptions\[\$worn",
                         r"\$_removed\.pushUnique", r"\$_broken\.pushUnique", r"\$_randomitem", r"\$hawk_loot",
                         r"\$_liquids\.push", "_plural_beast_type", r"\$temple_wall_victim", "_playerRole",
-                        "_dealer_distracted_text"
+                        "_dealer_distracted_text", r"\$removedItem", "_whitneyLower", r"_creatureTip\[_i\]\.pushUnique",
+                        r"_luxuryTip\.pushUnique", "_tool", "_fluid", "_he", "_He", "_him", "_His", "_his"
                     }))
                 )
             ):
@@ -1848,6 +1876,10 @@ class ParseTextTwee:
                 or "<<listbox " in line
                 or "<<run _potentialLoveInterests.delete" in line
                 or "<<run _selectedToy.colour_options.forEach" in line
+                or "$worn.upper.name." in line
+                or "$worn.lower.name." in line
+                or "$worn.over_upper.name." in line
+                or "$worn.under_upper.name." in line
             ):
                 results.append(True)
             elif ("<" in line and self.is_only_widgets(line)) or (maybe_json_flag and self.is_json_line(line)):
@@ -2214,7 +2246,7 @@ class ParseTextJS:
 
     def _parse_eyes_related(self):
         """怪东西"""
-        return self.parse_type_only({'sentence += '})
+        return self.parse_type_only({'sentence += ', '"."'})
 
     def _parse_furniture(self):
         """json"""
@@ -2230,7 +2262,8 @@ class ParseTextJS:
                 continue
 
             if any(_ in line for _ in {
-                "namecap: ", "description: ", "${item.owned()"
+                "namecap: ", "description: ", "${item.owned()",
+                "<span "
             }) or ("Buy it" in line and "/*" not in line) or "Make a gift for :" in line:
                 results.append(True)
             else:
@@ -2291,6 +2324,7 @@ class ParseTextJS:
                 or "(elem !== null)" in line
                 or "invItem.worn" in line
                 or "<span class=" in line
+                or "const itemStatus" in line
             ):
                 results.append(True)
             else:

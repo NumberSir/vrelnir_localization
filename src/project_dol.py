@@ -548,21 +548,7 @@ class ProjectDOL:
                         continue
                         
                     elif "<" in target_row:
-                        if "<<link [[" in target_row and re.findall(r"<<link \[\[(Next->|Next\s->|Next\||Next\s\||Leave\||Refuse\||Return\||Resume\||Confirm\||Continue\||Stop\||Phase\|)", target_row):  # 高频词
-                            raw_targets[idx_] = target_row\
-                                .replace("[[Next", "[[继续")\
-                                .replace("[[Leave", "[[离开")\
-                                .replace("[[Refuse", "[[拒绝")\
-                                .replace("[[Return", "[[返回")\
-                                .replace("[[Resume", "[[返回")\
-                                .replace("[[Confirm", "[[确认")\
-                                .replace("[[Continue", "[[继续")\
-                                .replace("[[Stop", "[[停止")\
-                                .replace("[[Phase", "[[穿越")\
-                                .replace(" \n", "\n").lstrip(" ")
-                        elif '<<link "Next"' in target_row:
-                            raw_targets[idx_] = target_row.replace('"Next"', '"下一个"').replace(" \n", "\n").lstrip(" ")
-                        elif "<<print" in target_row and re.findall(r"<<print.*?\.writing>>", target_row):
+                        if "<<print" in target_row and re.findall(r"<<print.*?\.writing>>", target_row):
                             raw_targets[idx_] = raw_targets[idx_].replace(".writing>>", ".writ_cn>>")
                         elif ".name_cap" not in target_row:
                             continue
