@@ -45,6 +45,20 @@
     "color-namer.js"
   ],
   "base-clothing": [
-    "updateClothes.js"
+    "updateClothes.js",
+    "clothing-face.js",
+    "clothing-feet.js",
+    "clothing-genitals.js",
+    "clothing-hand.js",
+    "clothing-head.js",
+    "clothing-legs.js",
+    "clothing-lower.js",
+    "clothing-neck.js",
+    "clothing-over_head.js",
+    "clothing-over_lower.js",
+    "clothing-over_upper.js",
+    "clothing-under.js",
+    "clothing-under-upper.js",
+    "clothing-upper.js"
   ]
 }

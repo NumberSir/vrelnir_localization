@@ -1,11 +1,13 @@
 import contextlib
 import csv
+import datetime
 import re
-from src.ast import  Acorn,JSSyntaxError
+from .ast import Acorn, JSSyntaxError
 from pathlib import Path
 from typing import Any
 from zipfile import ZipFile
 from urllib.parse import quote
+from zipfile import ZipFile as zf
 
 import asyncio
 import json
@@ -36,7 +38,7 @@ class ProjectDOL:
             self._whitelists: dict[str, list] = json.load(fp)
         self._type: str = type_
         self._version: str = None
-        self._mention_name = "" if self._type == "common" else "世扩"
+        self._mention_name = "" if self._type == "common" else "dev"
         self._commit: dict[str, Any] = None
         self._acorn = Acorn()
         if FILE_COMMITS.exists():
@@ -367,7 +369,7 @@ class ProjectDOL:
             new_ens: dict = {
                 row[-1]: idx_
                 for idx_, row in enumerate(new_data)
-            }  # 旧英文: 旧英文行键
+            }  # 字典英文: 旧英文行键
 
         with open(json_file, "r", encoding="utf-8") as fp:
             json_data: list[dict] = json.load(fp)
@@ -389,7 +391,6 @@ class ProjectDOL:
         for idx_, row in enumerate(old_data):
             if len(row) <= 2:  # 没翻译的，丢掉！
                 continue
-
             if row[-2] == row[-1]:  # 不用翻译的，丢掉！
                 continue
 
@@ -398,6 +399,8 @@ class ProjectDOL:
                 # logger.info(f"\t- old: {old_en}")
                 unavailables.append(old_data[idx_])
         unavailable_file = DIR_RAW_DICTS / self._type / self._version / "csv" / "game" / "失效词条" / os.path.join(*old_file.parts[1:]) if unavailables else None
+        with open(old_file,  "w", encoding="utf-8-sig", newline="") as fp:
+            csv.writer(fp).writerows(old_data)
 
         with open(new_file, "w", encoding="utf-8-sig", newline="") as fp:
             csv.writer(fp).writerows(new_data)
@@ -703,9 +706,8 @@ class ProjectDOL:
 
     async def get_lastest_commit(self) -> None:
         ref_name = self.get_type("master", "master", "dev")
-        url_commits = self.get_type(REPOSITORY_COMMITS_URL_COMMON, REPOSITORY_COMMITS_URL_WORLD, None)
         async with httpx.AsyncClient() as client:
-            response = await client.get(url_commits, params={"ref_name": ref_name})
+            response = await client.get(REPOSITORY_COMMITS_URL_COMMON, params={"ref_name": ref_name})
             if response.status_code != 200:
                 logger.error("获取源仓库 commit 出错！")
                 return None
@@ -738,7 +740,7 @@ class ProjectDOL:
     """其他要修改的东西"""
     def change_css(self):
         """字体间距"""
-        css_dir = DIR_GAME_CSS_COMMON if self._type == "common" else DIR_GAME_CSS_WORLD
+        css_dir = DIR_GAME_CSS_COMMON if self._type == "common" else DIR_GAME_CSS_DEV
         with open(css_dir / "base.css", "r", encoding="utf-8") as fp:
             lines = fp.readlines()
         for idx, line in enumerate(lines):
@@ -861,6 +863,26 @@ class ProjectDOL:
 
     def _compile_for_mobile(self):
         """android"""
+
+    """ 打包游戏 """
+    def package_zip(self, chs_version: str = "chs"):
+        """ 打包游戏 """
+        today = datetime.datetime.now().strftime("%Y%m%d")
+        with open(DIR_GAME_ROOT_COMMON / "version", "r", encoding="utf-8") as fp:
+            version = fp.read()
+        with zf(DIR_GAME_ROOT_COMMON / f"dol-{chs_version}-{today}.zip", "w") as zfp:
+            for root, dir_list, file_list in os.walk(DIR_GAME_ROOT_COMMON):
+                for file in file_list:
+                    filepath = Path((Path(root) / file).__str__().split("degrees-of-lewdity-master/")[-1].split("degrees-of-lewdity-master\\")[-1])
+                    if (file in {
+                            "Degrees of Lewdity VERSION.html",
+                            "style.css",
+                        }
+                        or "degrees-of-lewdity-master/img/" in root
+                        or "degrees-of-lewdity-master\\img\\" in root
+                        or filepath == Path("LICENSE")
+                    ):
+                        zfp.write(filename=DIR_GAME_ROOT_COMMON / filepath, arcname=filepath)
 
     async def copy_to_git(self):
         """复制到git"""

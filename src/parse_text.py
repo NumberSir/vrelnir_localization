@@ -183,8 +183,8 @@ class ParseTextTwee:
         """ base-clothing """
         if FileNamesTwee.CAPTIONTEXT_FULL.value == self._filename:
             return self._parse_captiontext()
-        elif FileNamesTwee.CLOTHING.value in self._filename and FileNamesTwee.CLOTHING_SETS_FULL.value != self._filename:
-            return self._parse_clothing()
+        # elif FileNamesTwee.CLOTHING.value in self._filename and FileNamesTwee.CLOTHING_SETS_FULL.value != self._filename:
+        #     return self._parse_clothing()
         elif FileNamesTwee.CLOTHING_SETS_FULL.value == self._filename:
             return self._parse_clothing_sets()
         elif FileNamesTwee.CLOTHING_IMAGES_FULL.value == self._filename:
@@ -226,9 +226,9 @@ class ParseTextTwee:
 
         return results
 
-    def _parse_clothing(self):
-        """json"""
-        return self.parse_type_only({"name_cap:", "description:", "<<link `"})
+    # def _parse_clothing(self):
+    #     """json"""
+    #     return self.parse_type_only({"name_cap:", "description:", "<<link `"})
 
     def _parse_clothing_sets(self):
         """好麻烦"""
@@ -370,6 +370,7 @@ class ParseTextTwee:
                     r"\$_itemNames"
                 })
                 or "__" in line
+                or '? "' in line
             ):
                 results.append(True)
             elif self.is_only_widgets(line) or self.is_json_line(line):
@@ -453,7 +454,7 @@ class ParseTextTwee:
                     "_thighaction", "_npccr", "_npcff", r"\$_doText", "_youraction",
                     "_otheraction", "_enjoying", "_mydesc", "_smoltext", r"\$_npc",
                     r"\$_pussyDesc", r"\$_penis", "_penis", "_pron", "_eagerclimax",
-                    "_dick", r"\$_pp"
+                    "_dick", r"\$_pp", "_eagerfor"
                 })
                 or "<<run delete " in line
                 or "<<if $NPCList" in line
@@ -462,6 +463,9 @@ class ParseTextTwee:
                 or "<<set _feetaction" in line
                 or "<<set _targetlist" in line
                 or "<<set _anonymous" in line
+                or "<<set _smollertext" in line
+                or "_smollertext.includes" in line
+                or "$NPCList[_j].breastsdesc." in line
             ):
                 results.append(True)
             elif self.is_only_widgets(line) or self.is_json_line(line):
@@ -500,6 +504,7 @@ class ParseTextTwee:
                 or self.is_widget_set_to(line, {
                     "_wraith_output"
                 })
+                or '<<skill_difficulty "' in line
             ):
                 results.append(True)
             elif self.is_only_widgets(line) or self.is_json_line(line):
@@ -1427,7 +1432,8 @@ class ParseTextTwee:
                 or self.is_widget_set_to(line, {
                     "_text_output", r"\$_text_output", "_actionText",
                     r"\$description", r"\$_chest", r"\$_pool",
-                    "_bottoms", "_parts", r"_tops\.push", r"_bottoms\.push"
+                    "_bottoms", "_parts", r"_tops\.push", r"_bottoms\.push",
+                    r"\$_men", r"\$_women"
                 })
                 or "<<set _args[0]" in line
                 or '<<if $_npc.penisdesc' in line
@@ -1749,6 +1755,9 @@ class ParseTextTwee:
                 or '"Ruffled"' in line
                 or '"Shaved"' in line
                 or '"Sidecut"' in line
+                or '":"' in line
+                or '": "' in line
+                or '" : "' in line
             ):
                 results.append(True)
                 continue
@@ -1815,17 +1824,17 @@ class ParseTextTwee:
                         r"\$_strings", r"\$_text_output", "_text_output", r"_container\.name",
                         r"\$_customertype", r"\$_theboy", "_clothesDesc", r"_container\.feederName",
                         "_actionText", r"\$_marked_text", r"\$_plural", r"\$NPCList\[0\]\.penisdesc",
-                        r"\$_link_text", "_has_feelings_towards", "_causing_a_consequence",
-                        "_hilarity_ensues", "_linkText", r"\$_theshop", "_coffee", "_tempText",
+                        r"\$_link_text", "_has_feelings_towards", "_causing_a_consequence", r"\$outbuildingBeast",
+                        "_hilarity_ensues", "_linkText", r"\$_theshop", "_coffee", "_tempText", "_wornname",
                         "_wraithTitle", "_speaks", r"\$wraithOptions", "_speechWraith", "_flaunt",
                         "_dives_into", r"\$NPCList\[_n\]\.hair", "_pregnancyLink", r"_container\.decorations",
-                        "_postOrgasmSpeech", r"_names\.push", r"_pre\.push", "_shopmusic",
+                        "_postOrgasmSpeech", r"_names\.push", r"_pre\.push", "_shopmusic", "_offeredclothing",
                         "_bodyWritingOptions", "_reactTone", "_reactPerson", "_shopnameshort",
                         "_clothesTrait", "_petname", "_leftaction", "_rightaction", "_littlething",
                         "_bigthing", "_feetaction", "_penisaction", "_mouthaction", "_chestaction",
                         "_anusaction", "_vaginaaction", r"\$_mirror", r"\$_examines", r"\$_reacts",
                         "_playPronoun", r"\$pubtask", "_elite", "_subject", r"_title\d", "_chest",
-                        "_target", "_shopgreeting", "_predicament", "_gagname", "_shopnamelong",
+                        "_target", "_shopgreeting", "_predicament", "_gagname", "_shopnamelong", "_seen_cards_index_strings",
                         "_sydneysays", "_leftHand", "_rightHand", "_mouth", "_feet", "_askActions",
                         "_penis", "_vagina", "_anus", r"\$stallThiefPartner", r"\$NPCList\[_n\]\.fullDescription",
                         "_reactSpeech", "_looks", "_fucking", r"\$_eagerly", r"\$_npcpart", r"_npc\d",
@@ -1841,11 +1850,12 @@ class ParseTextTwee:
                         r"_kylarUndies\.colourDesc", r"\$audiencedesc", r"\$_alongsidearray", r"\$_linkName",
                         "_clothesColorOptions", "_clothes", "_fringeTypeByName", "_fringeLengthByName", "_fringeColorByName",
                         "_hairColorByName", "_name", "_fizzyNectar", r"\$_type", r"\$_babiesText", r"\$arcadeExposure",
-                        "_them", "_hooks", "_lewdOrDeviant", r"\$_boundType", r"_stripOptions\[\$worn",
+                        "_them", "_hooks", "_lewdOrDeviant", r"\$_boundType", r"_stripOptions\[\$worn", r"\$schoolpoolundress",
                         r"\$_removed\.pushUnique", r"\$_broken\.pushUnique", r"\$_randomitem", r"\$hawk_loot",
-                        r"\$_liquids\.push", "_plural_beast_type", r"\$temple_wall_victim", "_playerRole",
+                        r"\$_liquids\.push", "_plural_beast_type", r"\$temple_wall_victim", "_playerRole", r"\$_quiet",
                         "_dealer_distracted_text", r"\$removedItem", "_whitneyLower", r"_creatureTip\[_i\]\.pushUnique",
-                        r"_luxuryTip\.pushUnique", "_tool", "_fluid", "_he", "_He", "_him", "_His", "_his"
+                        r"_luxuryTip\.pushUnique", "_tool", "_fluid", "_he", "_He", "_him", "_His", "_his", "_exercise",
+                        "_pronoun", "_pronoun2", "_own", r"\$_balls", "_loc_text", "_writing"
                     }))
                 )
             ):
@@ -1880,9 +1890,16 @@ class ParseTextTwee:
                 or "$worn.lower.name." in line
                 or "$worn.over_upper.name." in line
                 or "$worn.under_upper.name." in line
+                or "<<girlfriend>>?" in line
+                or "$_slaps" in line
+                or '? "' in line
+                or "<<gagged_speech" in line
             ):
                 results.append(True)
-            elif ("<" in line and self.is_only_widgets(line)) or (maybe_json_flag and self.is_json_line(line)):
+            elif (
+                ("<" in line and self.is_only_widgets(line))
+                or (maybe_json_flag and self.is_json_line(line))
+            ):
                 results.append(False)
                 continue
             else:
@@ -2409,6 +2426,8 @@ class ParseTextJS:
                 or "const breastSizes =" in line
             ):
                 results.append(True)
+            elif "<span" in line:
+                results.append(True)
             else:
                 results.append(False)
 
@@ -2718,6 +2737,8 @@ class ParseTextJS:
     def parse_clothing(self):
         if FileNamesJS.UDPATE_CLOTHES_FULL.value == self._filename:
             return self._parse_update_clothes()
+        elif FileNamesJS.CLOTHING.value in self._filename:
+            return self._parse_clothing()
         return self.parse_normal()
 
     def _parse_update_clothes(self):
@@ -2735,6 +2756,10 @@ class ParseTextJS:
             else:
                 results.append(False)
         return results
+
+    def _parse_clothing(self):
+        """ 0.4.2.3 改动"""
+        return self.parse_type_only({"name_cap:", "description:", "<<link `"})
 
     """ base-system """
     def parse_system(self):

@@ -40,18 +40,18 @@ DIR_MODS_ROOT = DIR_DATA_ROOT / "mods"
 
 DIR_GAME_ROOT_COMMON_NAME = "degrees-of-lewdity-master"
 DIR_GAME_ROOT_COMMON = DIR_ROOT / DIR_GAME_ROOT_COMMON_NAME
-# DIR_GAME_ROOT_COMMON = Path("D:\Joy\Butter").absolute() / "degrees-of-lewdity-master"
 DIR_GAME_TEXTS_COMMON = DIR_GAME_ROOT_COMMON / "game"
 DIR_GAME_CSS_COMMON = DIR_GAME_ROOT_COMMON / "modules" / "css"
+
+DIR_GAME_ROOT_DEV_NAME = "degrees-of-lewdity-dev"
+DIR_GAME_ROOT_DEV = DIR_ROOT / DIR_GAME_ROOT_DEV_NAME
+DIR_GAME_TEXTS_DEV = DIR_GAME_ROOT_DEV / "game"
+DIR_GAME_CSS_DEV = DIR_GAME_ROOT_DEV / "modules" / "css"
 
 DIR_GAME_ROOT_WORLD_NAME = "degrees-of-lewdity-world-expansion-master"
 DIR_GAME_ROOT_WORLD = DIR_ROOT / DIR_GAME_ROOT_WORLD_NAME
 DIR_GAME_TEXTS_WORLD = DIR_GAME_ROOT_WORLD / "game"
 DIR_GAME_CSS_WORLD = DIR_GAME_ROOT_WORLD / "modules" / "css"
-
-DIR_GAME_ROOT_DEV_NAME = "degrees-of-lewdity-dev"
-DIR_GAME_ROOT_DEV = DIR_ROOT / DIR_GAME_ROOT_DEV_NAME
-DIR_GAME_TEXTS_DEV = DIR_GAME_ROOT_DEV / "game"
 
 DIR_RAW_DICTS = DIR_DATA_ROOT / "raw_dicts"
 
@@ -235,6 +235,7 @@ class FileNamesJS(Enum):
 
     """ base-clothing """
     UDPATE_CLOTHES_FULL = "updateClothes.js"
+    CLOTHING = "clothing-"
 
 
 HIGH_RATE_LINKS = {
@@ -278,6 +279,7 @@ __all__ = [
     "DIR_GAME_ROOT_COMMON",
     "DIR_GAME_TEXTS_COMMON",
     "DIR_GAME_CSS_COMMON",
+    "DIR_GAME_CSS_DEV",
     "DIR_GAME_CSS_WORLD",
     "DIR_GAME_ROOT_WORLD_NAME",
     "DIR_GAME_ROOT_WORLD",

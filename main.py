@@ -55,48 +55,6 @@ from src import (
 from src.ast import Acorn, JSSyntaxError
 
 
-async def process_common(dol_common: ProjectDOL, pt: Paratranz, version: str):
-    """
-    原版处理流程
-    1. 下载源码
-    2. 创建生肉词典
-    3. 下载汉化词典
-    4. 替换生肉词典
-    5. 替换游戏原文
-    """
-    """ 删库跑路 """
-    await dol_common.drop_all_dirs()
-
-    """ 获取最新版本 """
-    await dol_common.fetch_latest_version()
-
-    """ 下载源码 """
-    await dol_common.download_from_gitgud()
-
-    """ 创建生肉词典 """
-    await dol_common.create_dicts()
-
-    """ 下载汉化词典 成品在 `raw_dicts` 文件夹里 """
-    download_flag = await pt.download_from_paratranz()  # 如果下载，需要在 consts 里填上管理员的 token, 在网站个人设置里找
-    if not download_flag:
-        return
-
-    """ 替换生肉词典 """
-    await dol_common.update_dicts()
-
-    """ 替换游戏原文 用的是 `paratranz` 文件夹里的内容覆写 """
-    blacklist_dirs = []
-    blacklist_files = []
-    await dol_common.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=False)
-
-    """ 有些额外需要更改的 """
-    dol_common.change_css()
-    dol_common.change_version(version)
-
-    """ 编译成游戏 """
-    dol_common.compile()
-    dol_common.run()
-
 
 # async def process_world_expansion(dol_we: ProjectDOL, pt_common: Paratranz, pt_we: Paratranz, version: str):
 #     """
@@ -152,6 +110,49 @@ async def process_common(dol_common: ProjectDOL, pt: Paratranz, version: str):
 #     dol_we.compile()
 #     dol_we.run()
 
+async def process_common(dol_common: ProjectDOL, pt: Paratranz, chs_version: str):
+    """
+    原版处理流程
+    1. 下载源码
+    2. 创建生肉词典
+    3. 下载汉化词典
+    4. 替换生肉词典
+    5. 替换游戏原文
+    """
+    """ 删库跑路 """
+    await dol_common.drop_all_dirs()
+
+    """ 获取最新版本 """
+    await dol_common.fetch_latest_version()
+
+    """ 下载源码 """
+    await dol_common.download_from_gitgud()
+
+    """ 创建生肉词典 """
+    await dol_common.create_dicts()
+
+    """ 下载汉化词典 成品在 `raw_dicts` 文件夹里 """
+    download_flag = await pt.download_from_paratranz()  # 如果下载，需要在 consts 里填上管理员的 token, 在网站个人设置里找
+    if not download_flag:
+        return
+
+    """ 替换生肉词典 """
+    await dol_common.update_dicts()
+
+    """ 替换游戏原文 用的是 `paratranz` 文件夹里的内容覆写 """
+    blacklist_dirs = []
+    blacklist_files = []
+    await dol_common.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=False)
+
+    """ 有些额外需要更改的 """
+    dol_common.change_css()
+    dol_common.change_version(chs_version)
+
+    """ 编译成游戏 """
+    dol_common.compile()
+    dol_common.package_zip(chs_version)
+    dol_common.run()
+
 
 async def main():
     start = time.time()
@@ -166,7 +167,7 @@ async def main():
         return
 
     """编译原版用，编译世扩请注释掉这个"""
-    await process_common(dol_common, pt_common, version="0.4.1.7-chs-alpha1.5.1")
+    await process_common(dol_common, pt_common, chs_version="0.4.2.3-chs-alpha2.0.0")
 
     """编译世扩用，编译原版请注释掉这个"""
     # await process_world_expansion(dol_we, pt_common, pt_we, version="0.4.1.7-we-chs-alpha1.0.1")

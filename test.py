@@ -2,7 +2,7 @@ from pathlib import Path
 from src.parse_text import ParseTextTwee, ParseTextJS
 
 FILE_BASE = r"E:\Documents\GitHub\vrelnir_localization\degrees-of-lewdity-master\game"
-FILE_NAME = r"base-system/pregnancy/events.twee"
+FILE_NAME = r"overworld-town/loc-prison/intro.twee"
 FILE_PATH = Path(rf"{FILE_BASE}/{FILE_NAME}")
 with open(FILE_PATH, "r", encoding="utf-8") as fp:
     CONTENT = fp.read()
