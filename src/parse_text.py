@@ -35,8 +35,8 @@ class ParseTextTwee:
             return self.parse_base_combat()
         elif DirNamesTwee.BASE_DEBUG.value == self._filedir.name:
             return self.parse_base_debug()
-        elif DirNamesTwee.BASE_HAIR.value == self._filedir.name:
-            return self.parse_base_hair()
+        # elif DirNamesTwee.BASE_HAIR.value == self._filedir.name:
+        #     return self.parse_base_hair()
         elif DirNamesTwee.BASE_SYSTEM.value in {
             self._filedir.name,
             self._filedir.parent.name,
@@ -103,6 +103,8 @@ class ParseTextTwee:
             return self._parse_pregnancy_var()
         elif FileNamesTwee.VARIABLES_STATIC_FULL.value == self._filename:
             return self._parse_variables_static()
+        elif FileNamesTwee.HAIR_STYLES_FULL.value == self._filename:
+            return self._parse_hair_style()
         return self.parse_normal()
 
     def _parse_canvasmodel(self):
@@ -158,7 +160,11 @@ class ParseTextTwee:
                 results.append(False)
                 continue
 
-            if "<<set setup.npcPenisRemarks to {" in line:
+            if (
+                "<<set setup.npcPenisRemarks to {" in line
+                or "<<set setup.crimeNames to {" in line
+                or "<<set setup.crimeDescs to {" in line
+            ):
                 multirow_set_flag = True
                 results.append(False)
                 continue
@@ -872,10 +878,10 @@ class ParseTextTwee:
         return self.parse_normal()
 
     """√ base-hair """
-    def parse_base_hair(self):
-        if FileNamesTwee.HAIR_STYLES_FULL.value == self._filename:
-            return self._parse_hair_style()
-        return self.parse_normal()
+    # def parse_base_hair(self):
+    #     if FileNamesTwee.HAIR_STYLES_FULL.value == self._filename:
+    #         return self._parse_hair_style()
+    #     return self.parse_normal()
 
     def _parse_hair_style(self):
         """json"""
@@ -1265,7 +1271,7 @@ class ParseTextTwee:
         """草"""
         results = []
         multirow_comment_flag = False
-        for idx, line in enumerate(self._lines):
+        for line in self._lines:
             line = line.strip()
             if not line:
                 results.append(False)
@@ -1304,6 +1310,9 @@ class ParseTextTwee:
                 or "<<run delete _npcList" in line
                 or ".toUpperFirst()" in line
                 or "<<if _npcList[$NPCName[_npcId].nam] is undefined>>" in line
+                or "<<startOptionsComplexityButton" in line
+                or "<<settingsTabButton" in line
+                or "<<subsectionSettingsTabButton" in line
             ):
                 results.append(True)
             elif "<" in line and self.is_only_widgets(line):
@@ -1538,7 +1547,8 @@ class ParseTextTwee:
                 or self.is_widget_print(line)
                 or self.is_widget_set_to(line, {
                     r"\$_text_output", "_colour", r"\$_fringe",
-                    "_out", "_part", "_bug"
+                    "_out", "_part", "_bug", r"\$_crDescStr",
+                    r"\$_crimes_output"
                 })
                 or "<<print either(" in line and ">>" in line
                 or 'name: "' in line or 'name : "' in line
@@ -1855,7 +1865,7 @@ class ParseTextTwee:
                         r"\$_liquids\.push", "_plural_beast_type", r"\$temple_wall_victim", "_playerRole", r"\$_quiet",
                         "_dealer_distracted_text", r"\$removedItem", "_whitneyLower", r"_creatureTip\[_i\]\.pushUnique",
                         r"_luxuryTip\.pushUnique", "_tool", "_fluid", "_he", "_He", "_him", "_His", "_his", "_exercise",
-                        "_pronoun", "_pronoun2", "_own", r"\$_balls", "_loc_text", "_writing"
+                        "_pronoun", "_pronoun2", "_own", r"\$_balls", "_loc_text", "_writing", r"\$alex_parent", r"\$_parasiteMessage"
                     }))
                 )
             ):
@@ -2418,12 +2428,17 @@ class ParseTextJS:
                 results.append(False)
             elif text_flag and not self.is_only_marks(line):
                 results.append(True)
+
             elif "text =" in line and "let text" not in line and "const text" not in line:
+                results.append(True)
+            elif "<span" in line:
                 results.append(True)
             elif (
                 "npc.breastdesc =" in line
                 or "npc.breastsdesc =" in line
                 or "const breastSizes =" in line
+                or 'women = "' in line
+                or 'men = ' in line
             ):
                 results.append(True)
             elif "<span" in line:
@@ -2759,7 +2774,7 @@ class ParseTextJS:
 
     def _parse_clothing(self):
         """ 0.4.2.3 改动"""
-        return self.parse_type_only({"name_cap:", "description:", "<<link `"})
+        return self.parse_type_only({"name_cap:", "description:", "<<link `", "altDamage:"})
 
     """ base-system """
     def parse_system(self):

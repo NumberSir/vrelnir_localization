@@ -167,7 +167,7 @@ async def main():
         return
 
     """编译原版用，编译世扩请注释掉这个"""
-    await process_common(dol_common, pt_common, chs_version="0.4.2.3-chs-alpha2.0.0")
+    await process_common(dol_common, pt_common, chs_version="0.4.2.4-chs-alpha2.0.0")
 
     """编译世扩用，编译原版请注释掉这个"""
     # await process_world_expansion(dol_we, pt_common, pt_we, version="0.4.1.7-we-chs-alpha1.0.1")
