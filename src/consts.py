@@ -20,6 +20,8 @@ PARATRANZ_BASE_URL = "https://paratranz.cn/api"
 PARATRANZ_HEADERS = {"Authorization": PARATRANZ_TOKEN}
 PARATRANZ_PROJECT_DOL_ID = 4780  # DOL 项目 ID
 PARATRANZ_PROJECT_WE_ID = 8131  # DOL-WE 项目 ID
+CHINESE_VERSION = os.getenv("CHINESE_VERSION") or ""  # 必填，参考 README
+SOURCE_TYPE = os.getenv("SOURCE_TYPE") or "common"  # 必填，common 或 dev
 
 """源代码仓库"""
 REPOSITORY_URL_COMMON = "https://gitgud.io/Vrelnir/degrees-of-lewdity"
@@ -263,6 +265,7 @@ __all__ = [
     "PARATRANZ_TOKEN",
     "PARATRANZ_PROJECT_DOL_ID",
     "PARATRANZ_PROJECT_WE_ID",
+    "CHINESE_VERSION",
     "REPOSITORY_URL_COMMON",
     "REPOSITORY_ZIP_URL_COMMON",
     "REPOSITORY_COMMITS_URL_COMMON",

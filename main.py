@@ -162,7 +162,7 @@ async def main():
         logger.error("未填写 PARATRANZ_TOKEN, 汉化包下载可能失败，请前往 https://paratranz.cn/users/my 的设置栏中查看自己的 token, 并在 .env 中填写\n")
         return
 
-    await process_common(dol_common, pt_common, chs_version="0.4.2.4-chs-alpha1.0.0-pre")
+    await process_common(dol_common, pt_common, chs_version=CHINESE_VERSION)
 
     end = time.time()
     return end-start
