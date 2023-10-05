@@ -27,7 +27,8 @@
   "04-Pregnancy": [
     "childrenStoryFunctions.js",
     "pregnancy.js",
-    "storyFunctions.js"
+    "storyFunctions.js",
+    "pregnancyTypes.js"
   ],
   "time": [
     "timeMacros.js",
@@ -50,6 +51,7 @@
     "clothing-feet.js",
     "clothing-genitals.js",
     "clothing-hand.js",
+    "clothing-hands.js",
     "clothing-head.js",
     "clothing-legs.js",
     "clothing-lower.js",

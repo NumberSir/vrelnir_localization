@@ -217,6 +217,7 @@ class FileNamesJS(Enum):
     CHILDREN_STORY_FUNCTIONS_FULL = "childrenStoryFunctions.js"
     PREGNANCY_FULL = "pregnancy.js"
     STORY_FUNCTIONS_FULL = "storyFunctions.js"
+    PREGNANCY_TYPES_FULL = "pregnancyTypes.js"
 
     """ time """
     TIME_FULL = "time.js"

@@ -146,6 +146,7 @@ async def process_common(dol_common: ProjectDOL, pt: Paratranz, chs_version: str
 
     """ 有些额外需要更改的 """
     dol_common.change_css()
+    dol_common.replace_banner()
     dol_common.change_version(chs_version)
 
     """ 编译成游戏 """
@@ -167,7 +168,7 @@ async def main():
         return
 
     """编译原版用，编译世扩请注释掉这个"""
-    await process_common(dol_common, pt_common, chs_version="0.4.2.4-chs-alpha2.0.0")
+    await process_common(dol_common, pt_common, chs_version="0.4.2.4-chs-alpha1.0.0-pre")
 
     """编译世扩用，编译原版请注释掉这个"""
     # await process_world_expansion(dol_we, pt_common, pt_we, version="0.4.1.7-we-chs-alpha1.0.1")

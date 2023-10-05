@@ -269,7 +269,7 @@ class ParseTextTwee:
                 multirow_json_flag = False
                 results.append(False)
                 continue
-            elif multirow_json_flag and any(_ in line for _ in {'"start"', '"joiner"', '"end"'}) and line != '"end": ".",':
+            elif multirow_json_flag and any(_ in line for _ in {'"start"', '"joiner"', '"end"'}):
                 results.append(True)
                 continue
             elif multirow_json_flag:
@@ -1612,7 +1612,32 @@ class ParseTextTwee:
 
     def _parse_exhibitionism(self):
         """json"""
-        return self.parse_type_between(["<<set _seatedflashcrotchunderskirtlines to ["], ["]>>"])
+        results = []
+        needed_flag = False
+        for line in self._lines:
+            line = line.strip()
+            if not line:
+                results.append(False)
+                continue
+
+            """跨行注释/script，逆天"""
+            if line == "<<set _seatedflashcrotchunderskirtlines to [":
+                needed_flag = True
+                results.append(False)
+                continue
+            elif line in "]>>":
+                needed_flag = False
+                results.append(False)
+                continue
+            elif needed_flag:
+                results.append(True)
+                continue
+
+            if self.is_widget_set_to(line, {"_output_line"}):
+                results.append(True)
+            else:
+                results.append(False)
+        return results
 
     def _parse_thesaurus(self):
         """json"""
@@ -1865,7 +1890,8 @@ class ParseTextTwee:
                         r"\$_liquids\.push", "_plural_beast_type", r"\$temple_wall_victim", "_playerRole", r"\$_quiet",
                         "_dealer_distracted_text", r"\$removedItem", "_whitneyLower", r"_creatureTip\[_i\]\.pushUnique",
                         r"_luxuryTip\.pushUnique", "_tool", "_fluid", "_he", "_He", "_him", "_His", "_his", "_exercise",
-                        "_pronoun", "_pronoun2", "_own", r"\$_balls", "_loc_text", "_writing", r"\$alex_parent", r"\$_parasiteMessage"
+                        "_pronoun", "_pronoun2", "_own", r"\$_balls", "_loc_text", "_writing", r"\$alex_parent", r"\$_parasiteMessage",
+                        "_tmpsmoving", "_gender_body_words", "_bodysize_words", "_output_line", r"\$island\[\$island\.home\]\.decoration"
                     }))
                 )
             ):
@@ -1904,6 +1930,9 @@ class ParseTextTwee:
                 or "$_slaps" in line
                 or '? "' in line
                 or "<<gagged_speech" in line
+                or "<<mirror" in line
+                or "<<bottom>>." in line
+                or "<<breasts>>." in line
             ):
                 results.append(True)
             elif (
@@ -2044,7 +2073,7 @@ class ParseTextTwee:
     @staticmethod
     def is_widget_set_to(line: str, keys: set[str]) -> bool:
         """<<set xxx yyy>>"""
-        pattern = re.compile("<<set\s(?:" + r"|".join(keys) + ")[\'\"\w\s\[\]\$\+\.\(\)\{\}:\-\&£]*(?:to|\+|\+=|\(|\=).*?[\[\w\{\"\'`]+(?:\w| \w|<<|\"\w| |])")
+        pattern = re.compile("<<set\s(?:" + r"|".join(keys) + ")[\'\"\w\s\[\]\$\+\.\(\)\{\}:\-\&£]*(?:to|\+|\+=|\(|\=).*?[\[\w\{\"\'`]+(?:\w| \w|<<|\"\w| |]|\.|,)")
         return any(re.findall(pattern, line))
 
     @staticmethod
@@ -2396,6 +2425,7 @@ class ParseTextJS:
                 or '"Save Name: "' in line
                 or 'saveButton.value' in line
                 or 'loadButton.value' in line
+                or 'lostSaves.innerHTML =' in line
             ):
                 results.append(True)
             else:
@@ -2468,7 +2498,7 @@ class ParseTextJS:
                     continue
                 results.append(False)
                 continue
-            elif multiconst_flag and line.endswith('",'):
+            elif multiconst_flag and (line.endswith('",') or line.endswith('"')):
                 results.append(True)
                 continue
             elif multiconst_flag:
@@ -2482,6 +2512,7 @@ class ParseTextJS:
                 or ("DescList" in line and "]" in line)
                 or "const plant =" in line
                 or "const man =" in line
+                or "const sizeList" in line
             ):
                 results.append(True)
             else:
@@ -2555,7 +2586,7 @@ class ParseTextJS:
                 results.append(False)
                 continue
 
-            if line.startswith("result.text") and line.endswith("{"):
+            if line.startswith("result.text") and line.endswith("{") or line.endswith("="):
                 multirow_text_flag = True
                 results.append(True)
                 continue
@@ -2597,6 +2628,7 @@ class ParseTextJS:
     def _parse_effects(self):
         results = []
         append_fragment_flag = False
+        multirow_swikifier_flag = False
         for line in self._lines:
             line = line.strip()
             if not line:
@@ -2606,9 +2638,11 @@ class ParseTextJS:
             if line == "fragment.append(":
                 append_fragment_flag = True
                 results.append(False)
+                continue
             elif append_fragment_flag and line == ");":
                 append_fragment_flag = False
                 results.append(False)
+                continue
             elif (
                 append_fragment_flag
                 and not self.is_only_marks(line)
@@ -2618,6 +2652,28 @@ class ParseTextJS:
                     "toy1.name"
                 }
             ):
+                results.append(True)
+                continue
+
+            if line.startswith("sWikifier(") and ")" not in line:
+                multirow_swikifier_flag = True
+                results.append(False)
+                continue
+            elif multirow_swikifier_flag and line.endswith(");"):
+                multirow_swikifier_flag = False
+                results.append(False)
+                continue
+            elif multirow_swikifier_flag:
+                results.append(True)
+                continue
+
+            if "sWikifier" in line:
+                results.append(True)
+            elif "`You" in line:
+                results.append(True)
+            elif '"You' in line:
+                results.append(True)
+            elif "fragment.append(wikifier(" in line:
                 results.append(True)
             elif "fragment.append(" in line and any(
                 _ not in line
@@ -2635,6 +2691,9 @@ class ParseTextJS:
                 or "T.text_output" in line
                 or "altText.lubricated" in line
                 or '? " semen-lubricated"' in line
+                or ")}. <<gpain>>`" in line
+                or "}.</span>`" in line
+                or '" : "' in line
             ):
                 results.append(True)
             else:
@@ -2653,6 +2712,8 @@ class ParseTextJS:
             return self._parse_pregnancy()
         elif FileNamesJS.STORY_FUNCTIONS_FULL.value == self._filename:
             return self._parse_story_functions()
+        elif FileNamesJS.PREGNANCY_TYPES_FULL.value == self._filename:
+            return self._parse_pregnancy_types()
         return self.parse_normal()
 
     def _parse_children_story_functions(self):
@@ -2667,6 +2728,15 @@ class ParseTextJS:
     def _parse_story_functions(self):
         return self.parse_type_only({
             "name = (caps ?", "name = caps ?", "name = name[0]"
+        })
+
+    def _parse_pregnancy_types(self):
+        return self.parse_type_only({
+            'return "tiny";',
+            'return "small";',
+            'return "normal";',
+            'return "large";',
+            'return ["tiny",'
         })
 
     """ time """

@@ -745,7 +745,7 @@ class ProjectDOL:
             lines = fp.readlines()
         for idx, line in enumerate(lines):
             match line.strip():
-                case "#savesListContainer .savesListRow { max-height: 2.4em; };":
+                case "max-height: 2.4em;":
                     lines[idx] = line.replace("2.4em;", "7em;")
                     continue
                 case 'content: " months";':
@@ -758,6 +758,13 @@ class ProjectDOL:
                     continue
         with open(css_dir / "base.css", "w", encoding="utf-8") as fp:
             fp.writelines(lines)
+
+    def replace_banner(self):
+        """汉化版条幅"""
+        shutil.copyfile(
+            DIR_DATA_ROOT / "img" / "banner.png",
+            DIR_GAME_ROOT_COMMON / "img" / "misc" / "banner.png"
+        )
 
     def change_version(self, version: str = ""):
         """修改版本号"""
