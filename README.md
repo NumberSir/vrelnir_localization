@@ -15,10 +15,10 @@
 
 ## 食用方法
 1. 需要 Python 3.10+
-2. 在根目录使用 `pip install -r requirements.txt` 安装依赖库
+2. 在根目录通过 `cmd` 或 `shell` 使用 `pip install -r requirements.txt` 安装依赖库
 3. 在 `.env` 里填你的 `token`, 在 `https://paratranz.cn/users/my` 里找
 4. 在 `.env` 里修改版本号
-5. 运行 `main.py` (`python -m main`)
+5. 运行 `main.py` (通过 `cmd` 或 `shell` 使用 `python -m main`)
 
 ## 关于版本号
 汉化版本号的基本结构是 `chs-x.y.z`，如 `chs-alpha1.7.1`

@@ -50,7 +50,9 @@ from src import (
     Paratranz,
     ProjectDOL,
     PARATRANZ_TOKEN,
-    PARATRANZ_PROJECT_WE_ID
+    PARATRANZ_PROJECT_WE_ID,
+    CHINESE_VERSION,
+    SOURCE_TYPE
 )
 from src.ast import Acorn, JSSyntaxError
 
@@ -155,9 +157,9 @@ async def process_common(dol_common: ProjectDOL, pt: Paratranz, chs_version: str
 async def main():
     start = time.time()
     # =====
-    dol_common = ProjectDOL(type_="common")  # 改成 “dev” 则下载最新开发版分支的内容 common原版
+    dol_common = ProjectDOL(type_=SOURCE_TYPE)  # 改成 “dev” 则下载最新开发版分支的内容 common原版
 
-    pt_common = Paratranz(type_="common")
+    pt_common = Paratranz(type_=SOURCE_TYPE)
     if not PARATRANZ_TOKEN:
         logger.error("未填写 PARATRANZ_TOKEN, 汉化包下载可能失败，请前往 https://paratranz.cn/users/my 的设置栏中查看自己的 token, 并在 .env 中填写\n")
         return
