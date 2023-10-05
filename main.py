@@ -122,9 +122,6 @@ async def process_common(dol_common: ProjectDOL, pt: Paratranz, chs_version: str
     """ 删库跑路 """
     await dol_common.drop_all_dirs()
 
-    """ 获取最新版本 """
-    await dol_common.fetch_latest_version()
-
     """ 下载源码 """
     await dol_common.download_from_gitgud()
 
@@ -145,33 +142,27 @@ async def process_common(dol_common: ProjectDOL, pt: Paratranz, chs_version: str
     await dol_common.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=False)
 
     """ 有些额外需要更改的 """
-    dol_common.change_css()
-    dol_common.replace_banner()
-    dol_common.change_version(chs_version)
+    dol_common.change_css()  # 更换一些样式和硬编码文本
+    dol_common.replace_banner()  # 更换游戏头图
+    dol_common.change_version(chs_version)  # 更换游戏版本号
 
     """ 编译成游戏 """
     dol_common.compile()
-    dol_common.package_zip(chs_version)
-    dol_common.run()
+    dol_common.package_zip(chs_version)  # 自动打包成 zip
+    dol_common.run()  # 运行
 
 
 async def main():
     start = time.time()
     # =====
-    dol_common = ProjectDOL(type_="common")  # 改成 “dev” 则下载最新开发版分支的内容common原版 world世界扩展
-    # dol_we = ProjectDOL(type_="world")
+    dol_common = ProjectDOL(type_="common")  # 改成 “dev” 则下载最新开发版分支的内容 common原版
 
     pt_common = Paratranz(type_="common")
-    # pt_we = Paratranz(type_="world")
     if not PARATRANZ_TOKEN:
         logger.error("未填写 PARATRANZ_TOKEN, 汉化包下载可能失败，请前往 https://paratranz.cn/users/my 的设置栏中查看自己的 token, 并在 .env 中填写\n")
         return
 
-    """编译原版用，编译世扩请注释掉这个"""
     await process_common(dol_common, pt_common, chs_version="0.4.2.4-chs-alpha1.0.0-pre")
-
-    """编译世扩用，编译原版请注释掉这个"""
-    # await process_world_expansion(dol_we, pt_common, pt_we, version="0.4.1.7-we-chs-alpha1.0.1")
 
     end = time.time()
     return end-start

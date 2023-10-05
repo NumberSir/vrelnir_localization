@@ -436,7 +436,7 @@ class ProjectDOL:
                     if item["original"] != item["translation"]
                 ]
                 integrated_dict.extend(json_data)
-        with open(DIR_RAW_DICTS / self._type / self._version / "json" / "game" / "integrated_dict.json", "w", encoding="utf-8") as fp:
+        with open(DIR_RAW_DICTS / self._type / self._version / "json" / "game" / "i18n.json", "w", encoding="utf-8") as fp:
             json.dump(integrated_dict, fp, ensure_ascii=False, indent=2)
 
     """ 替换游戏原文 """
