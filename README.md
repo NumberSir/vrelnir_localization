@@ -16,5 +16,5 @@
 ## 食用方法
 1. 需要 Python 3.10+
 2. 在根目录使用 `pip install -r requirements.txt` 安装依赖库
-3. 在 `src/consts.py` 里填你的 `token`, 在 `https://paratranz.cn/users/my` 里找
+3. 在 `.env` 里填你的 `token`, 在 `https://paratranz.cn/users/my` 里找
 4. 运行 `main.py` (`python -m main`)
