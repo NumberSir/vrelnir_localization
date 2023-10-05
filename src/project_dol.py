@@ -570,7 +570,10 @@ class ProjectDOL:
                 self._acorn.parse("".join(raw_targets))
                 LOGGER_COLOR.info(f"<g>JS 语法检测通过</g> {target_file}")
             except JSSyntaxError as err:
-                LOGGER_COLOR.error(f"{target_file} | {err.err_code(raw_targets)}")
+                try:
+                    LOGGER_COLOR.error(f"{target_file} | {err.err_code(raw_targets)}")
+                except ValueError as e:
+                    LOGGER_COLOR.error(f"{target_file}")
         with open(target_file, "w", encoding="utf-8") as fp:
             fp.writelines(raw_targets)
 
