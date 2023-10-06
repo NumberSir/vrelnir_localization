@@ -1891,7 +1891,8 @@ class ParseTextTwee:
                         "_dealer_distracted_text", r"\$removedItem", "_whitneyLower", r"_creatureTip\[_i\]\.pushUnique",
                         r"_luxuryTip\.pushUnique", "_tool", "_fluid", "_he", "_He", "_him", "_His", "_his", "_exercise",
                         "_pronoun", "_pronoun2", "_own", r"\$_balls", "_loc_text", "_writing", r"\$alex_parent", r"\$_parasiteMessage",
-                        "_tmpsmoving", "_gender_body_words", "_bodysize_words", "_output_line", r"\$island\[\$island\.home\]\.decoration"
+                        "_tmpsmoving", "_gender_body_words", "_bodysize_words", "_output_line", r"\$island\[\$island\.home\]\.decoration",
+                        "_cumDesc"
                     }))
                 )
             ):
@@ -2612,6 +2613,7 @@ class ParseTextJS:
 
             if any(_ in line for _ in {
                 "result.text", "text:", "result.options.push", ".name;",
+                '" : "',
             }):
                 results.append(True)
             elif (
