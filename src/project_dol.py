@@ -436,8 +436,37 @@ class ProjectDOL:
                     if item["original"] != item["translation"]
                 ]
                 integrated_dict.extend(json_data)
+        i18n_dict = await self._wash_json(integrated_dict)
         with open(DIR_RAW_DICTS / self._type / self._version / "json" / "game" / "i18n.json", "w", encoding="utf-8") as fp:
-            json.dump(integrated_dict, fp, ensure_ascii=False, indent=2)
+            json.dump(i18n_dict, fp, ensure_ascii=False, indent=2)
+
+    @staticmethod
+    async def _wash_json(integrated_dict: list[dict]) -> dict:
+        """处理为 i18n mod 可接受的格式"""
+        i18n_dict = {
+            "typeB": {
+                "TypeBOutputText": [],
+                "TypeBInputStoryScript": []
+            }
+        }
+        for data in integrated_dict:
+            result_data = {
+                "f": data["original"], "t": data["translation"], "pos": data["pos"]
+            }
+
+            filename = Path(data["filepath"]).name
+            result_data["fileName"] = filename
+            if filename.endswith(".js"):
+                result_data["js"] = True
+            elif filename.endswith(".css"):
+                result_data["css"] = True
+
+            if data["passage"]:
+                result_data["pN"] = data["passage"]
+                i18n_dict["typeB"]["TypeBInputStoryScript"].append(result_data)
+                continue
+            i18n_dict["typeB"]["TypeBOutputText"].append(result_data)
+        return i18n_dict
 
     """ 替换游戏原文 """
     async def apply_dicts(self, blacklist_dirs: list[str] = None, blacklist_files: list[str] = None, debug_flag: bool = False, type_manual: str = None):

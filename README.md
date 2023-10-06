@@ -10,7 +10,7 @@
 4. 用最新的汉化包替换自动提取出的汉化包，保存失效值
 5. 覆写游戏源文件的汉化 (检查简单的翻译错误如全角逗号: `"，`, 尖括号不对齐: `<< >`)
 6. 修改版本号 `chs-x.y.z`
-7. 生成供 `i18n` mod 加载的汉化字典包 (默认在 `raw_dicts/common/{VERSION}/json/i18n.json`)
+7. 生成供 `i18n` mod 加载的汉化字典包 (默认在 `data/raw_dicts/common/{VERSION}/json/i18n.json`)
 8. 编译为 `html` 并用默认浏览器运行 (默认在 `degrees-of-lewdity-master`)
 
 ## 食用方法
