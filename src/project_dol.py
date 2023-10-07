@@ -539,10 +539,10 @@ class ProjectDOL:
                 #     logger.warning(f"\t!!! 可能的方括号数量错误：{en} | {zh} | https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
                 #     if debug_flag:
                 #         webbrowser.open(f"https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
-                # if self._is_different_event(zh, en):
-                #     logger.warning(f"\t!!! 可能的事件名称错翻：{en} | {zh} | https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
-                #     if debug_flag:
-                #         webbrowser.open(f"https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
+                if self._is_different_event(zh, en):
+                    logger.warning(f"\t!!! 可能的事件名称错翻：{en} | {zh} | https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
+                    if debug_flag:
+                        webbrowser.open(f"https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
 
                 for idx_, target_row in enumerate(raw_targets_temp):
                     if not target_row.strip():

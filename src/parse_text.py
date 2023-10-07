@@ -460,7 +460,7 @@ class ParseTextTwee:
                     "_thighaction", "_npccr", "_npcff", r"\$_doText", "_youraction",
                     "_otheraction", "_enjoying", "_mydesc", "_smoltext", r"\$_npc",
                     r"\$_pussyDesc", r"\$_penis", "_penis", "_pron", "_eagerclimax",
-                    "_dick", r"\$_pp", "_eagerfor"
+                    "_dick", r"\$_pp", "_eagerfor", "_pp"
                 })
                 or "<<run delete " in line
                 or "<<if $NPCList" in line
@@ -1892,7 +1892,7 @@ class ParseTextTwee:
                         r"_luxuryTip\.pushUnique", "_tool", "_fluid", "_he", "_He", "_him", "_His", "_his", "_exercise",
                         "_pronoun", "_pronoun2", "_own", r"\$_balls", "_loc_text", "_writing", r"\$alex_parent", r"\$_parasiteMessage",
                         "_tmpsmoving", "_gender_body_words", "_bodysize_words", "_output_line", r"\$island\[\$island\.home\]\.decoration",
-                        "_cumDesc"
+                        "_cumDesc", r"_pregnantNPC\[_pregEnabled\.nam\]"
                     }))
                 )
             ):
