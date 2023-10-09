@@ -149,7 +149,7 @@ async def process_common(dol_common: ProjectDOL, pt: Paratranz, chs_version: str
     dol_common.change_version(chs_version)  # 更换游戏版本号
 
     """ 编译成游戏 """
-    dol_common.compile()
+    dol_common.compile(chs_version)
     dol_common.package_zip(chs_version)  # 自动打包成 zip
     dol_common.run()  # 运行
 

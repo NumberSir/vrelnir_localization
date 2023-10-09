@@ -460,7 +460,8 @@ class ParseTextTwee:
                     "_thighaction", "_npccr", "_npcff", r"\$_doText", "_youraction",
                     "_otheraction", "_enjoying", "_mydesc", "_smoltext", r"\$_npc",
                     r"\$_pussyDesc", r"\$_penis", "_penis", "_pron", "_eagerclimax",
-                    "_dick", r"\$_pp", "_eagerfor", "_pp"
+                    "_dick", r"\$_pp", "_eagerfor", "_pp", "_hammering", r"\$_hands",
+                    r"\$_genital"
                 })
                 or "<<run delete " in line
                 or "<<if $NPCList" in line

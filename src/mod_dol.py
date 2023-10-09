@@ -49,7 +49,7 @@ class ModDol:
         async with httpx.AsyncClient() as client:
             for _ in range(3):
                 try:
-                    response = await client.head(archive_url,timeout=60, follow_redirects=True)
+                    response = await client.head(archive_url, timeout=60, follow_redirects=True)
                     filesize = int(response.headers["Content-Length"])
                     chunks = await chunk_split(filesize, 64)
                 except (httpx.ConnectError, KeyError) as e:

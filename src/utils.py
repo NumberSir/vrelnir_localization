@@ -17,12 +17,12 @@ async def chunk_split(filesize: int, chunk: int = 2) -> list[list[int]]:
     return result
 
 
-async def chunk_download(url: str, client: httpx.AsyncClient, start: int, end: int, idx: int, full: int, save_path: Path):
+async def chunk_download(url: str, client: httpx.AsyncClient, start: int, end: int, idx: int, full: int, save_path: Path, headers_: dict = None):
     """切片下载"""
     if not save_path.exists():
         with open(save_path, "wb") as fp:
             pass
-    headers = {"Range": f"bytes={start}-{end}"}
+    headers = {"Range": f"bytes={start}-{end}"} | headers_
     response = await client.get(url, headers=headers, follow_redirects=True, timeout=60)
     async with aopen(save_path, "rb+") as fp:
         await fp.seek(start)

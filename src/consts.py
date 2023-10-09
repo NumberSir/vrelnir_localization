@@ -23,6 +23,10 @@ PARATRANZ_PROJECT_WE_ID = 8131  # DOL-WE 项目 ID
 CHINESE_VERSION = os.getenv("CHINESE_VERSION") or ""  # 必填，参考 README
 SOURCE_TYPE = os.getenv("SOURCE_TYPE") or "common"  # 必填，common 或 dev
 
+"""Modloader"""
+REPOSITORY_MODLOADER_ARTIFACTS = "https://api.github.com/repos/Lyoko-Jeremie/DoLModLoaderBuild/actions/artifacts"
+GITHUB_ACCESS_TOKEN = os.getenv("GITHUB_ACCESS_TOKEN") or ""
+
 """源代码仓库"""
 REPOSITORY_URL_COMMON = "https://gitgud.io/Vrelnir/degrees-of-lewdity"
 REPOSITORY_ZIP_URL_COMMON = "https://gitgud.io/Vrelnir/degrees-of-lewdity/-/archive/master/degrees-of-lewdity-master.zip"
@@ -44,11 +48,13 @@ DIR_GAME_ROOT_COMMON_NAME = "degrees-of-lewdity-master"
 DIR_GAME_ROOT_COMMON = DIR_ROOT / DIR_GAME_ROOT_COMMON_NAME
 DIR_GAME_TEXTS_COMMON = DIR_GAME_ROOT_COMMON / "game"
 DIR_GAME_CSS_COMMON = DIR_GAME_ROOT_COMMON / "modules" / "css"
+DIR_GAME_ANDROID_ROOT_COMMON = DIR_GAME_ROOT_COMMON / "devTools" / "androidsdk" / "image" / "cordova"
 
 DIR_GAME_ROOT_DEV_NAME = "degrees-of-lewdity-dev"
 DIR_GAME_ROOT_DEV = DIR_ROOT / DIR_GAME_ROOT_DEV_NAME
 DIR_GAME_TEXTS_DEV = DIR_GAME_ROOT_DEV / "game"
 DIR_GAME_CSS_DEV = DIR_GAME_ROOT_DEV / "modules" / "css"
+DIR_GAME_ANDROID_ROOT_DEV = DIR_GAME_ROOT_DEV / "devTools" / "androidsdk" / "image" / "cordova"
 
 DIR_GAME_ROOT_WORLD_NAME = "degrees-of-lewdity-world-expansion-master"
 DIR_GAME_ROOT_WORLD = DIR_ROOT / DIR_GAME_ROOT_WORLD_NAME
@@ -284,14 +290,16 @@ __all__ = [
     "DIR_GAME_ROOT_COMMON",
     "DIR_GAME_TEXTS_COMMON",
     "DIR_GAME_CSS_COMMON",
-    "DIR_GAME_CSS_DEV",
-    "DIR_GAME_CSS_WORLD",
-    "DIR_GAME_ROOT_WORLD_NAME",
-    "DIR_GAME_ROOT_WORLD",
-    "DIR_GAME_TEXTS_WORLD",
+    "DIR_GAME_ANDROID_ROOT_COMMON",
     "DIR_GAME_ROOT_DEV_NAME",
     "DIR_GAME_ROOT_DEV",
     "DIR_GAME_TEXTS_DEV",
+    "DIR_GAME_CSS_WORLD",
+    "DIR_GAME_CSS_DEV",
+    "DIR_GAME_ANDROID_ROOT_DEV",
+    "DIR_GAME_ROOT_WORLD_NAME",
+    "DIR_GAME_ROOT_WORLD",
+    "DIR_GAME_TEXTS_WORLD",
     "DIR_RAW_DICTS",
     "DIR_PARATRANZ",
     "FILE_REPOSITORY_ZIP",
@@ -307,4 +315,7 @@ __all__ = [
     "DirNamesJS",
     "FileNamesJS",
     "HIGH_RATE_LINKS",
+
+    "REPOSITORY_MODLOADER_ARTIFACTS",
+    "GITHUB_ACCESS_TOKEN"
 ]

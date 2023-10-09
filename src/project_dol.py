@@ -8,6 +8,7 @@ from typing import Any
 from zipfile import ZipFile
 from urllib.parse import quote
 from zipfile import ZipFile as zf
+from aiofiles import open as aopen
 
 import asyncio
 import json
@@ -871,9 +872,10 @@ class ProjectDOL:
         logger.warning(f"\t- {self._mention_name}汉化目录已删除")
 
     """ 编译游戏 """
-    def compile(self):
+    def compile(self, chs_version: str = ""):
         """编译游戏"""
         logger.info("===== 开始编译游戏 ...")
+        # self._before_compile(chs_version)
         if platform.system() == "Windows":
             self._compile_for_windows()
         elif platform.system() == "Linux":
@@ -881,6 +883,31 @@ class ProjectDOL:
         else:
             raise Exception("什么电脑系统啊？")
         logger.info("##### 游戏编译完毕 !")
+
+    def _before_compile(self, chs_version: str = ""):
+        """修改一些编译设置"""
+        with open(self.game_dir / "compile.bat", "r", encoding="utf-8") as fp:
+            content = fp.read()
+        content = content.replace("Degrees of Lewdity VERSION.html", "Degrees of Lewdity.html")
+        with open(self.game_dir / "compile.bat", "w", encoding="utf-8") as fp:
+            fp.write(content)
+
+        with open(self.game_dir / "devTools" / "androidsdk" / "image" / "cordova" / "comfig.xml", "r", encoding="utf-8") as fp:
+            lines = fp.readlines()
+        for idx, line in enumerate(lines):
+            if 'id="' in line:
+                lines[idx] = 'id="dol-chs"\n'
+                continue
+            if 'version="' in line:
+                lines[idx] = f'version="{chs_version}"\n'
+                continue
+            if 'android-packageName="' in line:
+                lines[idx] = 'android-packageName="com.vrelnir.DegreesOfLewdityCHS"\n'
+                continue
+            if '<description>Degrees of Lewdity</description>' in line:
+                lines[idx] = '<description>Degrees of Lewdity 汉化版</description>\n'
+        with open(self.game_dir / "devTools" / "androidsdk" / "image" / "cordova" / "comfig.xml", "w", encoding="utf-8") as fp:
+            fp.writelines(lines)
 
     def _compile_for_windows(self):
         """win"""
@@ -976,6 +1003,35 @@ class ProjectDOL:
     """ 在浏览器中启动 """
     def run(self):
         webbrowser.open((self.game_dir / "Degrees of Lewdity VERSION.html").__str__())
+
+    """ i18n 相关"""
+    async def download_modloader_autobuild(self):
+        async with httpx.AsyncClient() as client:
+            await self._get_latest_modloader_autobuild(client)
+
+    async def _get_latest_modloader_autobuild(self, client: httpx.AsyncClient):
+        response = await client.get(REPOSITORY_MODLOADER_ARTIFACTS)
+        url = response.json()["artifacts"][0]["archive_download_url"]
+
+        logger.info(f"url: {url}")
+        async with client.stream("GET", url, headers={
+            "accept": "application/vnd.github+json",
+            "Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"
+        }, follow_redirects=True, timeout=60) as response:
+            async with aopen(DIR_TEMP_ROOT / "modloader.zip", "wb+") as afp:
+                async for char in response.iter_raw():
+                    await afp.write(char)
+
+
+
+        # response = await client.get(url, headers={
+        #     "accept": "application/vnd.github+json",
+        #     "Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"
+        # }, follow_redirects=True, timeout=60)
+        # logger.info(f"status: {response.status_code}")
+        # with open(DIR_TEMP_ROOT / "modloader.zip", "wb") as fp:
+        #     fp.write(response.content)
+
 
 
 __all__ = [
