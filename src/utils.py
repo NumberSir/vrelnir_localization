@@ -22,7 +22,7 @@ async def chunk_download(url: str, client: httpx.AsyncClient, start: int, end: i
     if not save_path.exists():
         with open(save_path, "wb") as fp:
             pass
-    headers = {"Range": f"bytes={start}-{end}"} | headers_
+    headers = {"Range": f"bytes={start}-{end}"} | headers_ if headers_ else {"Range": f"bytes={start}-{end}"}
     response = await client.get(url, headers=headers, follow_redirects=True, timeout=60)
     async with aopen(save_path, "rb+") as fp:
         await fp.seek(start)
