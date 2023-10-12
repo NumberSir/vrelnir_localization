@@ -438,7 +438,7 @@ class ProjectDOL:
                 ]
                 integrated_dict.extend(json_data)
         i18n_dict = await self._wash_json(integrated_dict)
-        with open(DIR_RAW_DICTS / self._type / self._version / "json" / "game" / "i18n.json", "w", encoding="utf-8") as fp:
+        with open(DIR_DATA_ROOT / "json" / "i18n.json", "w", encoding="utf-8") as fp:
             json.dump(i18n_dict, fp, ensure_ascii=False, indent=2)
 
     @staticmethod

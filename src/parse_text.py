@@ -373,7 +373,7 @@ class ParseTextTwee:
                 or self.is_widget_link(line)
                 or self.is_widget_set_to(line, {
                     r"\$_text_output", r"\$_output", "_linkOption1", "_linkOption2",
-                    r"\$_itemNames"
+                    r"\$_itemNames", r"\$_link", r"\$_linkOption"
                 })
                 or "__" in line
                 or '? "' in line
@@ -1897,6 +1897,9 @@ class ParseTextTwee:
                     }))
                 )
             ):
+                if '.replaceAll("["' in line or '.replace(/\[/g' in line:
+                    results.append(False)
+                    continue
                 results.append(True)
                 continue
             elif (
