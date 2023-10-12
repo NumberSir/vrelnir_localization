@@ -291,7 +291,7 @@ class ProjectDOL:
                 continue
 
             for file in file_list:
-                common_file_path = DIR_PARATRANZ / "common" / "utf8" / Path().joinpath(*(Path(root) / file).parts[10:])
+                common_file_path = DIR_PARATRANZ / "common" / "utf8" / Path().joinpath(*(Path(root) / file).split("game//")[1])
                 if not common_file_path.exists():
                     continue
                 mod_file_path = Path(root) / file
