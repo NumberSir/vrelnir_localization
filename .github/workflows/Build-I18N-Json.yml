@@ -1,4 +1,4 @@
-name: DOL-CHS Compile
+name: Build I18N
 run-name: 小月珰正在打包汉化词典，吱嘎
 
 on:
