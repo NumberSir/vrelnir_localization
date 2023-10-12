@@ -1,4 +1,5 @@
 import asyncio
+from pathlib import Path
 
 from src import (
     logger,
@@ -37,6 +38,7 @@ async def process_common(dol_common: ProjectDOL, pt: Paratranz, chs_version: str
 
 
 async def main():
+    logger.info(f"filepath: {Path(__file__)}")
     dol_common = ProjectDOL(type_=SOURCE_TYPE)  # 改成 “dev” 则下载最新开发版分支的内容 common原版
 
     pt_common = Paratranz(type_=SOURCE_TYPE)
