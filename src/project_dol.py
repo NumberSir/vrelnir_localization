@@ -222,7 +222,7 @@ class ProjectDOL:
                 for idx_, _ in enumerate(lines)
                 if able_lines[idx_]
             ]
-            results_lines_json = await self._build_json_results_with_passage(lines, able_lines, content, file.__str__().split("game\\")[1])
+            results_lines_json = await self._build_json_results_with_passage(lines, able_lines, content, file.__str__().split("\\game\\")[-1].split("/game/")[-1])
         except IndexError:
             logger.error(f"lines: {len(lines)} - parsed: {len(able_lines)}| {file}")
             results_lines_csv = None
