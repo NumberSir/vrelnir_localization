@@ -32,7 +32,7 @@ jobs:
       - name: 安装 Python 所需库
         run: pip install -r requirements.txt
       - name: 运行 Python 生成 i18n.json (在 data/json/i18n.json)
-        run: python ./core/build.py
+        run: python ./build.py
       - name: 上传 i18n.json
         uses: actions/upload-artifact@v3
         with:
