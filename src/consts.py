@@ -38,7 +38,7 @@ REPOSITORY_URL_DEV = "https://gitgud.io/Vrelnir/degrees-of-lewdity"
 REPOSITORY_ZIP_URL_DEV = "https://gitgud.io/Vrelnir/degrees-of-lewdity/-/archive/dev/degrees-of-lewdity-dev.zip"
 
 """本地目录"""
-DIR_ROOT = Path(Path().root)
+DIR_ROOT = Path(__file__).parent.parent
 DIR_DATA_ROOT = DIR_ROOT / "data"
 DIR_JSON_ROOT = DIR_DATA_ROOT / "json"
 DIR_TEMP_ROOT = DIR_DATA_ROOT / "temp"
