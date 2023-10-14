@@ -178,7 +178,10 @@ class ParseTextTwee:
 
             if "setup.breastsizes" in line:
                 results.append(True)
-            elif '"name": "' in line:
+            elif (
+                '"name": "' in line
+                or '"message": "' in line
+            ):
                 results.append(True)
             else:
                 results.append(False)
@@ -367,6 +370,7 @@ class ParseTextTwee:
             elif (
                 self.is_tag_span(line)
                 or '<<wearlink_norefresh "' in line
+                or '>>.' in line
                 or self.is_tag_label(line)
                 or self.is_widget_print(line)
                 or self.is_widget_option(line)
@@ -512,6 +516,7 @@ class ParseTextTwee:
                     "_wraith_output"
                 })
                 or '<<skill_difficulty "' in line
+                or ">>." in line
             ):
                 results.append(True)
             elif self.is_only_widgets(line) or self.is_json_line(line):
@@ -659,7 +664,8 @@ class ParseTextTwee:
             ):
                 results.append(True)
             elif any(_ in line for _ in {
-                "<<wheeze"
+                "<<wheeze",
+                ">>."
             }):
                 results.append(True)
             elif self.is_only_widgets(line) or self.is_json_line(line) or ("<<set " in line and ">>" not in line):
@@ -1553,6 +1559,7 @@ class ParseTextTwee:
                 })
                 or "<<print either(" in line and ">>" in line
                 or 'name: "' in line or 'name : "' in line
+                or ">>." in line
                 or self.is_widget_link(line)
             ):
                 results.append(True)
@@ -1936,8 +1943,7 @@ class ParseTextTwee:
                 or '? "' in line
                 or "<<gagged_speech" in line
                 or "<<mirror" in line
-                or "<<bottom>>." in line
-                or "<<breasts>>." in line
+                or ">>." in line
             ):
                 results.append(True)
             elif (

@@ -3,6 +3,8 @@
 *.iml
 *.zip
 *.7z
+*.xmind
+
 .env
 .vscode
 .idea
