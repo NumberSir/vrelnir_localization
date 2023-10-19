@@ -515,7 +515,7 @@ class ParseTextTwee:
                 or self.is_widget_set_to(line, {
                     "_wraith_output"
                 })
-                or '<<skill_difficulty "' in line
+                or '<<skill_difficulty ' in line
                 or ">>." in line
             ):
                 results.append(True)
@@ -767,7 +767,7 @@ class ParseTextTwee:
                 r"\$_text_output", "_text_output", "_targetlistall",
                 "_leftaction", "_feetaction", "_mouthaction",
                 "_targetlistarms", "_rightaction", r"\$struggle\.descriptions",
-                "_fulldesc"
+                "_fulldesc", r"\$_desc"
             }):
                 results.append(True)
             elif self.is_widget_print(line):
@@ -1944,6 +1944,7 @@ class ParseTextTwee:
                 or "<<gagged_speech" in line
                 or "<<mirror" in line
                 or ">>." in line
+                or "<<skill_difficulty " in line
             ):
                 results.append(True)
             elif (
