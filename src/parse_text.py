@@ -1900,7 +1900,7 @@ class ParseTextTwee:
                         r"_luxuryTip\.pushUnique", "_tool", "_fluid", "_he", "_He", "_him", "_His", "_his", "_exercise",
                         "_pronoun", "_pronoun2", "_own", r"\$_balls", "_loc_text", "_writing", r"\$alex_parent", r"\$_parasiteMessage",
                         "_tmpsmoving", "_gender_body_words", "_bodysize_words", "_output_line", r"\$island\[\$island\.home\]\.decoration",
-                        "_cumDesc", r"_pregnantNPC\[_pregEnabled\.nam\]"
+                        "_cumDesc", r"_pregnantNPC\[_pregEnabled\.nam\]", "_displayName"
                     }))
                 )
             ):
