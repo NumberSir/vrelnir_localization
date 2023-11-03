@@ -44,13 +44,16 @@ def paratranz2changelog():
         data = json.load(fp)
 
     data = [
-        item["original"]
+        (item["original"], item["translation"])
         for item in data
     ]
-    for item in data:
-        for idx, line in enumerate(CHANGELOG_TXT):
-            if line == item:
-                CHANGELOG_TXT[idx] = item
+    for en, cn in data:
+        for idx_changelog, line in enumerate(CHANGELOG_TXT):
+            line = line.strip()
+            print(line)
+            if line == en:
+                print(line)
+                CHANGELOG_TXT[idx_changelog] = f"{cn}\n"
                 continue
     with open(Path(__file__).parent / f"{VERSION}.txt", "w", encoding="utf-8") as fp:
         fp.writelines(CHANGELOG_TXT)

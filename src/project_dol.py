@@ -5,9 +5,9 @@ import re
 from .ast import Acorn, JSSyntaxError
 from pathlib import Path
 from typing import Any
-from zipfile import ZipFile
+from zipfile import ZipFile, ZIP_DEFLATED
 from urllib.parse import quote
-from zipfile import ZipFile as zf
+from zipfile import ZipFile as zf, ZIP_DEFLATED
 from aiofiles import open as aopen
 
 import asyncio
@@ -936,7 +936,7 @@ class ProjectDOL:
         today = datetime.datetime.now().strftime("%Y%m%d")
         with open(DIR_GAME_ROOT_COMMON / "version", "r", encoding="utf-8") as fp:
             version = fp.read()
-        with zf(DIR_GAME_ROOT_COMMON / f"dol-{chs_version}-{today}.zip", "w") as zfp:
+        with zf(DIR_GAME_ROOT_COMMON / f"dol-{chs_version}-{today}.zip", "w", compresslevel=9, compression=ZIP_DEFLATED) as zfp:
             for root, dir_list, file_list in os.walk(DIR_GAME_ROOT_COMMON):
                 for file in file_list:
                     filepath = Path((Path(root) / file).__str__().split("degrees-of-lewdity-master/")[-1].split("degrees-of-lewdity-master\\")[-1])
@@ -948,7 +948,7 @@ class ProjectDOL:
                         or "degrees-of-lewdity-master\\img\\" in root
                         or filepath == Path("LICENSE")
                     ):
-                        zfp.write(filename=DIR_GAME_ROOT_COMMON / filepath, arcname=filepath)
+                        zfp.write(filename=DIR_GAME_ROOT_COMMON / filepath, arcname=filepath, compresslevel=9)
 
     async def copy_to_git(self):
         """复制到git"""
