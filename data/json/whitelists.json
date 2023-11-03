@@ -2,17 +2,17 @@
   "03-JavaScript": [
     "base.js",
     "bedroomPills.js",
+    "clothing-shop-v2.js",
+    "colour-namer.js",
     "debugMenu.js",
     "eyesRelated.js",
     "furniture.js",
     "idb_backend.js",
     "ingame.js",
+    "npcCompressor.js",
     "sexShopMenu.js",
     "sexToysInventory.js",
-    "UI.js",
-    "npcCompressor.js",
-    "colour-namer.js",
-    "clothing-shop-v2.js"
+    "UI.js"
   ],
   "04-Variables": [
     "colours.js",

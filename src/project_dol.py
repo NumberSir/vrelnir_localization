@@ -128,6 +128,15 @@ class ProjectDOL:
             zfp.extractall(DIR_ROOT)
         logger.info(f"##### 最新{self._mention_name}仓库内容已解压! \n")
 
+    async def patch_format_js(self):
+        """汉化 format.js"""
+        logger.info(f"===== 开始替换 format.js ...")
+        shutil.copyfile(
+            DIR_DATA_ROOT / "jsmodule" / "format.js",
+            DIR_GAME_ROOT_COMMON / "devTools" / "tweego" / "storyFormats" / "sugarcube-2" / "format.js"
+        )
+        logger.info(f"##### format.js 已替换！\n")
+
     """ 创建生肉词典 """
     async def create_dicts(self):
         """创建字典"""
