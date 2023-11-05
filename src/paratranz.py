@@ -21,7 +21,6 @@ class Paratranz:
         os.makedirs(DIR_PARATRANZ, exist_ok=True)
         with contextlib.suppress(httpx.TimeoutException):
             await self.trigger_export()
-            await asyncio.sleep(10)
 
         async with httpx.AsyncClient() as client:
             flag = False

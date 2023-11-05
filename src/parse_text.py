@@ -984,11 +984,13 @@ class ParseTextTwee:
                     "_trimester",  "_vaginaWetnessTextConfig",
                     "_childType", r"\$_pregnancyRisk", r"\$_number",
                     "_milkCapacityTextConfig", r"\$_heatRutDisplay",
-                    r"\$_bellyText"
+                    r"\$_bellyText", r"\$_sourceText", r"\$_arousedText"
                 })
                 or "bad.pushUnique" in line
                 or "good.pushUnique" in line
                 or ">>." in line
+                or "$_source.push" in line
+                or "$_arousal.push" in line
             ):
                 results.append(True)
             elif (
@@ -1902,7 +1904,8 @@ class ParseTextTwee:
                         "_pronoun", "_pronoun2", "_own", r"\$_balls", "_loc_text", "_writing", r"\$alex_parent", r"\$_parasiteMessage",
                         "_tmpsmoving", "_gender_body_words", "_bodysize_words", "_output_line", r"\$island\[\$island\.home\]\.decoration",
                         "_cumDesc", r"_pregnantNPC\[_pregEnabled\.nam\]", "_displayName", "_random_clothes", r"\$_mask",
-                        "_undies", "_overLower", "_whitStreetUndies", "_highestclothinglower"
+                        "_undies", "_overLower", "_whitStreetUndies", "_highestclothinglower", "_respond", "_ly", "_is_done",
+                        "_poster"
                     }))
                 )
             ):
