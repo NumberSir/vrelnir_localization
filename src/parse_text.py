@@ -666,7 +666,8 @@ class ParseTextTwee:
                 results.append(True)
             elif any(_ in line for _ in {
                 "<<wheeze",
-                ">>."
+                ">>.",
+                "$worn."
             }):
                 results.append(True)
             elif self.is_only_widgets(line) or self.is_json_line(line) or ("<<set " in line and ">>" not in line):
@@ -1905,7 +1906,7 @@ class ParseTextTwee:
                         "_tmpsmoving", "_gender_body_words", "_bodysize_words", "_output_line", r"\$island\[\$island\.home\]\.decoration",
                         "_cumDesc", r"_pregnantNPC\[_pregEnabled\.nam\]", "_displayName", "_random_clothes", r"\$_mask",
                         "_undies", "_overLower", "_whitStreetUndies", "_highestclothinglower", "_respond", "_ly", "_is_done",
-                        "_poster"
+                        "_poster", "_childrenText"
                     }))
                 )
             ):
