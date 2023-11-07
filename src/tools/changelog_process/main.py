@@ -9,7 +9,7 @@ CHANGELOG_TXT: list | None = None
 
 def changelog2paratranz():
     global VERSION, CHANGELOG_TXT
-    with open(Path(__file__).parent.parent.parent / "degrees-of-lewdity-master" / "DoL Changelog.txt", "r", encoding="utf-8") as fp:
+    with open(Path(__file__).parent.parent.parent.parent / "degrees-of-lewdity-master" / "DoL Changelog.txt", "r", encoding="utf-8") as fp:
         lines = fp.readlines()
 
     current_version = lines[0].strip()  # 0.4.3.0
@@ -30,7 +30,7 @@ def changelog2paratranz():
             "translation": ""
         } for line in lines if line.strip()
     ]
-    with open(Path(__file__).parent.parent.parent / "data" / "json" / f"{current_version}.json", "w", encoding="utf-8") as fp:
+    with open(Path(__file__).parent.parent.parent.parent / "data" / "json" / f"{current_version}.json", "w", encoding="utf-8") as fp:
         json.dump(result, fp, ensure_ascii=False, indent=2)
     VERSION = current_version
     CHANGELOG_TXT = lines
