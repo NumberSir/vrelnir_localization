@@ -11,7 +11,6 @@ import re
 from enum import Enum
 from pathlib import Path
 from src.consts import *
-from loguru import logger
 from aiofiles import open as aopen
 
 SELF_ROOT = Path(__file__).parent
@@ -95,8 +94,7 @@ class VariablesProcess:
         with open(DIR_DATA_ROOT / "json" / "variables_notations.json", "w", encoding="utf-8") as fp:
             json.dump(new_data, fp, ensure_ascii=False, indent=2)
 
-    async def fetch_all_set_to_content(self):
-        tasks = set()
+    def fetch_all_set_to_content(self):
         global ALL_NEEDED_TRANSLATED_SET_TO_CONTENTS
 
         if ALL_NEEDED_TRANSLATED_SET_TO_CONTENTS:
@@ -105,12 +103,12 @@ class VariablesProcess:
         if (SELF_ROOT / "setto" / "_needed_translated_set_to_contents.json").exists():
             with open(SELF_ROOT / "setto" / "_needed_translated_set_to_contents.json", "r", encoding="utf-8") as fp:
                 data = json.load(fp)
+            ALL_NEEDED_TRANSLATED_SET_TO_CONTENTS = data
             return data
 
         for file in self._all_file_paths:
-            tasks.add(self._fetch_all_set_to_content(file))
+            self._fetch_all_set_to_content(file)
 
-        await asyncio.gather(*tasks)
         os.makedirs(SELF_ROOT / "setto", exist_ok=True)
         with open(SELF_ROOT / "setto" / "_set_to_contents.json", "w", encoding="utf-8") as fp:
             json.dump(self._categorize_all_set_to_contents, fp, ensure_ascii=False, indent=2)
@@ -129,10 +127,10 @@ class VariablesProcess:
 
         return self._categorize_all_needed_translated_set_to_contents
 
-    async def _fetch_all_set_to_content(self, file: Path):
+    def _fetch_all_set_to_content(self, file: Path):
         filename = file.name
-        async with aopen(file, "r", encoding="utf-8") as fp:
-            raw = await fp.read()
+        with open(file, "r", encoding="utf-8") as fp:
+            raw = fp.read()
         all_set_to_contents = re.findall(Regexes.SET_TO_REGEXES.value, raw)
         if not all_set_to_contents:
             return
@@ -150,11 +148,6 @@ class VariablesProcess:
                 target = True if target == "true" else False
             elif target == "null":
                 target = None
-            elif target.startswith("[") or target.startswith("{"):
-                try:
-                    target = json.loads(target)
-                except json.JSONDecodeError:
-                    pass
 
             if var not in var_targets_dict:
                 var_targets_dict[var] = [target]
@@ -165,7 +158,6 @@ class VariablesProcess:
                 var_lines_dict[var] = [line]
             else:
                 var_lines_dict[var].append(line)
-
 
         self._categorize_all_set_to_contents.append({
             "path": file.__str__(),
@@ -225,54 +217,54 @@ class VariablesProcess:
             return False
 
         # 衣服
-        if isinstance(target, str) and re.findall(r"\$worn.+?\.name", target):
-            return True
+        # if isinstance(target, str) and any(_ for _ in [
+        #     re.findall(r"\$worn.+?\.name", target),
+        #     "desc" in target or "Desc" in target,
+        #     "text" in target or "Text" in target,
+        #     "name" in target or "Name" in target
+        # ]):
+        #     return True
 
-        if all(
-            _ not in target
-            for _ in {
-                "'", '"', "`",
-                # 字符串方法
-                ".concat(",
-                ".endsWith(",
-                ".includes(",
-                ".indexOf(",
-                ".length",
-                ".match(",
-                ".replace(",
-                ".search(",
-                ".slice(",
-                ".split(",
-                ".startsWith(",
-                ".substr(",
-                ".substring(",
-                ".toLowerCase(",
-                ".toUpperCase(",
-                ".trim("
-                ".trimEnd("
-                ".trimStart(",
-                ".name"
-            }
-        ):
-            return False
+        # if any(
+        #     _ in target
+        #     for _ in {
+        #         "'", '"', "`",
+        #         # 字符串方法
+        #         ".concat(",
+        #         ".endsWith(",
+        #         ".includes(",
+        #         ".indexOf(",
+        #         ".length",
+        #         ".match(",
+        #         ".replace(",
+        #         ".search(",
+        #         ".slice(",
+        #         ".split(",
+        #         ".startsWith(",
+        #         ".substr(",
+        #         ".substring(",
+        #         ".toLowerCase(",
+        #         ".toUpperCase(",
+        #         ".trim("
+        #         ".trimEnd("
+        #         ".trimStart(",
+        #         ".name"
+        #     }
+        # ):
+        #     return True
 
         return True
 
 
-async def main():
+def main():
     var = VariablesProcess()
     var.fetch_all_file_paths()
-    await var.fetch_all_set_to_content()
+    var.fetch_all_set_to_content()
     # await var.fetch_all_variables()
     # await var.build_variables_notations()
 
-
-asyncio.run(main())
-
-
 if __name__ == '__main__':
-    asyncio.run(main())
-
+    main()
 
 __all__ = [
     "VariablesProcess"

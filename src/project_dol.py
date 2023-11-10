@@ -215,7 +215,7 @@ class ProjectDOL:
             content = fp.read()
         if file.name.endswith(SUFFIX_TWEE):
             pt = ParseTextTwee(lines, file)
-            await pt.pre_parse_set_to()
+            pre_bool_list = pt.pre_parse_set_to()
         elif file.name.endswith(SUFFIX_JS):
             pt = ParseTextJS(lines, file)
             target_file = f"{target_file}.js"
@@ -224,7 +224,7 @@ class ProjectDOL:
         able_lines = pt.parse()
         if file.name.endswith(SUFFIX_TWEE) and pt.pre_bool_list:
             able_lines = [
-                True if pt.pre_bool_list[idx] or line else False
+                True if pre_bool_list[idx] or line else False
                 for idx, line in enumerate(able_lines)
             ]
 
@@ -363,7 +363,11 @@ class ProjectDOL:
         logger.info(f"##### {self._mention_name}字典更新完毕 !\n")
 
     async def _update_for_gather(self, old_file: Path, new_file: Path, json_file: Path):
-        """gather 用"""
+        """
+        gather 用
+        :param old_file: 下载的汉化文件的绝对路径
+        :param new_file: 本地新抓字典文件的绝对路径
+        """
         if not new_file.exists():
             unavailable_file = DIR_RAW_DICTS / self._type / self._version / "csv" / "game" / "失效词条" / Path().joinpath(*old_file.parts[old_file.parts.index("utf8")+1:])
             os.makedirs(unavailable_file.parent, exist_ok=True)
@@ -414,7 +418,7 @@ class ProjectDOL:
             if old_en not in new_ens:
                 # logger.info(f"\t- old: {old_en}")
                 unavailables.append(old_data[idx_])
-        unavailable_file = DIR_RAW_DICTS / self._type / self._version / "csv" / "game" / "失效词条" / os.path.join(*old_file.parts[1:]) if unavailables else None
+        unavailable_file = DIR_RAW_DICTS / self._type / self._version / "csv" / "game" / "失效词条" / Path().joinpath(*old_file.parts[old_file.parts.index("utf8")+1:]) if unavailables else None
         with open(old_file,  "w", encoding="utf-8-sig", newline="") as fp:
             csv.writer(fp).writerows(old_data)
 

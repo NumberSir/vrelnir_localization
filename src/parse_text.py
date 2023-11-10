@@ -18,10 +18,10 @@ class ParseTextTwee:
         self._categorize_all_setto: list[dict] | None = None
         self._setto_bool_list = []
 
-    async def pre_parse_set_to(self):
+    def pre_parse_set_to(self):
         varp = VariablesProcess()
         varp.fetch_all_file_paths()
-        self._categorize_all_setto = await varp.fetch_all_set_to_content()
+        self._categorize_all_setto = varp.fetch_all_set_to_content()
 
         flag = False
         for item in self._categorize_all_setto:
@@ -54,6 +54,7 @@ class ParseTextTwee:
 
             if not flag:
                 self._setto_bool_list.append(False)
+        return self._setto_bool_list
 
     @property
     def pre_bool_list(self):
