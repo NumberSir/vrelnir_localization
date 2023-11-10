@@ -3,6 +3,7 @@ from pathlib import Path
 
 from . import logger
 from .consts import *
+from .tools.variables_process import VariablesProcess
 
 
 class ParseTextTwee:
@@ -13,6 +14,50 @@ class ParseTextTwee:
 
         self._filename = self._filepath.name  # 文件名
         self._filedir = self._filepath.parent  # 文件夹
+
+        self._categorize_all_setto: list[dict] | None = None
+        self._setto_bool_list = []
+
+    async def pre_parse_set_to(self):
+        varp = VariablesProcess()
+        varp.fetch_all_file_paths()
+        self._categorize_all_setto = await varp.fetch_all_set_to_content()
+
+        flag = False
+        for item in self._categorize_all_setto:
+            if Path(item["path"]) == self._filepath:
+                flag = True
+                compared_vars: list[dict] = item["vars"]
+
+        if not flag:
+            return
+
+        for line in self._lines:
+            flag = False
+            line = line.strip()
+            if not line:
+                self._setto_bool_list.append(False)
+                continue
+
+            if "<<set" not in line:
+                self._setto_bool_list.append(False)
+                continue
+
+            for var_item in compared_vars:
+                if f"<<set {var_item['var']} " not in line:
+                    continue
+
+                if any(var_line in line for var_line in var_item["lines"]):
+                    self._setto_bool_list.append(True)
+                    flag = True
+                    break
+
+            if not flag:
+                self._setto_bool_list.append(False)
+
+    @property
+    def pre_bool_list(self):
+        return self._setto_bool_list
 
     def parse(self) -> list[bool]:
         if DirNamesTwee.NORMAL.value in self._filedir.name:
@@ -219,12 +264,7 @@ class ParseTextTwee:
                 or self.is_only_marks(line)
             ):
                 results.append(False)
-            elif self.is_tag_span(line) or self.is_widget_set_to(line, {
-                r"\$_text_output", "_wearing", r"\$_output",
-                "_finally", r"\$_verb", "_output",
-                "_text_output", r"\$_pair", r"\$_a",
-                r"\$_clothes", r"\$_highestLevelCovered"
-            }):
+            elif self.is_tag_span(line):
                 results.append(True)
             elif "<<run $_output " in line:
                 results.append(True)
@@ -279,21 +319,15 @@ class ParseTextTwee:
                 results.append(False)
                 continue
 
-            if "<<set _notEquipped[$_slot]" in line:
-                results.append(True)
-            elif self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
+            if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
                 results.append(False)
             elif (
                 self.is_tag_span(line)
                 or self.is_tag_label(line)
                 or self.is_widget_option(line)
                 or self.is_widget_link(line)
-                or self.is_widget_set_to(line, {
-                    r"\$wearoutfittext", "_wardrobeName"
-                })
                 or "$_value2.name" in line
                 or "<<print $_label" in line
-                or "<<set $_options to []>>" in line
                 or "(No access)" in line
             ):
                 results.append(True)
@@ -375,10 +409,6 @@ class ParseTextTwee:
                 or self.is_widget_print(line)
                 or self.is_widget_option(line)
                 or self.is_widget_link(line)
-                or self.is_widget_set_to(line, {
-                    r"\$_text_output", r"\$_output", "_linkOption1", "_linkOption2",
-                    r"\$_itemNames", r"\$_link", r"\$_linkOption"
-                })
                 or "__" in line
                 or '? "' in line
             ):
@@ -455,26 +485,10 @@ class ParseTextTwee:
                 or self.is_widget_print(line)
                 or self.is_tag_label(line)
                 or self.is_widget_option(line)
-                or self.is_widget_set_to(line, {
-                    "_leftaction", "_rightaction", "_feetaction",
-                    "_targetlistarms", "_targetlistall", "_mouthaction",
-                    "_anusaction", "_actions", "_undressLeftTargets",
-                    "_undressRightTargets", "_handGuideOptions", "_penisaction",
-                    "_askActions", "_vaginaaction", "_text_output", "_chestaction",
-                    "_thighaction", "_npccr", "_npcff", r"\$_doText", "_youraction",
-                    "_otheraction", "_enjoying", "_mydesc", "_smoltext", r"\$_npc",
-                    r"\$_pussyDesc", r"\$_penis", "_penis", "_pron", "_eagerclimax",
-                    "_dick", r"\$_pp", "_eagerfor", "_pp", "_hammering", r"\$_hands",
-                    r"\$_genital"
-                })
                 or "<<run delete " in line
                 or "<<if $NPCList" in line
                 or "<<if ($NPCList" in line
                 or "<<takeKissVirginityNamed" in line
-                or "<<set _feetaction" in line
-                or "<<set _targetlist" in line
-                or "<<set _anonymous" in line
-                or "<<set _smollertext" in line
                 or "_smollertext.includes" in line
                 or "$NPCList[_j].breastsdesc." in line
             ):
@@ -512,10 +526,6 @@ class ParseTextTwee:
                 results.append(False)
             elif (
                 self.is_tag_span(line)
-                or self.is_widget_set_to(line, {
-                    "_wraith_output",
-                    r"\$stalk_clothes"
-                })
                 or '<<skill_difficulty ' in line
                 or ">>." in line
             ):
@@ -548,20 +558,7 @@ class ParseTextTwee:
                 results.append(True)
                 continue
 
-            if (
-                self.is_tag_span(line)
-                or self.is_widget_set_to(line, {
-                    r"\$NPCList\[_n\]\.hair",
-                    r"\$_desc",
-                    r"\$NPCList\[_slot\]\.fullDescription",
-                    r"\$NPCList\[_n\]\.fullDescription",
-                    r"\$NPCList\[_n\]\.breastsdesc",
-                    r"\$NPCList\[_n\]\.breastdesc",
-                    r"\$NPCList\[_n\]\.penisdesc",
-                    r"\$NPCList\[_xx\]\.penisdesc",
-                    "_brdes", "_pd", r"\$_strapon", "_dildoType", r"\$_modifier"
-                })
-            ):
+            if self.is_tag_span(line):
                 results.append(True)
             else:
                 results.append(False)
@@ -589,7 +586,6 @@ class ParseTextTwee:
                 '.desc.includes' in line
                 or "fullDesc.includes" in line
                 or "<<takeHandholdingVirginity" in line
-                or "<<set _Slimy" in line
             ):
                 results.append(True)
             elif self.is_only_widgets(line):
@@ -658,10 +654,6 @@ class ParseTextTwee:
             elif (
                 self.is_tag_span(line)
                 or self.is_widget_print(line)
-                or self.is_widget_set_to(line, {
-                    "_wraith_output", "_npcDescription", "_insertions",
-                    "_action"
-                })
             ):
                 results.append(True)
             elif any(_ in line for _ in {
@@ -698,12 +690,7 @@ class ParseTextTwee:
                 or self.is_only_marks(line)
             ):
                 results.append(False)
-            elif (
-                self.is_widget_set_to(line, {
-                    "_sexToy", "_sydneyText"
-                })
-                or line.startswith("`")
-            ):
+            elif line.startswith("`"):
                 results.append(True)
             elif (
                 self.is_only_widgets(line)
@@ -730,11 +717,7 @@ class ParseTextTwee:
             ):
                 results.append(False)
             elif (
-                self.is_widget_set_to(line, {
-                    r"\$_text_output", r"\$_sexToy", r"\$_strings",
-                    r"\$_toyOrFinger"
-                })
-                or line.startswith('"')
+                line.startswith('"')
                 or line.startswith('`')
                 or line.startswith('<<default>>')
                 or line.startswith('<<He>> ')
@@ -765,13 +748,6 @@ class ParseTextTwee:
                 or self.is_json_line(line)
             ):
                 results.append(False)
-            elif self.is_widget_set_to(line, {
-                r"\$_text_output", "_text_output", "_targetlistall",
-                "_leftaction", "_feetaction", "_mouthaction",
-                "_targetlistarms", "_rightaction", r"\$struggle\.descriptions",
-                "_fulldesc", r"\$_desc"
-            }):
-                results.append(True)
             elif self.is_widget_print(line):
                 results.append(True)
             elif self.is_only_widgets(line):
@@ -797,11 +773,6 @@ class ParseTextTwee:
                 or self.is_json_line(line)
             ):
                 results.append(False)
-            elif self.is_widget_set_to(line, {
-                "_leftaction", "_rightaction", "_feetaction",
-                "_targetlistarms", "_targetlistall", "_swarmname"
-            }):
-                results.append(True)
             elif self.is_only_widgets(line):
                 results.append(False)
             else:
@@ -822,10 +793,6 @@ class ParseTextTwee:
                 "<" in line and (
                     self.is_tag_span(line)
                     or self.is_tag_label(line)
-                    or ("<<set " in line and self.is_widget_set_to(line, {
-                        "_leftaction", "_rightaction", "_feetaction",
-                        "_targetlistarms", "_targetlistall"
-                    }))
                 )
             ):
                 results.append(True)
@@ -851,10 +818,7 @@ class ParseTextTwee:
                 or self.is_json_line(line)
             ):
                 results.append(False)
-            elif self.is_tag_span(line) or self.is_widget_set_to(line, {
-                "_text_output", "_leftaction", "_rightaction",
-                r"\$player\.virginity", r"\$_alongside"
-            }):
+            elif self.is_tag_span(line):
                 results.append(True)
             elif (
                 "<<if $_npc" in line
@@ -981,12 +945,6 @@ class ParseTextTwee:
                 or 'level: "None"' in line
                 or line == '<<if $_number isnot "an unknown number of" and $_number isnot "more than one" and $_number gt 1>>'
                 or self.is_tag_span(line)
-                or self.is_widget_set_to(line, {
-                    "_trimester",  "_vaginaWetnessTextConfig",
-                    "_childType", r"\$_pregnancyRisk", r"\$_number",
-                    "_milkCapacityTextConfig", r"\$_heatRutDisplay",
-                    r"\$_bellyText", r"\$_sourceText", r"\$_arousedText"
-                })
                 or "bad.pushUnique" in line
                 or "good.pushUnique" in line
                 or ">>." in line
@@ -1023,9 +981,6 @@ class ParseTextTwee:
                 "description: '" in line
                 or self.is_tag_span(line)
                 or "preText: " in line
-                or self.is_widget_set_to(line, {
-                    r"\$_pre", r"\$_flavor", r"\$_name"
-                })
             ):
                 results.append(True)
             elif (
@@ -1062,7 +1017,7 @@ class ParseTextTwee:
                 or self.is_only_marks(line)
             ):
                 results.append(False)
-            elif self.is_widget_set_to(line, {"_text_output", r"\$_writing"}) or self.is_tag_span(line):
+            elif self.is_tag_span(line):
                 results.append(True)
             elif self.is_only_widgets(line):
                 results.append(False)
@@ -1185,10 +1140,6 @@ class ParseTextTwee:
                 or "<<set $NPCList[_ii].penisdesc" in line
             ):
                 results.append(True)
-            elif self.is_tag_span(line) or self.is_widget_set_to(line, {
-                r"\$_npcName\.strapons", "_brdes", r"\$NPCList\[_npcno\]"
-            }):
-                results.append(True)
             elif "<<set $NPCName[_i" in line and all(_ not in line for _ in {
                 ".gender", ".pronoun", "size to", "1>>", "0>>", ".outfits.pushUnique(",
                 "_val", "_rollover", "9>>", "random", "undefined", "delete", "crossdressing"
@@ -1229,12 +1180,7 @@ class ParseTextTwee:
                 results.append(True)
                 continue
 
-            if self.is_widget_set_to(line, {
-                "_text_output", r"_pre\.push", r"_names\.push"
-            }):
-                results.append(True)
-            else:
-                results.append(False)
+            results.append(False)
         return results
 
     def _parse_plant_objects(self):
@@ -1310,10 +1256,6 @@ class ParseTextTwee:
                 or self.is_tag_input(line)
                 or self.is_widget_print(line)
                 or self.is_widget_link(line)
-                or self.is_widget_set_to(line, {
-                    "_buttonName", "_name", "_penisNames", "_breastDescriptionNPC",
-                    "_breastsDescriptionNPC", "_hairColorNPCText", "_eyeColorNPCText"
-                })
             ):
                 results.append(True)
             elif (
@@ -1413,7 +1355,6 @@ class ParseTextTwee:
                 or '<<set _bedType to "' in line
                 or "<<print $_plant.plural.toLocaleUpperFirst()>>" in line
                 or self.is_widget_print(line)
-                or self.is_widget_set_to(line, {r"\$tendingvars\.harvest_name"})
             ):
                 results.append(True)
             else:
@@ -1449,12 +1390,6 @@ class ParseTextTwee:
                 line.startswith('"')
                 or "<span " in line
                 or self.is_widget_print(line)
-                or self.is_widget_set_to(line, {
-                    "_text_output", r"\$_text_output", "_actionText",
-                    r"\$description", r"\$_chest", r"\$_pool",
-                    "_bottoms", "_parts", r"_tops\.push", r"_bottoms\.push",
-                    r"\$_men", r"\$_women"
-                })
                 or "<<set _args[0]" in line
                 or '<<if $_npc.penisdesc' in line
             ):
@@ -1556,11 +1491,6 @@ class ParseTextTwee:
                 self.is_tag_span(line)
                 or self.is_tag_label(line)
                 or self.is_widget_print(line)
-                or self.is_widget_set_to(line, {
-                    r"\$_text_output", "_colour", r"\$_fringe",
-                    "_out", "_part", "_bug", r"\$_crDescStr",
-                    r"\$_crimes_output"
-                })
                 or "<<print either(" in line and ">>" in line
                 or 'name: "' in line or 'name : "' in line
                 or ">>." in line
@@ -1581,13 +1511,7 @@ class ParseTextTwee:
                 results.append(False)
                 continue
 
-            if self.is_widget_set_to(line, {
-                "_brdes", r"\$per_npc\[\$_i\]\.breastdesc", r"\$per_npc\[\$_i\]\.penisdesc",
-                r"\$per_npc\[\$_i\]\.breastsdesc", "_out"
-            }):
-                results.append(True)
-            else:
-                results.append(False)
+            results.append(False)
         return results
 
     """ flavour-text-generators """
@@ -1645,10 +1569,7 @@ class ParseTextTwee:
                 results.append(True)
                 continue
 
-            if self.is_widget_set_to(line, {"_output_line"}):
-                results.append(True)
-            else:
-                results.append(False)
+            results.append(False)
         return results
 
     def _parse_thesaurus(self):
@@ -1867,47 +1788,6 @@ class ParseTextTwee:
                     or self.is_widget_option(line)
                     or self.is_widget_button(line)
                     or self.is_widget_link(line)
-                    or ("<<set " in line and self.is_widget_set_to(line, {
-                        r"\$_strings", r"\$_text_output", "_text_output", r"_container\.name",
-                        r"\$_customertype", r"\$_theboy", "_clothesDesc", r"_container\.feederName",
-                        "_actionText", r"\$_marked_text", r"\$_plural", r"\$NPCList\[0\]\.penisdesc",
-                        r"\$_link_text", "_has_feelings_towards", "_causing_a_consequence", r"\$outbuildingBeast",
-                        "_hilarity_ensues", "_linkText", r"\$_theshop", "_coffee", "_tempText", "_wornname",
-                        "_wraithTitle", "_speaks", r"\$wraithOptions", "_speechWraith", "_flaunt",
-                        "_dives_into", r"\$NPCList\[_n\]\.hair", "_pregnancyLink", r"_container\.decorations",
-                        "_postOrgasmSpeech", r"_names\.push", r"_pre\.push", "_shopmusic", "_offeredclothing",
-                        "_bodyWritingOptions", "_reactTone", "_reactPerson", "_shopnameshort",
-                        "_clothesTrait", "_petname", "_leftaction", "_rightaction", "_littlething",
-                        "_bigthing", "_feetaction", "_penisaction", "_mouthaction", "_chestaction",
-                        "_anusaction", "_vaginaaction", r"\$_mirror", r"\$_examines", r"\$_reacts",
-                        "_playPronoun", r"\$pubtask", "_elite", "_subject", r"_title\d", "_chest",
-                        "_target", "_shopgreeting", "_predicament", "_gagname", "_shopnamelong", "_seen_cards_index_strings",
-                        "_sydneysays", "_leftHand", "_rightHand", "_mouth", "_feet", "_askActions",
-                        "_penis", "_vagina", "_anus", r"\$stallThiefPartner", r"\$NPCList\[_n\]\.fullDescription",
-                        "_reactSpeech", "_looks", "_fucking", r"\$_eagerly", r"\$_npcpart", r"_npc\d",
-                        "_colour", "_hairOptions", "_fringeOptions", "_dyeOptions", "_browsDyeOptions",
-                        r"\$_rhythmically", r"\$_wet", "_lubricated", "_afinger", "_anotherfinger", r"\$_toy",
-                        "_nectar", "_Nectar", r"\$_NPCBreastDesc", r"\$_buttplug", "_npc0", "_genitals", r"\$_sexToy",
-                        "_impregnator", "_toyName", "_crowd", r"\$vorecreature", "_toy", "_sextoy", "_reactTitle",
-                        r"\$_topic", "_pubfameOptions", r"\$boughtfurniturename", "_exposing", "_revealed_thing",
-                        r"_tentacle\.desc", r"_tentacle\.fullDesc", r"\$_breed", "_sydneyText", "_featsTattooOptions",
-                        "_penOptions", "_bodyPartOptions", "_output", "_speakPool", "_colorOptions", r"\$_clothing",
-                        "_hairNames", "_fringeNames", "_dyeNames", "_secondaryColorOptions", "_liq", "_yourclit",
-                        r"\$NPCList\[0\]\.fullDescription", "_kylarUnderLower", "_pants", r"_kylarUndies\.desc",
-                        r"_kylarUndies\.colourDesc", r"\$audiencedesc", r"\$_alongsidearray", r"\$_linkName",
-                        "_clothesColorOptions", "_clothes", "_fringeTypeByName", "_fringeLengthByName", "_fringeColorByName",
-                        "_hairColorByName", "_name", "_fizzyNectar", r"\$_type", r"\$_babiesText", r"\$arcadeExposure",
-                        "_them", "_hooks", "_lewdOrDeviant", r"\$_boundType", r"_stripOptions\[\$worn", r"\$schoolpoolundress",
-                        r"\$_removed\.pushUnique", r"\$_broken\.pushUnique", r"\$_randomitem", r"\$hawk_loot",
-                        r"\$_liquids\.push", "_plural_beast_type", r"\$temple_wall_victim", "_playerRole", r"\$_quiet",
-                        "_dealer_distracted_text", r"\$removedItem", "_whitneyLower", r"_creatureTip\[_i\]\.pushUnique",
-                        r"_luxuryTip\.pushUnique", "_tool", "_fluid", "_he", "_He", "_him", "_His", "_his", "_exercise",
-                        "_pronoun", "_pronoun2", "_own", r"\$_balls", "_loc_text", "_writing", r"\$alex_parent", r"\$_parasiteMessage",
-                        "_tmpsmoving", "_gender_body_words", "_bodysize_words", "_output_line", r"\$island\[\$island\.home\]\.decoration",
-                        "_cumDesc", r"_pregnantNPC\[_pregEnabled\.nam\]", "_displayName", "_random_clothes", r"\$_mask",
-                        "_undies", "_overLower", "_whitStreetUndies", "_highestclothinglower", "_respond", "_ly", "_is_done",
-                        "_poster", "_childrenText"
-                    }))
                 )
             ):
                 if '.replaceAll("["' in line or '.replace(/\[/g' in line:
@@ -2087,12 +1967,6 @@ class ParseTextTwee:
     def is_widget_note(line: str) -> bool:
         """<note """
         return any(re.findall(r"<<note\s\"", line))
-
-    @staticmethod
-    def is_widget_set_to(line: str, keys: set[str]) -> bool:
-        """<<set xxx yyy>>"""
-        pattern = re.compile("<<set\s(?:" + r"|".join(keys) + ")[\'\"\w\s\[\]\$\+\.\(\)\{\}:\-\&£]*(?:to|\+|\+=|\(|\=).*?[\[\w\{\"\'`]+(?:\w| \w|<<|\"\w| |]|\.|,)")
-        return any(re.findall(pattern, line))
 
     @staticmethod
     def is_widget_print(line: str) -> bool:

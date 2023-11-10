@@ -215,12 +215,18 @@ class ProjectDOL:
             content = fp.read()
         if file.name.endswith(SUFFIX_TWEE):
             pt = ParseTextTwee(lines, file)
+            await pt.pre_parse_set_to()
         elif file.name.endswith(SUFFIX_JS):
             pt = ParseTextJS(lines, file)
             target_file = f"{target_file}.js"
         else:
             return
         able_lines = pt.parse()
+        if file.name.endswith(SUFFIX_TWEE) and pt.pre_bool_list:
+            able_lines = [
+                True if pt.pre_bool_list[idx] or line else False
+                for idx, line in enumerate(able_lines)
+            ]
 
         if not any(able_lines):
             logger.warning(f"\t- ***** 文件 {file} 无有效翻译行 !")
@@ -523,7 +529,6 @@ class ProjectDOL:
 
     async def _apply_for_gather(self, csv_file: Path, target_file: Path, debug_flag: bool = False, type_manual: str = None):
         """gather 用"""
-        vip_flag = target_file.name == "clothing-sets.twee"
         with open(target_file, "r", encoding="utf-8") as fp:
             raw_targets: list[str] = fp.readlines()
         raw_targets_temp = raw_targets.copy()
@@ -532,11 +537,11 @@ class ProjectDOL:
 
         with open(csv_file, "r", encoding="utf-8") as fp:
             for row in csv.reader(fp):
-                if len(row) < 3 and not vip_flag:  # 没汉化
+                if len(row) < 3:  # 没汉化
                     continue
                 en, zh = row[-2:]
                 en, zh = en.strip(), zh.strip()
-                if not zh and not vip_flag:  # 没汉化/汉化为空
+                if not zh:  # 没汉化/汉化为空
                     continue
 
                 zh = re.sub('^(“)', '"', zh)

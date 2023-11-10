@@ -7,6 +7,7 @@
 import asyncio
 import json
 import os
+import re
 from enum import Enum
 from pathlib import Path
 from src.consts import *
@@ -15,102 +16,264 @@ from aiofiles import open as aopen
 
 SELF_ROOT = Path(__file__).parent
 
-
-class Patterns(Enum):
-    SPACE: str = " "
-    RETURN: str = "\n"
-
-    VAR_HEAD = "$_"
-    ALPHA_NUMS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    NUMBERS: str = "0123456789"
-    VAR_NAME_BODY: str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789"
-
-categorize_results = {}
-all_results = []
+ALL_NEEDED_TRANSLATED_SET_TO_CONTENTS = None
 
 
-async def fetch():
-    global categorize_results, all_results
-    tasks = set()
-    for root, dir_list, file_list in os.walk(DIR_GAME_TEXTS_COMMON):
-        for file in file_list:
-            if file.endswith(SUFFIX_TWEE):
-                tasks.add(_fetch(root, file))
+class Regexes(Enum):
+    VARS_REGEX = re.compile("""([$_][$A-Z_a-z][$0-9A-Z_a-z]*)""")
+
+    SET_TO_REGEXES: re.Pattern = re.compile("""<<(?:set)(?:\s+((?:(?:\/\*[^*]*\*+(?:[^/*][^*]*\*+)*\/)|(?:\/\/.*\n)|(?:`(?:\\.|[^`\\\n])*?`)|(?:"(?:\\.|[^"\\\n])*?")|(?:'(?:\\.|[^'\\\n])*?')|(?:\[(?:[<>]?[Ii][Mm][Gg])?\[[^\r\n]*?\]\]+)|[^>]|(?:>(?!>)))*?))?>>""")
+
+
+class VariablesProcess:
+    def __init__(self):
+        self._all_file_paths = set()
+
+        self._categorize_variables = []
+        self._all_variables = []
+
+        self._categorize_all_set_to_contents = []
+        self._all_set_to_contents = []
+        self._categorize_all_needed_translated_set_to_contents = []
+        self._all_needed_translated_set_to_contents = []
+
+    def fetch_all_file_paths(self):
+        for root, dir_list, file_list in os.walk(DIR_GAME_TEXTS_COMMON):
+            for file in file_list:
+                if file.endswith(SUFFIX_TWEE):
+                    self._all_file_paths.add(Path(root).absolute() / file)
+        return self._all_file_paths
+
+    async def fetch_all_variables(self):
+        tasks = set()
+        for file in self._all_file_paths:
+            tasks.add(self._fetch_all_variables(file))
+
+        await asyncio.gather(*tasks)
+        os.makedirs(SELF_ROOT / "vars", exist_ok=True)
+        with open(SELF_ROOT / "vars" / "_variables.json", "w", encoding="utf-8") as fp:
+            # self._categorize_variables = sorted(self._categorize_variables)
+            json.dump(self._categorize_variables, fp, ensure_ascii=False, indent=2)
+
+        with open(SELF_ROOT / "vars" / "_all_variables.json", "w", encoding="utf-8") as fp:
+            json.dump(sorted(list(set(self._all_variables))), fp, ensure_ascii=False, indent=2)
+
+    async def _fetch_all_variables(self, file: Path):
+        filename = file.name
+        async with aopen(file, "r", encoding="utf-8") as fp:
+            raw = await fp.read()
+        variables = re.findall(Regexes.VARS_REGEX.value, raw)
+        if not variables:
+            return
+        self._categorize_variables.append({
+            "path": str(file).split("\\game\\")[1],
+            "variables": sorted(list(set(variables)))
+        })
+        self._all_variables.extend(list(set(variables)))
+
+    async def build_variables_notations(self):
+        filepath = DIR_DATA_ROOT / "json" / "variables_notations.json"
+
+        old_data = []
+        if filepath.exists():
+            with open(filepath, "r", encoding="utf-8") as fp:
+                old_data: dict = json.load(fp)
+
+        new_data = {
+            var: {
+                "var": var,
+                "desc": "",
+                "canBeTranslated": False
+            } for var in self._all_variables
+        }
+
+        if old_data:
+            for key, items in old_data.items():
+                if items["desc"]:
+                    new_data[key] = items
+
+        with open(DIR_DATA_ROOT / "json" / "variables_notations.json", "w", encoding="utf-8") as fp:
+            json.dump(new_data, fp, ensure_ascii=False, indent=2)
+
+    async def fetch_all_set_to_content(self):
+        tasks = set()
+        global ALL_NEEDED_TRANSLATED_SET_TO_CONTENTS
+
+        if ALL_NEEDED_TRANSLATED_SET_TO_CONTENTS:
+            return ALL_NEEDED_TRANSLATED_SET_TO_CONTENTS
+
+        if (SELF_ROOT / "setto" / "_needed_translated_set_to_contents.json").exists():
+            with open(SELF_ROOT / "setto" / "_needed_translated_set_to_contents.json", "r", encoding="utf-8") as fp:
+                data = json.load(fp)
+            return data
+
+        for file in self._all_file_paths:
+            tasks.add(self._fetch_all_set_to_content(file))
+
+        await asyncio.gather(*tasks)
+        os.makedirs(SELF_ROOT / "setto", exist_ok=True)
+        with open(SELF_ROOT / "setto" / "_set_to_contents.json", "w", encoding="utf-8") as fp:
+            json.dump(self._categorize_all_set_to_contents, fp, ensure_ascii=False, indent=2)
+
+        ALL_NEEDED_TRANSLATED_SET_TO_CONTENTS = self._categorize_all_needed_translated_set_to_contents
+        with open(SELF_ROOT / "setto" / "_needed_translated_set_to_contents.json", "w", encoding="utf-8") as fp:
+            json.dump(self._categorize_all_needed_translated_set_to_contents, fp, ensure_ascii=False, indent=2)
+
+        self._all_set_to_contents = sorted(list(set(self._all_set_to_contents)))
+        with open(SELF_ROOT / "setto" / "_all_set_to_contents.json", "w", encoding="utf-8") as fp:
+            json.dump(self._all_set_to_contents, fp, ensure_ascii=False, indent=2)
+
+        self._all_needed_translated_set_to_contents = sorted(list(set(self._all_needed_translated_set_to_contents)))
+        with open(SELF_ROOT / "setto" / "_all_needed_translated_set_to_contents.json", "w", encoding="utf-8") as fp:
+            json.dump(self._all_needed_translated_set_to_contents, fp, ensure_ascii=False, indent=2)
+
+        return self._categorize_all_needed_translated_set_to_contents
+
+    async def _fetch_all_set_to_content(self, file: Path):
+        filename = file.name
+        async with aopen(file, "r", encoding="utf-8") as fp:
+            raw = await fp.read()
+        all_set_to_contents = re.findall(Regexes.SET_TO_REGEXES.value, raw)
+        if not all_set_to_contents:
+            return
+
+        var_targets_dict = {}
+        var_lines_dict = {}
+        for content in all_set_to_contents:
+            var = content.split(" ")[0]
+            target = "".join(content.split(" ")[2:])
+            line = f"<<set {content}>>"
+
+            if target.isnumeric():
+                target = float(target)
+            elif target in {"true", "false"}:
+                target = True if target == "true" else False
+            elif target == "null":
+                target = None
+            elif target.startswith("[") or target.startswith("{"):
+                try:
+                    target = json.loads(target)
+                except json.JSONDecodeError:
+                    pass
+
+            if var not in var_targets_dict:
+                var_targets_dict[var] = [target]
             else:
+                var_targets_dict[var].append(target)
+
+            if var not in var_lines_dict:
+                var_lines_dict[var] = [line]
+            else:
+                var_lines_dict[var].append(line)
+
+
+        self._categorize_all_set_to_contents.append({
+            "path": file.__str__(),
+            "vars": [
+                {"var": var, "targets": targets, "lines": lines}
+                for (var, targets), (var_, lines) in zip(
+                    var_targets_dict.items(),
+                    var_lines_dict.items()
+                )
+            ]
+        })
+
+        all_set_to_contents = [
+            f"set {content}"
+            for content in all_set_to_contents
+        ]
+        self._all_set_to_contents.extend(list(set(all_set_to_contents)))
+
+        vars_ = []
+        for (var, targets), (var_, lines) in zip(
+            var_targets_dict.items(),
+            var_lines_dict.items()
+        ):
+            targets_ = [
+                target
+                for target in targets
+                if self.is_needed_translated(target)
+            ]
+            lines_ = [
+                lines[idx]
+                for idx, target in enumerate(targets)
+                if self.is_needed_translated(target)
+            ]
+            if not targets_:
                 continue
+            vars_.append({"var": var, "targets": targets_, "lines": lines_})
 
-    await asyncio.gather(*tasks)
-    os.makedirs(SELF_ROOT / "vars", exist_ok=True)
-    with open(SELF_ROOT / "vars" / "_variables.json", "w", encoding="utf-8") as fp:
-        categorize_results = sorted(categorize_results)
-        json.dump(categorize_results, fp, ensure_ascii=False, indent=2)
+        if vars_:
+            self._categorize_all_needed_translated_set_to_contents.append({
+                "path": file.__str__(),
+                "vars": vars_
+            })
 
-    with open(SELF_ROOT / "vars" / "_all_variables.json", "w", encoding="utf-8") as fp:
-        json.dump(all_results, fp, ensure_ascii=False, indent=2)
+            vars_needed_translated = {var_item["var"] for var_item in vars_}
+            self._all_needed_translated_set_to_contents.extend(list(set([
+                content
+                for content in all_set_to_contents
+                if content.split(" ")[1] in vars_needed_translated
+            ])))
 
+    @staticmethod
+    def is_needed_translated(target: str):
+        if target is None:
+            return False
 
-async def _fetch(root: str, file: str):
-    global categorize_results, all_results
-    async with aopen(Path(root).absolute() / file, "r", encoding="utf-8") as fp:
-        raw = await fp.read()
-    variables = tokenize(raw)
-    logger.info(f"{file} 完成")
-    if not variables:
-        return
-    categorize_results[str(Path(root) / file).split("game\\")[1]] = list(set(variables))
-    all_results.extend(list(set(variables)))
+        if isinstance(target, float) or isinstance(target, bool):
+            return False
 
+        # 衣服
+        if isinstance(target, str) and re.findall(r"\$worn.+?\.name", target):
+            return True
 
-def tokenize(raw: str) -> list[str]:
-    idx = 0
-    variables = []
-    is_var_flag = False
-    tmp = ""
+        if all(
+            _ not in target
+            for _ in {
+                "'", '"', "`",
+                # 字符串方法
+                ".concat(",
+                ".endsWith(",
+                ".includes(",
+                ".indexOf(",
+                ".length",
+                ".match(",
+                ".replace(",
+                ".search(",
+                ".slice(",
+                ".split(",
+                ".startsWith(",
+                ".substr(",
+                ".substring(",
+                ".toLowerCase(",
+                ".toUpperCase(",
+                ".trim("
+                ".trimEnd("
+                ".trimStart(",
+                ".name"
+            }
+        ):
+            return False
 
-    while idx < len(raw):
-        current_char = raw[idx]
-
-        if current_char == Patterns.SPACE.value or current_char == Patterns.RETURN.value:
-            idx += 1
-            if is_var_flag:
-                is_var_flag = False
-                if tmp in variables:
-                    tmp = ""
-                    continue
-                variables.append(tmp)
-                tmp = ""
-
-        elif current_char in Patterns.VAR_HEAD.value and not is_var_flag:
-            if raw[idx-1] in Patterns.ALPHA_NUMS.value:
-                idx += 1
-                continue
-            is_var_flag = True
-            tmp += current_char
-            idx += 1
-
-        elif is_var_flag:
-            if current_char not in Patterns.VAR_NAME_BODY.value:
-                is_var_flag = False
-                idx += 1
-                if tmp in variables:
-                    tmp = ""
-                    continue
-                variables.append(tmp)
-                tmp = ""
-                continue
-            tmp += current_char
-            idx += 1
-
-        else:
-            idx += 1
-            continue
-
-    return variables
+        return True
 
 
-def main():
-    asyncio.run(fetch())
+async def main():
+    var = VariablesProcess()
+    var.fetch_all_file_paths()
+    await var.fetch_all_set_to_content()
+    # await var.fetch_all_variables()
+    # await var.build_variables_notations()
+
+
+asyncio.run(main())
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
+
+
+__all__ = [
+    "VariablesProcess"
+]
