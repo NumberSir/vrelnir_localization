@@ -10,12 +10,22 @@ import os
 import re
 from enum import Enum
 from pathlib import Path
+from pprint import pprint
+
 from src.consts import *
 from aiofiles import open as aopen
 
 SELF_ROOT = Path(__file__).parent
 
 ALL_NEEDED_TRANSLATED_SET_TO_CONTENTS = None
+
+FREQ_FUNCTIONS = {
+    ".push(",
+    ".pushUnique(",
+    ".delete(",
+    ".deleteAt(",
+    ".splice("
+}
 
 
 class Regexes(Enum):
@@ -132,32 +142,30 @@ class VariablesProcess:
         with open(file, "r", encoding="utf-8") as fp:
             raw = fp.read()
         all_set_to_contents = re.findall(Regexes.SET_TO_REGEXES.value, raw)
+        """
+        标准语法:
+        <<set EXPRESSION>>
+        
+        1. 有明显标识符分割的:
+          - set X to Y
+          - set X is Y
+          - set X = Y (+=, -=, *=, /=, %=)
+        2. 没有明显标识符分割的:
+          - set {X:Y, ...}
+          - set X
+          - set X[Y]
+          - set X["Y"] ('', ``)
+          - set X++ (--)
+          - set X.FUNC(Y)
+        """
+
         if not all_set_to_contents:
             return
 
         var_targets_dict = {}
         var_lines_dict = {}
         for content in all_set_to_contents:
-            var = content.split(" ")[0]
-            target = "".join(content.split(" ")[2:])
-            line = f"<<set {content}>>"
-
-            if target.isnumeric():
-                target = float(target)
-            elif target in {"true", "false"}:
-                target = True if target == "true" else False
-            elif target == "null":
-                target = None
-
-            if var not in var_targets_dict:
-                var_targets_dict[var] = [target]
-            else:
-                var_targets_dict[var].append(target)
-
-            if var not in var_lines_dict:
-                var_lines_dict[var] = [line]
-            else:
-                var_lines_dict[var].append(line)
+            var_targets_dict, var_lines_dict = self._process_content(content, var_targets_dict, var_lines_dict)
 
         self._categorize_all_set_to_contents.append({
             "path": file.__str__(),
@@ -208,6 +216,70 @@ class VariablesProcess:
                 if content.split(" ")[1] in vars_needed_translated
             ])))
 
+    def _process_content(self, content: str, var_targets_dict: dict, var_lines_dict: dict):
+        content: str
+        var = content
+        target = content
+
+        # 1. 一定不是字符串的
+        if content.endswith("++") or content.endswith("--"):
+            return var_targets_dict, var_lines_dict
+        elif "Time.set" in content:
+            return var_targets_dict, var_lines_dict
+
+        # 2. 有明显分隔符的
+        elif re.findall(r"\sto", content):
+            var, target = re.split(r"\sto", content, 1)
+        elif re.findall(r"[+\-*/%]*=", content):
+            var, target = re.split(r"[+\-*/%]*=", content, 1)
+        elif re.findall(r"\sis\s", content):
+            var, target = re.split(r"\sis\s", content, 1)
+
+        # 3. 纯函数/纯变量
+        # 数量比较多的
+        elif any(
+            f in content
+            for f in FREQ_FUNCTIONS
+        ):
+            for f_ in FREQ_FUNCTIONS:
+                if f_ not in content:
+                    continue
+                var = re.findall(Regexes.VARS_REGEX.value, content)[0]
+                target = content.split(f_)[-1]
+                break
+
+        # 括号包起来的就是 target
+        elif "(" in content:
+            var = re.findall(Regexes.VARS_REGEX.value, content)[0]
+            target = "(".join(content.split("(")[1:]).rstrip(")")
+        # 没括号，纯变量
+        else:
+            var = re.findall(Regexes.VARS_REGEX.value, content)[0]
+            target = content
+
+        var = var.strip()
+        target = target.strip()
+        line = f"<<set {content}>>"
+
+        if target.isnumeric():
+            target = float(target)
+        elif target in {"true", "false"}:
+            target = True if target == "true" else False
+        elif target == "null":
+            target = None
+
+        if var not in var_targets_dict:
+            var_targets_dict[var] = [target]
+        else:
+            var_targets_dict[var].append(target)
+
+        if var not in var_lines_dict:
+            var_lines_dict[var] = [line]
+        else:
+            var_lines_dict[var].append(line)
+
+        return var_targets_dict, var_lines_dict
+
     @staticmethod
     def is_needed_translated(target: str):
         if target is None:
@@ -215,43 +287,6 @@ class VariablesProcess:
 
         if isinstance(target, float) or isinstance(target, bool):
             return False
-
-        # 衣服
-        # if isinstance(target, str) and any(_ for _ in [
-        #     re.findall(r"\$worn.+?\.name", target),
-        #     "desc" in target or "Desc" in target,
-        #     "text" in target or "Text" in target,
-        #     "name" in target or "Name" in target
-        # ]):
-        #     return True
-
-        # if any(
-        #     _ in target
-        #     for _ in {
-        #         "'", '"', "`",
-        #         # 字符串方法
-        #         ".concat(",
-        #         ".endsWith(",
-        #         ".includes(",
-        #         ".indexOf(",
-        #         ".length",
-        #         ".match(",
-        #         ".replace(",
-        #         ".search(",
-        #         ".slice(",
-        #         ".split(",
-        #         ".startsWith(",
-        #         ".substr(",
-        #         ".substring(",
-        #         ".toLowerCase(",
-        #         ".toUpperCase(",
-        #         ".trim("
-        #         ".trimEnd("
-        #         ".trimStart(",
-        #         ".name"
-        #     }
-        # ):
-        #     return True
 
         return True
 
@@ -264,7 +299,14 @@ def main():
     # await var.build_variables_notations()
 
 if __name__ == '__main__':
-    main()
+    line = "$_clothes[$_revealType].pushUnique($_wornClothing.name)"
+    def test():
+        vp = VariablesProcess()
+        vp.fetch_all_file_paths()
+        return vp._process_content(line, {}, {})
+
+    result = test()
+    pprint(result)
 
 __all__ = [
     "VariablesProcess"

@@ -18,7 +18,7 @@ class ParseTextTwee:
         self._categorize_all_setto: list[dict] | None = None
         self._setto_bool_list = []
 
-    def pre_parse_set_to(self):
+    def pre_parse_set_to(self, debug: bool = False):
         varp = VariablesProcess()
         varp.fetch_all_file_paths()
         self._categorize_all_setto = varp.fetch_all_set_to_content()
@@ -44,7 +44,7 @@ class ParseTextTwee:
                 continue
 
             for var_item in compared_vars:
-                if f"<<set {var_item['var']} " not in line:
+                if f"<<set {var_item['var']}" not in line:
                     continue
 
                 if any(var_line in line for var_line in var_item["lines"]):
@@ -54,6 +54,13 @@ class ParseTextTwee:
 
             if not flag:
                 self._setto_bool_list.append(False)
+
+        if debug:
+            for idx, flag in enumerate(self._setto_bool_list):
+                if not flag:
+                    continue
+                print(f"{idx+1}: {self._lines[idx].rstrip()}")
+
         return self._setto_bool_list
 
     @property

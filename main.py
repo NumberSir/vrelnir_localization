@@ -42,7 +42,6 @@ STRING                  | 文本
 TEXT, STRING
 """
 import asyncio
-import sys
 import time
 
 from src import (
@@ -50,67 +49,13 @@ from src import (
     Paratranz,
     ProjectDOL,
     PARATRANZ_TOKEN,
-    PARATRANZ_PROJECT_WE_ID,
     CHINESE_VERSION,
     SOURCE_TYPE
 )
-from src.ast import Acorn, JSSyntaxError
+
+from src.tools.variables_process import VariablesProcess as VP
 
 
-
-# async def process_world_expansion(dol_we: ProjectDOL, pt_common: Paratranz, pt_we: Paratranz, version: str):
-#     """
-#     世界扩展处理流程
-#     1. 下载源码
-#     2. 创建生肉词典
-#     3. 下载原版汉化词典
-#     4. 去重生肉词典
-#     5. 下载世扩汉化词典
-#     6. 替换生肉词典
-#     7. 替换游戏原文
-#     """
-#
-#     """ 删库跑路 """
-#     await dol_we.drop_all_dirs()
-#
-#     """ 获取最新版本 """
-#     await dol_we.fetch_latest_version()
-#
-#     """ 下载源码 """
-#     await dol_we.download_from_gitgud()
-#
-#     """ 创建生肉词典 """
-#     await dol_we.create_dicts()
-#
-#     """ 下载原版汉化词典 """
-#     download_flag = await pt_common.download_from_paratranz()
-#     if not download_flag:
-#         return
-#
-#     """ 去重生肉词典 """
-#     await dol_we.shear_off_repetition()
-#
-#     """ 下载世扩汉化词典 """
-#     download_flag = await pt_we.download_from_paratranz()  # 如果下载，需要在 consts 里填上管理员的 token, 在网站个人设置里找
-#     if not download_flag:
-#         return
-#
-#     """ 替换生肉词典 """
-#     await dol_we.update_dicts()
-#
-#     """ 替换游戏原文 """
-#     blacklist_dirs = []
-#     blacklist_files = []
-#     await dol_we.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=False)
-#     await dol_we.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=False, type_manual="common")
-#
-#     """ 有些额外需要更改的 """
-#     dol_we.change_css()
-#     dol_we.change_version(version)
-#
-#     """ 编译成游戏 """
-#     dol_we.compile()
-#     dol_we.run()
 
 async def process_common(dol_common: ProjectDOL, pt: Paratranz, chs_version: str):
     """
@@ -126,6 +71,12 @@ async def process_common(dol_common: ProjectDOL, pt: Paratranz, chs_version: str
 
     """ 下载源码 """
     await dol_common.download_from_gitgud()
+    await dol_common.patch_format_js()
+
+    # 预处理所有的 <<set>>
+    var = VP()
+    var.fetch_all_file_paths()
+    var.fetch_all_set_to_content()
 
     """ 创建生肉词典 """
     await dol_common.create_dicts()
@@ -138,20 +89,20 @@ async def process_common(dol_common: ProjectDOL, pt: Paratranz, chs_version: str
     """ 替换生肉词典 """
     await dol_common.update_dicts()
 
-    # """ 替换游戏原文 用的是 `paratranz` 文件夹里的内容覆写 """
-    # blacklist_dirs = []
-    # blacklist_files = []
-    # await dol_common.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=False)
-    #
-    # """ 有些额外需要更改的 """
-    # dol_common.change_css()  # 更换一些样式和硬编码文本
-    # dol_common.replace_banner()  # 更换游戏头图
-    # dol_common.change_version(chs_version)  # 更换游戏版本号
-    #
-    # """ 编译成游戏 """
-    # dol_common.compile(chs_version)
-    # dol_common.package_zip(chs_version)  # 自动打包成 zip
-    # dol_common.run()  # 运行
+    """ 替换游戏原文 用的是 `paratranz` 文件夹里的内容覆写 """
+    blacklist_dirs = []
+    blacklist_files = []
+    await dol_common.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=False)
+
+    """ 有些额外需要更改的 """
+    dol_common.change_css()  # 更换一些样式和硬编码文本
+    dol_common.replace_banner()  # 更换游戏头图
+    dol_common.change_version(chs_version)  # 更换游戏版本号
+
+    """ 编译成游戏 """
+    dol_common.compile(chs_version)
+    dol_common.package_zip(chs_version)  # 自动打包成 zip
+    dol_common.run()  # 运行
 
 
 async def main():
