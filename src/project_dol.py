@@ -453,7 +453,7 @@ class ProjectDOL:
 
                 json_data = [
                     item for item in json_data
-                    if item["original"] != item["translation"]
+                    if item["original"] != item["translation"] and item["translation"]
                 ]
                 integrated_dict.extend(json_data)
         i18n_dict = await self._wash_json(integrated_dict)
@@ -1049,7 +1049,6 @@ class ProjectDOL:
         # logger.info(f"status: {response.status_code}")
         # with open(DIR_TEMP_ROOT / "modloader.zip", "wb") as fp:
         #     fp.write(response.content)
-
 
 
 __all__ = [

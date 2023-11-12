@@ -299,14 +299,15 @@ def main():
     # await var.build_variables_notations()
 
 if __name__ == '__main__':
-    line = "$_clothes[$_revealType].pushUnique($_wornClothing.name)"
-    def test():
-        vp = VariablesProcess()
-        vp.fetch_all_file_paths()
-        return vp._process_content(line, {}, {})
-
-    result = test()
-    pprint(result)
+    # line = "$_clothes[$_revealType].pushUnique($_wornClothing.name)"
+    # def test():
+    #     vp = VariablesProcess()
+    #     vp.fetch_all_file_paths()
+    #     return vp._process_content(line, {}, {})
+    #
+    # result = test()
+    # pprint(result)
+    main()
 
 __all__ = [
     "VariablesProcess"
