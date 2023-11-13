@@ -772,7 +772,7 @@ class ParseTextTwee:
             if not line:
                 results.append(False)
                 continue
-            if "$worn.upper.name," in line or "$worn.lower.name," in line:
+            if re.findall(r"\$worn\..*?\.name", line):
                 results.append(True)
             elif (
                 self.is_comment(line)
