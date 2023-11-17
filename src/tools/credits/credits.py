@@ -91,7 +91,7 @@ async def main():
         credit = Credit(client)
         paratranz_members: list[str] = await credit.build_paratranz_members()
         miraheze_members: list[str] = await credit.build_miraheze_members()
-        issue_members: list[str] = await credit.build_issue_members()
+        issue_members: list[str] = await credit.build_issue_members(pages=3)
 
     paratranz_members: str = '\n- '.join(paratranz_members)
     miraheze_members: str = '\n- '.join(miraheze_members)
@@ -100,7 +100,7 @@ async def main():
     time = datetime.datetime.now().strftime("%Y%m%d")
     with open(f"CREDITS-{time}.md", "w", encoding="utf-8") as fp:
         fp.write(
-            "## Degrees of Lewdity / 欲度孤儿 贡献者名单\n"
+            "## Degrees of Lewdity / 欲都孤儿 贡献者名单\n"
             f"> {time}\n"
             "### 为汉化做出过贡献的诸位（排名不分先后）：\n"
             "<details>\n"
