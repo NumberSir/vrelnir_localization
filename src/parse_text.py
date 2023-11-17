@@ -712,10 +712,23 @@ class ParseTextTwee:
     def _parse_speech(self):
         """有点麻烦"""
         results = []
+        multirow_set_flag = False
         for line in self._lines:
             line = line.strip()
             if not line:
                 results.append(False)
+                continue
+
+            if line.startswith("<<set ") and ">>" not in line:
+                multirow_set_flag = True
+                results.append(True)
+                continue
+            elif multirow_set_flag and line.endswith("]>>"):
+                multirow_set_flag = False
+                results.append(True)
+                continue
+            elif multirow_set_flag:
+                results.append(True)
                 continue
 
             if (
@@ -1004,10 +1017,7 @@ class ParseTextTwee:
         """half-json"""
         return self.parse_type_only({
             "name:", "text:", "title:", "<summary", "<<option",
-            'return "Incubus', 'return "Succubus',
-            'return "Bull boy', 'return "Cow girl',
-            'return "Fox', 'return "Vixen', "Display Format:",
-            "<label>S", "<<link"
+            'return "', "Display Format:", "<label>S", "<<link"
         })
 
     def _parse_body_writing(self):
