@@ -3,8 +3,9 @@ from pathlib import Path
 from src.parse_text import ParseTextTwee, ParseTextJS
 
 FILE_BASE = r"D:\Users\Administrator\Documents\GitHub\vrelnir_localization\degrees-of-lewdity-master\game"
-FILE_NAME = r"base-combat/swarms.twee"
+FILE_NAME = r"base-clothing/wardrobes.twee"
 FILE_PATH = Path(rf"{FILE_BASE}/{FILE_NAME}")
+".replace(/[^a-zA-Z"
 with open(FILE_PATH, "r", encoding="utf-8") as fp:
     CONTENT = fp.read()
 with open(FILE_PATH, "r", encoding="utf-8") as fp:
@@ -17,12 +18,13 @@ async def test_fetch_lines():
     # sourcery skip: no-loop-in-tests
     """抓了哪些行"""
     bl = PT.parse()
-    pre_bool_list = PT.pre_parse_set_to(True)
-    bl = [
-        True if pre_bool_list[idx] or line else False
-        for idx, line in enumerate(bl)
-    ]
-    print(f"bool: {len(bl)} - lines: {len(LINES)} - pre: {len(pre_bool_list)}")
+    if FILE_PATH.name.endswith("twee"):
+        pre_bool_list = PT.pre_parse_set_to(True)
+        bl = [
+            True if pre_bool_list[idx] or line else False
+            for idx, line in enumerate(bl)
+        ]
+    # print(f"bool: {len(bl)} - lines: {len(LINES)} - pre: {len(pre_bool_list)}")
     for idx, line in enumerate(LINES):
         if bl[idx]:
             print(f"{idx + 1}: {line}", end="")

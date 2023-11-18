@@ -4,6 +4,7 @@
 *.zip
 *.7z
 *.xmind
+CREDITS-*.md
 
 .env
 .vscode

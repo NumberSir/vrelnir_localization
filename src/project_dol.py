@@ -567,51 +567,9 @@ class ProjectDOL:
                     if not target_row.strip():
                         continue
 
-                    if '<<widget "listdancingclothes">>' in target_row:
-                        needed_replace_outfit_name_cap_flag = True
-                    elif needed_replace_outfit_name_cap_flag and "<</widget>>" in target_row:
-                        needed_replace_outfit_name_cap_flag = False
-
-                    if "replace(/[^a-zA-Z" in target_row.strip():
-                        raw_targets[idx_] = target_row.replace("replace(/[^a-zA-Z", "replace(/[^a-zA-Z\\u4e00-\\u9fa5")
-                        continue
                     if en == target_row.strip():
-                        if "clothing-set" in csv_file.name and "_outfit.name" in target_row:
-                            raw_targets[idx_] = target_row.replace(en, zh).replace(" \n", "\n").lstrip(" ")
-                            if not needed_replace_outfit_name_cap_flag:
-                                raw_targets[idx_] = raw_targets[idx_].replace(".cn_name_cap", ".name")
-                            raw_targets_temp[idx_] = ""
-                            continue
                         raw_targets[idx_] = target_row.replace(en, zh).replace(" \n", "\n").lstrip(" ")
-                        if "<<print" in target_row and re.findall(r"<<print.*?\.writing>>", zh):
-                            raw_targets[idx_] = raw_targets[idx_].replace(".writing>>", ".writ_cn>>")
-                        elif ".name_cap" not in target_row:
-                            raw_targets_temp[idx_] = ""
-                            continue
-
-                        if "<<link " in target_row and re.findall(r"<<link.*?\.name_cap>>", zh):
-                            raw_targets[idx_] = raw_targets[idx_].replace(".name_cap>>", ".cn_name_cap>>")
-                        elif "<<clothingicon" in target_row and re.findall(r"<<clothingicon.*?\.name_cap", zh):
-                            raw_targets[idx_] = raw_targets[idx_].replace(".name_cap", ".cn_name_cap")
-                        elif "_wornItemData.name_cap" in target_row:
-                            raw_targets[idx_] = raw_targets[idx_].replace(".name_cap", ".cn_name_cap")
                         raw_targets_temp[idx_] = ""
-                        continue
-                        
-                    elif "<" in target_row:
-                        if "<<print" in target_row and re.findall(r"<<print.*?\.writing>>", target_row):
-                            raw_targets[idx_] = raw_targets[idx_].replace(".writing>>", ".writ_cn>>")
-                        elif ".name_cap" not in target_row:
-                            continue
-
-                        if "<<link " in target_row and re.findall(r"<<link.*?\.name_cap>>", target_row):
-                            raw_targets[idx_] = raw_targets[idx_].replace(".name_cap>>", ".cn_name_cap>>")
-                        elif "<<clothingicon" in target_row and re.findall(r"<<clothingicon.*?\.name_cap", target_row):
-                            raw_targets[idx_] = raw_targets[idx_].replace(".name_cap", ".cn_name_cap")
-                        elif "_wornItemData.name_cap" in target_row:
-                            raw_targets[idx_] = raw_targets[idx_].replace(".name_cap", ".cn_name_cap")
-                    # elif target_row.strip() == "].select($_rng)>>":  # 怪东西
-                    #     raw_targets[idx_] = ""
 
         if target_file.name.endswith(".js"):
             try:

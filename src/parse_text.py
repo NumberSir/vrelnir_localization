@@ -166,7 +166,7 @@ class ParseTextTwee:
 
     def _parse_version_update(self):
         """只有 <span 和 <<link """
-        return self.parse_type_only({"<span ", "<<link "})
+        return self.parse_type_only({"<span ", "<<link ", "replace(/[^a-zA-Z"})
 
     def _parse_passage_footer(self):
         """有点麻烦"""
@@ -320,7 +320,7 @@ class ParseTextTwee:
                 multirow_json_flag = False
                 results.append(False)
                 continue
-            elif multirow_json_flag and any(_ in line for _ in {'"start"', '"joiner"', '"end"'}):
+            elif multirow_json_flag and any(_ in line for _ in {'"start"', '"joiner"', '"end"', "replace(/[^a-zA-Z"}):
                 results.append(True)
                 continue
             elif multirow_json_flag:
@@ -337,6 +337,8 @@ class ParseTextTwee:
                 or "$_value2.name" in line
                 or "<<print $_label" in line
                 or "(No access)" in line
+                or self.is_widget_print(line)
+                or "replace(/[^a-zA-Z" in line
             ):
                 results.append(True)
             elif self.is_only_widgets(line):
@@ -411,7 +413,7 @@ class ParseTextTwee:
                 results.append(False)
             elif (
                 self.is_tag_span(line)
-                or '<<wearlink_norefresh "' in line
+                or '<<wearlink_norefresh' in line
                 or '>>.' in line
                 or self.is_tag_label(line)
                 or self.is_widget_print(line)
@@ -419,6 +421,8 @@ class ParseTextTwee:
                 or self.is_widget_link(line)
                 or "__" in line
                 or '? "' in line
+                or ".replace(/[^a-zA-Z" in line
+                or "<<clothingicon" in line
             ):
                 results.append(True)
             elif self.is_only_widgets(line) or self.is_json_line(line):
@@ -1035,7 +1039,7 @@ class ParseTextTwee:
                 or self.is_only_marks(line)
             ):
                 results.append(False)
-            elif self.is_tag_span(line):
+            elif self.is_tag_span(line) or self.is_widget_print(line):
                 results.append(True)
             elif self.is_only_widgets(line):
                 results.append(False)
@@ -1284,6 +1288,7 @@ class ParseTextTwee:
                 or "<<startOptionsComplexityButton" in line
                 or "<<settingsTabButton" in line
                 or "<<subsectionSettingsTabButton" in line
+                or ".replace(/[^a-zA-Z" in line
             ):
                 results.append(True)
             elif "<" in line and self.is_only_widgets(line):
@@ -1658,6 +1663,11 @@ class ParseTextTwee:
                 multirow_script_flag = False
                 results.append(False)
                 continue
+            elif multirow_script_flag and any(_ in line for _ in {
+                ".replace(/[^a-zA-Z"
+            }):
+                results.append(True)
+                continue
             elif multirow_script_flag:
                 results.append(False)
                 continue
@@ -1849,6 +1859,7 @@ class ParseTextTwee:
                 or "<<mirror" in line
                 or ">>." in line
                 or "<<skill_difficulty " in line
+                or ".replace(/[^a-zA-Z" in line
             ):
                 results.append(True)
             elif (
@@ -2379,6 +2390,7 @@ class ParseTextJS:
                 or "const breastSizes =" in line
                 or 'women = "' in line
                 or 'men = ' in line
+                or ".replace(/[^a-zA-Z" in line
             ):
                 results.append(True)
             elif "<span" in line:
@@ -2454,7 +2466,8 @@ class ParseTextJS:
     def _parse_clothing_shop_v2(self):
         return self.parse_type_only({
             "const optionsFrom",
-            "const optionsTo"
+            "const optionsTo",
+            ".replace(/[^a-zA-Z"
         })
 
     """ 04-variables """
@@ -2633,7 +2646,11 @@ class ParseTextJS:
 
     def _parse_pregnancy(self):
         return self.parse_type_only({
-            "names = ['", "names.pushUnique", "spermOwner.name +", "spermOwner.fullDescription +"
+            "names = ['",
+            "names.pushUnique",
+            "spermOwner.name +",
+            "spermOwner.fullDescription +",
+            ".replace(/[^a-zA-Z"
         })
 
     def _parse_story_functions(self):
