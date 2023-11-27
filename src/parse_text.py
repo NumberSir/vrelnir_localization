@@ -1754,6 +1754,7 @@ class ParseTextTwee:
                 or '":"' in line
                 or '": "' in line
                 or '" : "' in line
+                or ("<<run " in line and "$worn." in line)
             ):
                 results.append(True)
                 continue
