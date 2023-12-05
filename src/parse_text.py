@@ -2241,7 +2241,7 @@ class ParseTextJS:
 
             if any(_ in line for _ in {
                 "namecap: ", "description: ", "${item.owned()",
-                "<span "
+                "<span ", "<option "
             }) or ("Buy it" in line and "/*" not in line) or "Make a gift for :" in line:
                 results.append(True)
             else:

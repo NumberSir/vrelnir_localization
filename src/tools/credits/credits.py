@@ -27,9 +27,9 @@ class Credit:
 
     def _filter_scored_paratranz_members(self, members: list[dict]) -> list[str]:
         return [
-            f'{member["user"]["username"]}'
-            if not member["user"].get("nickname")
-            else f'{member["user"]["username"]}({member["user"]["nickname"]})'
+            f'{member["user"]["username"]}({member["user"]["nickname"]})'
+            if member["user"].get("nickname")
+            else f'{member["user"]["username"]}'
 
             for member in members
             if member["totalPoints"]
@@ -38,7 +38,7 @@ class Credit:
     async def build_miraheze_members(self, limit: int = 500):
         """中文维基有贡献的"""
         members_html = await self._get_miraheze_members(limit)
-        return self._filter_scored_miraheze_memebrs(members_html)
+        return self._filter_scored_miraheze_members(members_html)
 
     async def _get_miraheze_members(self, limit: int = 500):
         url = "https://degreesoflewditycn.miraheze.org/w/index.php"
@@ -51,10 +51,9 @@ class Credit:
         response = await self.client.get(url, params=params)
         return response.text
 
-    def _filter_scored_miraheze_memebrs(self, html: str):
+    def _filter_scored_miraheze_members(self, html: str):
         html = etree.HTML(html)
-        members = html.xpath("//bdi/text()")
-        return members
+        return html.xpath("//bdi/text()")
 
     async def build_issue_members(self, owner: str = "Eltirosto", repo: str = "Degrees-of-Lewdity-Chinese-Localization", per_page: int = 100, pages: int = 2):
         """有反馈过 issue 的"""
