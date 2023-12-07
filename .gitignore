@@ -25,3 +25,4 @@ raw_dicts
 commits.json
 i18n.json
 0.4.3.0.json
+.env
