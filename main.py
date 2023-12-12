@@ -71,7 +71,7 @@ async def process_common(dol_common: ProjectDOL, pt: Paratranz, chs_version: str
 
     """ 下载源码 """
     await dol_common.download_from_gitgud()
-    await dol_common.patch_format_js()
+    # await dol_common.patch_format_js()
 
     # 预处理所有的 <<set>>
     var = VP()
@@ -90,7 +90,26 @@ async def process_common(dol_common: ProjectDOL, pt: Paratranz, chs_version: str
     await dol_common.update_dicts()
 
     """ 替换游戏原文 用的是 `paratranz` 文件夹里的内容覆写 """
-    blacklist_dirs = []
+    blacklist_dirs = [
+        # "00-framework-tools",
+        # "01-config",
+        # "03-JavaScript",
+        # "04-Variables",
+        # "base-clothing",
+        # "base-combat",
+        # "base-debug",
+        # "base-system",
+        # "flavour-text-generators",
+        # "fonts",
+        # "overworld-forest",
+        # "overworld-plains",
+        # "overworld-town",
+        # "overworld-underground",
+        # "special-dance",
+        # "special-exhibition",
+        # "special-masturbation",
+        # "special-templates"
+    ]
     blacklist_files = []
     await dol_common.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=False)
 
