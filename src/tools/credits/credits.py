@@ -6,8 +6,7 @@ import httpx
 from urllib.parse import quote
 from lxml import etree
 
-from src.consts import PARATRANZ_TOKEN
-GITHUB_TOKEN: str = os.getenv("GITHUB_TOKEN")
+from src.consts import PARATRANZ_TOKEN, GITHUB_ACCESS_TOKEN
 
 
 class Credit:
@@ -62,7 +61,7 @@ class Credit:
 
     async def _get_issue_members(self, owner: str = "Eltirosto", repo: str = "Degrees-of-Lewdity-Chinese-Localization", per_page: int = 100, pages: int = 2):
         url = f"https://api.github.com/repos/{owner}/{repo}/issues"
-        headers = {"Authorization": f"Bearer {GITHUB_TOKEN}"}
+        headers = {"Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"}
         results = []
         for page in range(1, pages+1):
             params = {
@@ -99,7 +98,7 @@ async def main():
     time = datetime.datetime.now().strftime("%Y%m%d")
     with open(f"CREDITS-{time}.md", "w", encoding="utf-8") as fp:
         fp.write(
-            "## Degrees of Lewdity / 欲都孤儿 贡献者名单\n"
+            "## 欲都孤儿 贡献者名单\n"
             f"> {time}\n"
             "### 为汉化做出过贡献的诸位（排名不分先后）：\n"
             "<details>\n"

@@ -7,7 +7,6 @@
     "debugMenu.js",
     "eyesRelated.js",
     "furniture.js",
-    "idb_backend.js",
     "ingame.js",
     "npcCompressor.js",
     "sexShopMenu.js",
@@ -21,23 +20,23 @@
   "special-masturbation": [
     "actions.js",
     "effects.js",
-    "slimeControl.js",
-    "macros-masturbation.js"
+    "macros-masturbation.js",
+    "slimeControl.js"
   ],
   "04-Pregnancy": [
     "childrenStoryFunctions.js",
     "pregnancy.js",
-    "storyFunctions.js",
-    "pregnancyTypes.js"
+    "pregnancyTypes.js",
+    "storyFunctions.js"
   ],
   "time": [
     "timeMacros.js",
     "time.js"
   ],
   "03-Templates": [
-    "t-misc.js",
     "t-actions.js",
-    "t-bodyparts.js"
+    "t-bodyparts.js",
+    "t-misc.js"
   ],
   "base-system": [
     "widgets.js"

@@ -512,11 +512,12 @@ class ProjectDOL:
 
         file_mapping: dict = {}
         for root, dir_list, file_list in os.walk(DIR_RAW_DICTS / type_manual / self._version / "csv"):
-            if any(_ in root for _ in blacklist_dirs):
+            if any(_ in Path(root).absolute().__str__() for _ in blacklist_dirs):
                 continue
             if "失效词条" in root:
                 continue
             for file in file_list:
+                # logger.warning(f"替换文件：{file}")
                 if any(_ in file for _ in blacklist_files):
                     continue
                 if file.endswith(".js.csv"):

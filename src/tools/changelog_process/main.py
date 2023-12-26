@@ -18,10 +18,9 @@ def changelog2paratranz():
         line = line.strip()
         if not line:
             continue
-        if line[0].isnumeric() and line[-1].isnumeric():
-            if ".".join(line.split(".")[:-1]) != current_version_main:
-                lines = lines[:idx]
-                break
+        if line[0].isnumeric() and line[-1].isnumeric() and ".".join(line.split(".")[:-1]) != current_version_main:
+            lines = lines[:idx]
+            break
 
     result = [
         {
@@ -30,17 +29,19 @@ def changelog2paratranz():
             "translation": ""
         } for line in lines if line.strip()
     ]
-    with open(Path(__file__).parent.parent.parent.parent / "data" / "json" / f"{current_version}.json", "w", encoding="utf-8") as fp:
+    with open(Path(__file__).parent / f"{current_version}.json", "w", encoding="utf-8") as fp:
         json.dump(result, fp, ensure_ascii=False, indent=2)
     VERSION = current_version
     CHANGELOG_TXT = lines
 
 
-def paratranz2changelog():
+def paratranz2changelog(version: str = None):
     global VERSION, CHANGELOG_TXT
-    if not (Path(__file__).parent / f"{VERSION}.json.json").exists():
+    if version is None:
+        version = VERSION
+    if not (Path(__file__).parent / f"{version}.json").exists():
         return
-    with open(Path(__file__).parent / f"{VERSION}.json.json", "r", encoding="utf-8") as fp:
+    with open(Path(__file__).parent / f"{version}.json", "r", encoding="utf-8") as fp:
         data = json.load(fp)
 
     data = [
@@ -55,7 +56,7 @@ def paratranz2changelog():
                 print(line)
                 CHANGELOG_TXT[idx_changelog] = f"{cn}\n"
                 continue
-    with open(Path(__file__).parent / f"{VERSION}.txt", "w", encoding="utf-8") as fp:
+    with open(Path(__file__).parent / f"{version}.txt", "w", encoding="utf-8") as fp:
         fp.writelines(CHANGELOG_TXT)
 
 

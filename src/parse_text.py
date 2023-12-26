@@ -21,7 +21,7 @@ class ParseTextTwee:
     def pre_parse_set_to(self, debug: bool = False):
         varp = VariablesProcess()
         varp.fetch_all_file_paths()
-        self._categorize_all_setto = varp.fetch_all_set_to_content()
+        self._categorize_all_setto = varp.fetch_all_set_content()
 
         flag = False
         for item in self._categorize_all_setto:

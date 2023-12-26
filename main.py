@@ -76,7 +76,7 @@ async def process_common(dol_common: ProjectDOL, pt: Paratranz, chs_version: str
     # 预处理所有的 <<set>>
     var = VP()
     var.fetch_all_file_paths()
-    var.fetch_all_set_to_content()
+    var.fetch_all_set_content()
 
     """ 创建生肉词典 """
     await dol_common.create_dicts()

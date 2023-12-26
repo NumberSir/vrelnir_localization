@@ -3,9 +3,9 @@ from pathlib import Path
 from src.parse_text import ParseTextTwee, ParseTextJS
 
 FILE_BASE = r"D:\Users\Administrator\Documents\GitHub\vrelnir_localization\degrees-of-lewdity-master\game"
-FILE_NAME = r"base-clothing/wardrobes.twee"
+FILE_NAME = r"base-combat/tentacles/tentacleActionsGeneration.twee"
 FILE_PATH = Path(rf"{FILE_BASE}/{FILE_NAME}")
-".replace(/[^a-zA-Z"
+
 with open(FILE_PATH, "r", encoding="utf-8") as fp:
     CONTENT = fp.read()
 with open(FILE_PATH, "r", encoding="utf-8") as fp:

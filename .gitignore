@@ -26,3 +26,7 @@ commits.json
 i18n.json
 0.4.3.0.json
 .env
+src/tools/changelog_process/0.4.4.0.json
+src/tools/changelog_process/0.4.4.0.txt
+src/tools/variables_process/vars/_all_variables.json
+src/tools/variables_process/vars/_variables.json
