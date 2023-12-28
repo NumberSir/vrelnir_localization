@@ -32,7 +32,7 @@ FREQ_FUNCTIONS = {
 class Regexes(Enum):
     VARS_REGEX = re.compile("""([$_][$A-Z_a-z][$0-9A-Z_a-z]*)""")
 
-    set_REGEXES: re.Pattern = re.compile("""<<(?:set)(?:\s+((?:(?:\/\*[^*]*\*+(?:[^/*][^*]*\*+)*\/)|(?:\/\/.*\n)|(?:`(?:\\.|[^`\\\n])*?`)|(?:"(?:\\.|[^"\\\n])*?")|(?:'(?:\\.|[^'\\\n])*?')|(?:\[(?:[<>]?[Ii][Mm][Gg])?\[[^\r\n]*?\]\]+)|[^>]|(?:>(?!>)))*?))?>>""")
+    SET_RUN_REGEXES: re.Pattern = re.compile("""<<(run|set)(?:\s+((?:(?:\/\*[^*]*\*+(?:[^/*][^*]*\*+)*\/)|(?:\/\/.*\n)|(?:`(?:\\.|[^`\\\n])*?`)|(?:"(?:\\.|[^"\\\n])*?")|(?:'(?:\\.|[^'\\\n])*?')|(?:\[(?:[<>]?[Ii][Mm][Gg])?\[[^\r\n]*?\]\]+)|[^>]|(?:>(?!>)))*?))?>>""")
 
 
 class VariablesProcess:
@@ -153,7 +153,7 @@ class VariablesProcess:
         filename = file.name
         with open(file, "r", encoding="utf-8") as fp:
             raw = fp.read()
-        all_set_contents = re.findall(Regexes.set_REGEXES.value, raw)
+        all_set_contents = re.findall(Regexes.SET_RUN_REGEXES.value, raw)
         """
         标准语法:
         <<set EXPRESSION>>
@@ -171,13 +171,15 @@ class VariablesProcess:
           - set X.FUNC(Y)
         """
 
-        if not all_set_contents:
+        if len(all_set_contents) < 2:
             return
 
+        all_heads, all_set_contents = [_[0] for _ in all_set_contents], [_[1] for _ in all_set_contents]
         var_targets_dict = {}
         var_lines_dict = {}
-        for content in all_set_contents:
-            var, target, line = self._process_content(content)
+        for idx, content in enumerate(all_set_contents):
+            head = all_heads[idx]
+            var, target, line = self._process_content(head, content)
             if not any({var, target, line}):
                 continue
 
@@ -240,11 +242,12 @@ class VariablesProcess:
                 if content.split(" ")[1] in vars_needed_translated
             ])))
 
-    def _process_content(self, content: str):
+    def _process_content(self, head: str,  content: str):
         """
         :param content: <<set content>>
         """
         content: str
+
         var = content
         target = content
 
@@ -271,22 +274,31 @@ class VariablesProcess:
             for f_ in FREQ_FUNCTIONS:
                 if f_ not in content:
                     continue
-                var = re.findall(Regexes.VARS_REGEX.value, content)[0]
+                vars_ = re.findall(Regexes.VARS_REGEX.value, content)
+                if not vars_:
+                    return None, None, None
+                var = vars_[0]
                 target = content.split(f_)[-1]
                 break
 
         # 括号包起来的就是 target
         elif "(" in content:
-            var = re.findall(Regexes.VARS_REGEX.value, content)[0]
+            vars_ = re.findall(Regexes.VARS_REGEX.value, content)
+            if not vars_:
+                return None, None, None
+            var = vars_[0]
             target = "(".join(content.split("(")[1:]).rstrip(")")
         # 没括号，纯变量
         else:
-            var = re.findall(Regexes.VARS_REGEX.value, content)[0]
+            vars_ = re.findall(Regexes.VARS_REGEX.value, content)
+            if not vars_:
+                return None, None, None
+            var = vars_[0]
             target = content
 
         var = var.strip()
         target = target.strip()
-        line = f"<<set {content}>>"
+        line = f"<<{head} {content}>>"
 
         if target.isnumeric():
             target = float(target)

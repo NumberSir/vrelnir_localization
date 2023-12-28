@@ -9,6 +9,7 @@ from src import (
     CHINESE_VERSION,
     SOURCE_TYPE
 )
+from src.tools.variables_process import VariablesProcess as VP
 
 async def process_common(dol_common: ProjectDOL, pt: Paratranz, chs_version: str):
     """
@@ -24,6 +25,11 @@ async def process_common(dol_common: ProjectDOL, pt: Paratranz, chs_version: str
 
     """ 下载源码 """
     await dol_common.download_from_gitgud()
+
+    """ 预处理所有的 <<set>> """
+    var = VP()
+    var.fetch_all_file_paths()
+    var.fetch_all_set_content()
 
     """ 创建生肉词典 """
     await dol_common.create_dicts()

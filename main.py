@@ -73,7 +73,7 @@ async def process_common(dol_common: ProjectDOL, pt: Paratranz, chs_version: str
     await dol_common.download_from_gitgud()
     # await dol_common.patch_format_js()
 
-    # 预处理所有的 <<set>>
+    """ 预处理所有的 <<set>> """
     var = VP()
     var.fetch_all_file_paths()
     var.fetch_all_set_content()

@@ -215,7 +215,7 @@ class ProjectDOL:
             content = fp.read()
         if file.name.endswith(SUFFIX_TWEE):
             pt = ParseTextTwee(lines, file)
-            pre_bool_list = pt.pre_parse_set_to()
+            pre_bool_list = pt.pre_parse_set_run()
         elif file.name.endswith(SUFFIX_JS):
             pt = ParseTextJS(lines, file)
             target_file = f"{target_file}.js"

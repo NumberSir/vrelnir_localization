@@ -15,16 +15,16 @@ class ParseTextTwee:
         self._filename = self._filepath.name  # 文件名
         self._filedir = self._filepath.parent  # 文件夹
 
-        self._categorize_all_setto: list[dict] | None = None
-        self._setto_bool_list = []
+        self._categorize_all_set_run: list[dict] | None = None
+        self._set_run_bool_list = []
 
-    def pre_parse_set_to(self, debug: bool = False):
+    def pre_parse_set_run(self, debug: bool = False):
         varp = VariablesProcess()
         varp.fetch_all_file_paths()
-        self._categorize_all_setto = varp.fetch_all_set_content()
+        self._categorize_all_set_run = varp.fetch_all_set_content()
 
         flag = False
-        for item in self._categorize_all_setto:
+        for item in self._categorize_all_set_run:
             if Path(item["path"]) == self._filepath:
                 flag = True
                 compared_vars: list[dict] = item["vars"]
@@ -36,36 +36,36 @@ class ParseTextTwee:
             flag = False
             line = line.strip()
             if not line:
-                self._setto_bool_list.append(False)
+                self._set_run_bool_list.append(False)
                 continue
 
-            if "<<set" not in line:
-                self._setto_bool_list.append(False)
+            if "<<set " not in line and "<<run " not in line:
+                self._set_run_bool_list.append(False)
                 continue
 
             for var_item in compared_vars:
-                if f"<<set {var_item['var']}" not in line:
+                if f"<<set {var_item['var']}" not in line and f"run {var_item['var']}" not in line:
                     continue
 
                 if any(var_line in line for var_line in var_item["lines"]):
-                    self._setto_bool_list.append(True)
+                    self._set_run_bool_list.append(True)
                     flag = True
                     break
 
             if not flag:
-                self._setto_bool_list.append(False)
+                self._set_run_bool_list.append(False)
 
         if debug:
-            for idx, flag in enumerate(self._setto_bool_list):
+            for idx, flag in enumerate(self._set_run_bool_list):
                 if not flag:
                     continue
                 print(f"{idx+1}: {self._lines[idx].rstrip()}")
 
-        return self._setto_bool_list
+        return self._set_run_bool_list
 
     @property
     def pre_bool_list(self):
-        return self._setto_bool_list
+        return self._set_run_bool_list
 
     def parse(self) -> list[bool]:
         if DirNamesTwee.NORMAL.value in self._filedir.name:
@@ -166,7 +166,7 @@ class ParseTextTwee:
 
     def _parse_version_update(self):
         """只有 <span 和 <<link """
-        return self.parse_type_only({"<span ", "<<link ", "replace(/[^a-zA-Z"})
+        return self.parse_type_only({"<span ", "<<link ", "replace(/[^a-zA-Z", "if $earSlime.event"})
 
     def _parse_passage_footer(self):
         """有点麻烦"""
@@ -1339,6 +1339,9 @@ class ParseTextTwee:
                 ("<<link [[" in line.strip() and "[[Next" not in line.strip())
                 or (not line.strip().startswith("<") and not line.strip().startswith("/*") and "::" not in line.strip())
                 or "<span " in line.strip()
+                or "$earSlimeEvent" in line.strip()
+                or "$earSlime.event" in line.strip()
+                or "<<case " in line.strip()
             ) for line in self._lines
         ]
 
@@ -1518,6 +1521,7 @@ class ParseTextTwee:
                 or 'name: "' in line or 'name : "' in line
                 or ">>." in line
                 or self.is_widget_link(line)
+                or "if $earSlime.event" in line
             ):
                 results.append(True)
             elif "<" in line and self.is_only_widgets(line):
@@ -1613,6 +1617,7 @@ class ParseTextTwee:
         maybe_json_flag = False
         multirow_run_line_pool_flag = False  # 草!
         multirow_print_flag = False  # 叠屎山了开始
+        multirow_switch_flag = False
 
         # 这两个是家具的
         multirow_wallpaper_flag = False
@@ -1708,6 +1713,19 @@ class ParseTextTwee:
                 results.append(False)
                 continue
             elif shop_clothes_hint_flag:
+                results.append(True)
+                continue
+
+            """就为了 earSlime 专门弄这个"""
+            if "<<switch $earSlime" in line:
+                multirow_switch_flag = True
+                results.append(True)
+                continue
+            elif multirow_switch_flag and "<</switch>>" in line:
+                multirow_switch_flag = False
+                results.append(True)
+                continue
+            elif multirow_switch_flag:
                 results.append(True)
                 continue
 
@@ -1861,6 +1879,7 @@ class ParseTextTwee:
                 or ">>." in line
                 or "<<skill_difficulty " in line
                 or ".replace(/[^a-zA-Z" in line
+                or "$earSlime.event" in line
             ):
                 results.append(True)
             elif (

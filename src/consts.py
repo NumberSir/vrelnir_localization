@@ -173,6 +173,7 @@ class FileNamesTwee(Enum):
     TRANSFORMATIONS_FULL = "transformations.twee"
     SYSTEM_WIDGETS_FULL = "widgets.twee"
     PERSISTENT_NPCS_FULL = "persistent-npcs.twee"
+    JOURNAL_FULL = "journal.twee"
 
     """ flavour-text-generators """
     BODY_COMMENTS_FULL = "body-comments.csv"

@@ -2,6 +2,8 @@
 import json
 from pathlib import Path
 
+from src.consts import DIR_PARATRANZ
+
 
 VERSION: str | None = None
 CHANGELOG_TXT: list | None = None
@@ -39,9 +41,11 @@ def paratranz2changelog(version: str = None):
     global VERSION, CHANGELOG_TXT
     if version is None:
         version = VERSION
-    if not (Path(__file__).parent / f"{version}.json").exists():
+
+    downloaded_raw_dir = DIR_PARATRANZ / "common" / "raw" / "更新日志" / f"{version}.json.json"
+    if not downloaded_raw_dir.exists():
         return
-    with open(Path(__file__).parent / f"{version}.json", "r", encoding="utf-8") as fp:
+    with open(downloaded_raw_dir, "r", encoding="utf-8") as fp:
         data = json.load(fp)
 
     data = [
@@ -51,9 +55,7 @@ def paratranz2changelog(version: str = None):
     for en, cn in data:
         for idx_changelog, line in enumerate(CHANGELOG_TXT):
             line = line.strip()
-            print(line)
             if line == en:
-                print(line)
                 CHANGELOG_TXT[idx_changelog] = f"{cn}\n"
                 continue
     with open(Path(__file__).parent / f"{version}.txt", "w", encoding="utf-8") as fp:
