@@ -3,7 +3,7 @@ from pathlib import Path
 from src.parse_text import ParseTextTwee, ParseTextJS
 
 FILE_BASE = r"D:\Users\Administrator\Documents\GitHub\vrelnir_localization\degrees-of-lewdity-master\game"
-FILE_NAME = r"base-combat/tentacles/tentacleActionsGeneration.twee"
+FILE_NAME = r"base-combat/stalk/stalk.twee"
 FILE_PATH = Path(rf"{FILE_BASE}/{FILE_NAME}")
 
 with open(FILE_PATH, "r", encoding="utf-8") as fp:
@@ -19,7 +19,7 @@ async def test_fetch_lines():
     """抓了哪些行"""
     bl = PT.parse()
     if FILE_PATH.name.endswith("twee"):
-        pre_bool_list = PT.pre_parse_set_to(True)
+        pre_bool_list = PT.pre_parse_set_run(True)
         bl = [
             True if pre_bool_list[idx] or line else False
             for idx, line in enumerate(bl)
@@ -35,7 +35,7 @@ async def test_fetch_pos():
     # sourcery skip: no-loop-in-tests
     """抓的位置对不对"""
     able_lines = PT.parse()
-    pre_bool_list = PT.pre_parse_set_to()
+    pre_bool_list = PT.pre_parse_set_run()
     able_lines = [
         True if pre_bool_list[idx] or line else False
         for idx, line in enumerate(able_lines)

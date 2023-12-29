@@ -540,6 +540,7 @@ class ParseTextTwee:
                 self.is_tag_span(line)
                 or '<<skill_difficulty ' in line
                 or ">>." in line
+                or "<<print $NPCList[0].fullDescription>>" in line
             ):
                 results.append(True)
             elif self.is_only_widgets(line) or self.is_json_line(line):
