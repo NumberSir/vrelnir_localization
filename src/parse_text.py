@@ -1022,7 +1022,8 @@ class ParseTextTwee:
         """half-json"""
         return self.parse_type_only({
             "name:", "text:", "title:", "<summary", "<<option",
-            'return "', "Display Format:", "<label>S", "<<link"
+            'return "', "Display Format:", "<label>S", "<<link",
+            "return `", "result"
         })
 
     def _parse_body_writing(self):
@@ -1881,6 +1882,12 @@ class ParseTextTwee:
                 or "<<skill_difficulty " in line
                 or ".replace(/[^a-zA-Z" in line
                 or "$earSlime.event" in line
+                or "if $slimePoundTask" in line
+                or '<<case "Sweep">>' in line
+                or '<<case "Feed">>' in line
+                or '<<case "Brush">>' in line
+                or '<<case "Wash">>' in line
+                or '<<case "Walk">>' in line
             ):
                 results.append(True)
             elif (
