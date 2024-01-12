@@ -59,7 +59,7 @@ class Credit:
         members_data = await self._get_issue_members(owner, repo, per_page, pages)
         return list(set(self._filter_issue_members(members_data)))
 
-    async def _get_issue_members(self, owner: str = "Eltirosto", repo: str = "Degrees-of-Lewdity-Chinese-Localization", per_page: int = 100, pages: int = 2):
+    async def _get_issue_members(self, owner: str = "Eltirosto", repo: str = "Degrees-of-Lewdity-Chinese-Localization", per_page: int = 100, pages: int = 3):
         url = f"https://api.github.com/repos/{owner}/{repo}/issues"
         headers = {"Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"}
         results = []
