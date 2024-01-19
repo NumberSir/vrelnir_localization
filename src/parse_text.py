@@ -1888,6 +1888,9 @@ class ParseTextTwee:
                 or '<<case "Brush">>' in line
                 or '<<case "Wash">>' in line
                 or '<<case "Walk">>' in line
+                or '<<case "' in line
+                or '<<case `' in line
+                or "<<case '" in line
             ):
                 results.append(True)
             elif (

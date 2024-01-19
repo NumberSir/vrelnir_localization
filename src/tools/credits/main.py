@@ -40,9 +40,8 @@ class Credit:
         return self._filter_scored_miraheze_members(members_html)
 
     async def _get_miraheze_members(self, limit: int = 500):
-        url = "https://degreesoflewditycn.miraheze.org/w/index.php"
+        url = f"https://degreesoflewditycn.miraheze.org/wiki/{quote('特殊:用户列表')}"
         params = {
-            "title": quote("特殊:用户列表"),
             "editsOnly": 1,
             "wpFormIdentifier": "mw-listusers-form",
             "limit": limit
