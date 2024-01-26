@@ -672,7 +672,8 @@ class ParseTextTwee:
             elif any(_ in line for _ in {
                 "<<wheeze",
                 ">>.",
-                "$worn."
+                "$worn.",
+                "fullDescription"
             }):
                 results.append(True)
             elif self.is_only_widgets(line) or self.is_json_line(line) or ("<<set " in line and ">>" not in line):
