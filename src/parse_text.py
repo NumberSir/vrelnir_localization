@@ -339,6 +339,7 @@ class ParseTextTwee:
                 or "(No access)" in line
                 or self.is_widget_print(line)
                 or "replace(/[^a-zA-Z" in line
+                or "notEquippedItem.name" in line
             ):
                 results.append(True)
             elif self.is_only_widgets(line):
