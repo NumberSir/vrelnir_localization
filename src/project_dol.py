@@ -5,7 +5,6 @@ import re
 from .ast import Acorn, JSSyntaxError
 from pathlib import Path
 from typing import Any
-from zipfile import ZipFile, ZIP_DEFLATED
 from urllib.parse import quote
 from zipfile import ZipFile as zf, ZIP_DEFLATED
 from aiofiles import open as aopen
@@ -124,7 +123,7 @@ class ProjectDOL:
     async def unzip_latest_repository(self):
         """解压到本地"""
         logger.info(f"===== 开始解压{self._mention_name}最新仓库内容 ...")
-        with ZipFile(DIR_TEMP_ROOT / f"dol{self._mention_name}.zip") as zfp:
+        with zf(DIR_TEMP_ROOT / f"dol{self._mention_name}.zip") as zfp:
             zfp.extractall(DIR_ROOT)
         logger.info(f"##### 最新{self._mention_name}仓库内容已解压! \n")
 

@@ -320,7 +320,7 @@ class ParseTextTwee:
                 multirow_json_flag = False
                 results.append(False)
                 continue
-            elif multirow_json_flag and any(_ in line for _ in {'"start"', '"joiner"', '"end"', "replace(/[^a-zA-Z"}):
+            elif multirow_json_flag and any(_ in line for _ in {'"start"', '"joiner"', '"end"', "replace(/[^a-zA-Z", "notEquippedItem.name"}):
                 results.append(True)
                 continue
             elif multirow_json_flag:
@@ -1340,7 +1340,7 @@ class ParseTextTwee:
         """<span , <<link, 纯文本"""
         return [
             line.strip() and (
-                ("<<link [[" in line.strip() and "[[Next" not in line.strip())
+                "<<link [[" in line.strip()
                 or (not line.strip().startswith("<") and not line.strip().startswith("/*") and "::" not in line.strip())
                 or "<span " in line.strip()
                 or "$earSlimeEvent" in line.strip()
@@ -2207,13 +2207,7 @@ class ParseTextJS:
                 results.append(False)
                 continue
 
-            if any(_ in line for _ in {
-                'T.text_output = "cracked ";',
-                'T.text_output = "scratched ";',
-                'T.text_output = alt === "metal" ? "tarnished " : "discoloured ";',
-                'T.text_output = kw + " ";',
-                'T.text_output = worn.colour'
-            }):
+            if "T.text_output" in line:
                 results.append(True)
             else:
                 results.append(False)

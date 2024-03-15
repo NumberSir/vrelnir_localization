@@ -1,6 +1,6 @@
 import asyncio
 import datetime
-import os
+from src.log import logger
 
 import httpx
 from urllib.parse import quote
@@ -22,6 +22,7 @@ class Credit:
         url = f"https://paratranz.cn/api/projects/{project_id}/members"
         headers = {"Authorization": PARATRANZ_TOKEN}
         response = await self.client.get(url, headers=headers)
+        logger.info("paratranz members Finished")
         return response.json()
 
     def _filter_scored_paratranz_members(self, members: list[dict]) -> list[str]:
@@ -47,6 +48,7 @@ class Credit:
             "limit": limit
         }
         response = await self.client.get(url, params=params)
+        logger.info("miraheze members Finished")
         return response.text
 
     def _filter_scored_miraheze_members(self, html: str):
@@ -56,7 +58,7 @@ class Credit:
     async def build_issue_members(self, owner: str = "Eltirosto", repo: str = "Degrees-of-Lewdity-Chinese-Localization", per_page: int = 100, pages: int = 2):
         """有反馈过 issue 的"""
         members_data = await self._get_issue_members(owner, repo, per_page, pages)
-        return list(set(self._filter_issue_members(members_data)))
+        return sorted(list(set(self._filter_issue_members(members_data))))
 
     async def _get_issue_members(self, owner: str = "Eltirosto", repo: str = "Degrees-of-Lewdity-Chinese-Localization", per_page: int = 100, pages: int = 3):
         url = f"https://api.github.com/repos/{owner}/{repo}/issues"
@@ -70,6 +72,7 @@ class Credit:
             }
             response = await self.client.get(url, params=params, headers=headers)
             results.extend(response.json())
+        logger.info("issue members Finished")
         return results
 
     def _filter_issue_members(self, members_data: list[dict]):
