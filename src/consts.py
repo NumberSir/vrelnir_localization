@@ -244,7 +244,7 @@ class FileNamesJS(Enum):
     WIDGETS_FULL = "widgets.js"
 
     """ base-clothing """
-    UDPATE_CLOTHES_FULL = "updateClothes.js"
+    UDPATE_CLOTHES_FULL = "update-clothes.js"
     CLOTHING = "clothing-"
 
 

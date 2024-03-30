@@ -1866,6 +1866,7 @@ class ParseTextTwee:
                 or "<<run $rebuy_" in line
                 or "<<swarminit" in line
                 or "<<set _buy = Time.dayState" in line
+                or "<<set _naked" in line
                 or "<<optionsfrom " in line
                 or "<<run _options" in line
                 or "<<listbox " in line
