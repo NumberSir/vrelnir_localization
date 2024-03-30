@@ -22,6 +22,8 @@ DIR_TEST = ROOT / "src" / "parse_texts"
 DIR_PASSAGE = DIR_TEST / "passage"
 DIR_TARGET = DIR_TEST / "target"
 
+DIR_PARATRANZ_EXPORT = ROOT / "data" / "paratranz" / "common" / "raw"
+
 
 __all__ = [
     "PTN_COMMENT",
@@ -38,5 +40,6 @@ __all__ = [
     "DIR_GAME_TEXTS",
     "DIR_PASSAGE",
     "DIR_TARGET",
-    "DIR_TEST"
+    "DIR_TEST",
+    "DIR_PARATRANZ_EXPORT"
 ]

@@ -2800,7 +2800,7 @@ class ParseTextJS:
 
     def _parse_clothing(self):
         """ 0.4.2.3 改动"""
-        return self.parse_type_only({"name_cap:", "description:", "<<link `", "altDamage:"})
+        return self.parse_type_only({"name_cap:", "description:", "<<link `", "altDamage:", "name_simple:"})
 
     """ base-system """
     def parse_system(self):

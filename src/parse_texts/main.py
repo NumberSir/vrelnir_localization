@@ -507,6 +507,11 @@ class ParseTwine:
         logger.info("所有元素已二次组合！")
 
     # 一次性函数，用来将旧汉化方式的译文、词条状态迁移到新汉化方式用的
+    def update_localization_paratranz_strings(self):
+        """一次性函数，将旧汉化方式的译文、词条状态迁移到新汉化方式"""
+        for root, dirs, files in os.walk(DIR_PARATRANZ_EXPORT):
+            for file in files:
+                paratranz_raw_data = json.load(Path(root) / file)
 
     # 修改格式为可以在 paratranz 导入的文件
     def build_paratranz_format(self):
