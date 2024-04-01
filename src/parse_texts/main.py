@@ -22,6 +22,8 @@ class ParseTwine:
         self._twine_combined_elements_data: dict[str, dict] = {}  # 详细记录经过组合后的元素信息，等待进一步处理
         self._twine_combined_elements_data_flat: list[dict] = []  # 扁平化处理，只有一层
 
+        self._paratranz_detailed_raw_data: dict[str, list[dict]] = {}  # 旧版汉化方式词条添加各种信息，等待进一步处理
+
         self._paratranz_elements_data: dict[str, dict] = {}  # 处理成可在 paratranz 导入的格式，等待进一步处理
         self._paratranz_elements_data_flat: list[dict] = []  # 扁平化处理，只有一层
 
@@ -41,6 +43,7 @@ class ParseTwine:
         self.combine_twine_element_pairs()
         self.combine_twine_element_full()
 
+        self.build_paratranz_detailed_raw_data()
         self.build_paratranz_format()
 
     # 文件路径
@@ -506,12 +509,97 @@ class ParseTwine:
 
         logger.info("所有元素已二次组合！")
 
-    # 一次性函数，用来将旧汉化方式的译文、词条状态迁移到新汉化方式用的
-    def update_localization_paratranz_strings(self):
-        """一次性函数，将旧汉化方式的译文、词条状态迁移到新汉化方式"""
+    # 一次性函数，将旧汉化方式的译文、词条状态提取出详细信息
+    def build_paratranz_detailed_raw_data(self):
+        """一次性函数，将旧汉化方式的译文、词条状态提取出详细信息"""
+        logger.info("开始生成旧汉化方式译文详细信息……")
+        def _add_element(fp: str, orig: str, trns: str, stg: int, info: list):
+            data = {
+                "filepath": fp,
+                "original": orig,
+                "translation": trns,
+                "stage": stg,
+                "pos_info": info
+            }
+            if fp not in self._paratranz_detailed_raw_data:
+                self._paratranz_detailed_raw_data[fp] = [data]
+            else:
+                self._paratranz_detailed_raw_data[fp].append(data)
+
         for root, dirs, files in os.walk(DIR_PARATRANZ_EXPORT):
+            if "失效" in root or "日志" in root or "测试" in root:
+                continue
+
             for file in files:
-                paratranz_raw_data = json.load(Path(root) / file)
+                if ".js." in file:
+                    # TODO 对 JS 的处理
+                    continue
+                else:
+                    filename = file.replace(".csv.json", ".twee")
+                filepath = (Path(root) / filename)
+                filepath = Path().joinpath(*filepath.parts[filepath.parts.index("raw")+1:]).__str__()
+
+                # 文件在新版里没有，可能删了或者改名了
+                if filepath not in self._twine_passage_data:
+                    logger.warning(f"{filepath} 不存在！可能删改了！")
+                    continue
+
+                with open(Path(root) / file, "r", encoding="utf-8") as fp:
+                    paratranz_raws: list[dict] = json.load(fp)
+
+                for pz_raw in paratranz_raws:
+                    original = pz_raw["original"]
+                    translation = pz_raw["translation"]
+                    stage = pz_raw["stage"]
+                    pos_info = []
+
+                    flag = False
+                    for passage_name, passage_data in self._twine_passage_data[filepath].items():
+                        passage_body: str = passage_data["passage_body"]
+
+                        # 词条不在这个段落里
+                        if original not in passage_body:
+                            continue
+
+                        # 可能出现多次，全部找到
+                        original_re = re.escape(original)
+                        matches = re.finditer(original_re, passage_body)
+                        pos_info.extend([
+                            {
+                                "passage": passage_name,
+                                "pos_start": match.start(),
+                                "pos_end": match.end()
+                            } for match in matches
+                        ])
+                        # 也有可能在所有段落中都找不到，这种情况下报错
+                        flag = True
+
+                    if not flag:
+                        logger.error(f"！找不到词条 - {original} | {filepath}")
+
+                    _add_element(filepath, original, translation, stage, pos_info)
+        logger.info("旧汉化方式译文详细信息已生成！")
+
+    # 一次性函数，用来将旧汉化方式的译文、词条状态迁移到新汉化方式用的
+    def build_paratranz_combined_raw_data(self):
+        for filepath, paratranz_detailed_datas in self._paratranz_detailed_raw_data.items():
+            for paratranz_data in paratranz_detailed_datas:
+                original = paratranz_data["original"]
+                translation = paratranz_data["translation"]
+                stage = paratranz_data["stage"]
+                for pos_info in paratranz_data["pos_info"]:
+                    passage = pos_info["passage"]
+                    paratranz_pos_start = pos_info["pos_start"]
+                    paratranz_pos_end = pos_info["pos_end"]
+
+                    for element in self._twine_combined_elements_data[filepath][passage]:
+                        element_pos_start = element["pos_start"]
+                        element_pos_end = element["pos_end"]
+                        # 情况1: pz 被 elem 包住
+                        if element_pos_start < paratranz_pos_start and element_pos_end > paratranz_pos_end:
+                            ...
+
+                        # 情况2: 
 
     # 修改格式为可以在 paratranz 导入的文件
     def build_paratranz_format(self):
@@ -568,6 +656,9 @@ class ParseTwine:
 
         with open(DIR_TARGET / "twine_combined_elements_data_flat.json", "w", encoding="utf-8") as fp:
             json.dump(self._twine_combined_elements_data_flat, fp, ensure_ascii=False, indent=2)
+
+        with open(DIR_TARGET / "paratranz_detailed_raw_data.json", "w", encoding="utf-8") as fp:
+            json.dump(self._paratranz_detailed_raw_data, fp, ensure_ascii=False, indent=2)
 
         with open(DIR_TARGET / "paratranz_elements_data.json", "w", encoding="utf-8") as fp:
             json.dump(self._paratranz_elements_data, fp, ensure_ascii=False, indent=2)

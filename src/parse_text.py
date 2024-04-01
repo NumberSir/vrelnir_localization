@@ -1445,7 +1445,7 @@ class ParseTextTwee:
 
     def _parse_tips(self):
         """只有<h3>和 " """
-        return self.parse_type_startwith({'"', "<h3>"})
+        return self.parse_type_startwith({'"', "<h3>", "<<link"})
 
     def _parse_transformations(self):
         """<span, <<print, 纯文本"""
@@ -1894,6 +1894,7 @@ class ParseTextTwee:
                 or '<<case "' in line
                 or '<<case `' in line
                 or "<<case '" in line
+                or "<span" in line
             ):
                 results.append(True)
             elif (
@@ -2144,8 +2145,6 @@ class ParseTextJS:
             return self._parse_sexshop_menu()
         elif FileNamesJS.SEXTOY_INVENTORY_FULL.value == self._filename:
             return self._parse_sextoy_inventory()
-        elif FileNamesJS.IDB_BACKEND_FULL.value == self._filename:
-            return self._parse_idb_backend()
         elif FileNamesJS.INGAME_FULL.value == self._filename:
             return self._parse_ingame()
         elif FileNamesJS.UI_FULL.value == self._filename:
@@ -2336,51 +2335,51 @@ class ParseTextJS:
                 results.append(False)
         return results
 
-    def _parse_idb_backend(self):
-        """lastChild.innerText"""
-        results = []
-        inner_text_flag = False
-        inner_html_flag = False
-        for line in self._lines:
-            line = line.strip()
-            if not line:
-                results.append(False)
-                continue
-
-            if "lastChild.innerText" in line and not line.endswith(";"):
-                inner_text_flag = True
-                results.append(False)
-                continue
-            elif inner_text_flag and line.endswith(';'):
-                inner_text_flag = False
-                results.append(True)
-                continue
-
-            if "innerHTML" in line and not line.endswith(";"):
-                inner_text_flag = True
-                results.append(False)
-                continue
-            elif inner_text_flag and line.endswith(';'):
-                inner_text_flag = False
-                results.append(True)
-                continue
-
-            if (
-                "lastChild.innerText" in line
-                or ('value: "' in line and "<" not in line and ">" not in line)
-                or '"<div class=saveGroup>' in line
-                or '.append("' in line
-                or '", Date: " +' in line
-                or '"Save Name: "' in line
-                or 'saveButton.value' in line
-                or 'loadButton.value' in line
-                or 'lostSaves.innerHTML =' in line
-            ):
-                results.append(True)
-            else:
-                results.append(False)
-
-        return results
+    # def _parse_idb_backend(self):
+    #     """lastChild.innerText"""
+    #     results = []
+    #     inner_text_flag = False
+    #     inner_html_flag = False
+    #     for line in self._lines:
+    #         line = line.strip()
+    #         if not line:
+    #             results.append(False)
+    #             continue
+    #
+    #         if "lastChild.innerText" in line and not line.endswith(";"):
+    #             inner_text_flag = True
+    #             results.append(False)
+    #             continue
+    #         elif inner_text_flag and line.endswith(';'):
+    #             inner_text_flag = False
+    #             results.append(True)
+    #             continue
+    #
+    #         if "innerHTML" in line and not line.endswith(";"):
+    #             inner_text_flag = True
+    #             results.append(False)
+    #             continue
+    #         elif inner_text_flag and line.endswith(';'):
+    #             inner_text_flag = False
+    #             results.append(True)
+    #             continue
+    #
+    #         if (
+    #             "lastChild.innerText" in line
+    #             or ('value: "' in line and "<" not in line and ">" not in line)
+    #             or '"<div class=saveGroup>' in line
+    #             or '.append("' in line
+    #             or '", Date: " +' in line
+    #             or '"Save Name: "' in line
+    #             or 'saveButton.value' in line
+    #             or 'loadButton.value' in line
+    #             or 'lostSaves.innerHTML =' in line
+    #         ):
+    #             results.append(True)
+    #         else:
+    #             results.append(False)
+    #
+    #     return results
 
     def _parse_ingame(self):
         """序数词词缀"""
@@ -2505,6 +2504,8 @@ class ParseTextJS:
             return self._parse_feats()
         elif FileNamesJS.COLOURS_FULL.value == self._filename:
             return self._parse_colours()
+        elif FileNamesJS.SHOP_FULL.value == self._filename:
+            return self._parse_shop()
         return self.parse_normal()
 
     def _parse_feats(self):
@@ -2514,6 +2515,10 @@ class ParseTextJS:
     def _parse_colours(self):
         """json"""
         return self.parse_type_only({'name_cap: "', 'name: "'})
+
+    def _parse_shop(self):
+        """json"""
+        return self.parse_type_only('"')
 
     """ special-masturbation """
     def parse_masturbation(self) -> list[bool]:
@@ -2806,10 +2811,15 @@ class ParseTextJS:
     def parse_system(self):
         if FileNamesJS.WIDGETS_FULL.value == self._filename:
             return self._parse_widgets()
+        elif FileNamesJS.TEXT_FULL.value == self._filename:
+            return self._parse_text()
         return self.parse_normal()
 
     def _parse_widgets(self):
         return self.parse_type_only({".name_cap,", "addfemininityfromfactor(", "playerAwareTheyArePregnant()"})
+
+    def _parse_text(self):
+        return self.parse_type_only({"statChange", 'return "'})
 
     """ 常规 """
     def parse_normal(self) -> list[bool]:

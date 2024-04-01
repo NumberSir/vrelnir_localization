@@ -1,21 +1,22 @@
 {
   "03-JavaScript": [
     "base.js",
-    "bedroomPills.js",
+    "bedroom-pills.js",
     "clothing-shop-v2.js",
     "colour-namer.js",
-    "debugMenu.js",
-    "eyesRelated.js",
+    "debug-menu.js",
+    "eyes-related.js",
     "furniture.js",
     "ingame.js",
-    "npcCompressor.js",
+    "npc-compressor.js",
     "sexShopMenu.js",
     "sexToysInventory.js",
     "UI.js"
   ],
   "04-Variables": [
     "colours.js",
-    "feats.js"
+    "feats.js",
+    "shop.js"
   ],
   "special-masturbation": [
     "actions.js",
@@ -24,13 +25,13 @@
     "slimeControl.js"
   ],
   "04-Pregnancy": [
-    "childrenStoryFunctions.js",
+    "children-story-functions.js",
     "pregnancy.js",
-    "pregnancyTypes.js",
-    "storyFunctions.js"
+    "pregnancy-types.js",
+    "story-functions.js"
   ],
   "time": [
-    "timeMacros.js",
+    "time-macros.js",
     "time.js"
   ],
   "03-Templates": [
@@ -39,6 +40,7 @@
     "t-misc.js"
   ],
   "base-system": [
+    "text.js",
     "widgets.js"
   ],
   "external": [

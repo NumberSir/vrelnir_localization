@@ -89,39 +89,39 @@ async def process_common(dol_common: ProjectDOL, pt: Paratranz, chs_version: str
     """ 替换生肉词典 """
     await dol_common.update_dicts()
 
-    """ 替换游戏原文 用的是 `paratranz` 文件夹里的内容覆写 """
-    blacklist_dirs = [
-        # "00-framework-tools",
-        # "01-config",
-        # "03-JavaScript",
-        # "04-Variables",
-        # "base-clothing",
-        # "base-combat",
-        # "base-debug",
-        # "base-system",
-        # "flavour-text-generators",
-        # "fonts",
-        # "overworld-forest",
-        # "overworld-plains",
-        # "overworld-town",
-        # "overworld-underground",
-        # "special-dance",
-        # "special-exhibition",
-        # "special-masturbation",
-        # "special-templates"
-    ]
-    blacklist_files = []
-    await dol_common.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=False)
-
-    """ 有些额外需要更改的 """
-    dol_common.change_css()  # 更换一些样式和硬编码文本
-    dol_common.replace_banner()  # 更换游戏头图
-    dol_common.change_version(chs_version)  # 更换游戏版本号
-
-    """ 编译成游戏 """
-    dol_common.compile(chs_version)
-    dol_common.package_zip(chs_version)  # 自动打包成 zip
-    dol_common.run()  # 运行
+    # """ 替换游戏原文 用的是 `paratranz` 文件夹里的内容覆写 """
+    # blacklist_dirs = [
+    #     # "00-framework-tools",
+    #     # "01-config",
+    #     # "03-JavaScript",
+    #     # "04-Variables",
+    #     # "base-clothing",
+    #     # "base-combat",
+    #     # "base-debug",
+    #     # "base-system",
+    #     # "flavour-text-generators",
+    #     # "fonts",
+    #     # "overworld-forest",
+    #     # "overworld-plains",
+    #     # "overworld-town",
+    #     # "overworld-underground",
+    #     # "special-dance",
+    #     # "special-exhibition",
+    #     # "special-masturbation",
+    #     # "special-templates"
+    # ]
+    # blacklist_files = []
+    # await dol_common.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=False)
+    #
+    # """ 有些额外需要更改的 """
+    # dol_common.change_css()  # 更换一些样式和硬编码文本
+    # dol_common.replace_banner()  # 更换游戏头图
+    # dol_common.change_version(chs_version)  # 更换游戏版本号
+    #
+    # """ 编译成游戏 """
+    # dol_common.compile(chs_version)
+    # dol_common.package_zip(chs_version)  # 自动打包成 zip
+    # dol_common.run()  # 运行
 
 
 async def main():

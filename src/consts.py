@@ -200,22 +200,22 @@ class FileNamesJS(Enum):
 
     """ 03-JavaScript """
     BASE_FULL = "base.js"
-    BEDROOM_PILLS_FULL = "bedroomPills.js"
-    DEBUG_MENU_FULL = "debugMenu.js"
-    EYES_RELATED = "eyesRelated.js"
+    BEDROOM_PILLS_FULL = "bedroom-pills.js"
+    DEBUG_MENU_FULL = "debug-menu.js"
+    EYES_RELATED = "eyes-related.js"
     FURNITURE_FULL = "furniture.js"
-    IDB_BACKEND_FULL = "idb_backend.js"
     INGAME_FULL = "ingame.js"
     SEXSHOP_MENU_FULL = "sexShopMenu.js"
     SEXTOY_INVENTORY_FULL = "sexToysInventory.js"
     UI_FULL = "UI.js"
-    NPC_COMPRESSOR_FULL = "npcCompressor.js"
+    NPC_COMPRESSOR_FULL = "npc-compressor.js"
     COLOUR_NAMER_FULL = "colour-namer.js"
     CLOTHING_SHOP_V2_FULL = "clothing-shop-v2.js"
 
     """ 04-variables """
     COLOURS_FULL = "colours.js"
     FEATS_FULL = "feats.js"
+    SHOP_FULL = "shop.js"
 
     """ special-masturbation """
     ACTIONS_FULL = "actions.js"
@@ -223,14 +223,14 @@ class FileNamesJS(Enum):
     MACROS_MASTURBATION_FULL = "macros-masturbation.js"
 
     """ 04-Pregnancy """
-    CHILDREN_STORY_FUNCTIONS_FULL = "childrenStoryFunctions.js"
+    CHILDREN_STORY_FUNCTIONS_FULL = "children-story-functions.js"
     PREGNANCY_FULL = "pregnancy.js"
-    STORY_FUNCTIONS_FULL = "storyFunctions.js"
-    PREGNANCY_TYPES_FULL = "pregnancyTypes.js"
+    STORY_FUNCTIONS_FULL = "story-functions.js"
+    PREGNANCY_TYPES_FULL = "pregnancy-types.js"
 
     """ time """
     TIME_FULL = "time.js"
-    TIME_MACROS_FULL = "timeMacros.js"
+    TIME_MACROS_FULL = "time-macros.js"
 
     """ 03-Templates """
     T_MISC_FULL = "t-misc.js"
@@ -241,6 +241,7 @@ class FileNamesJS(Enum):
     COLOR_NAMER_FULL = "color-namer.js"
 
     """ base-system """
+    TEXT_FULL = "text.js"
     WIDGETS_FULL = "widgets.js"
 
     """ base-clothing """
