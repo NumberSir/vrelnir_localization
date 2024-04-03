@@ -2116,8 +2116,6 @@ class ParseTextJS:
             return self.parse_masturbation()
         elif DirNamesJS.PREGNANCY.value == self._filedir.name:
             return self.parse_pregnancy()
-        elif DirNamesJS.TIME.value == self._filedir.name:
-            return self.parse_time()
         elif DirNamesJS.TEMPLATES.value == self._filedir.name:
             return self.parse_templates()
         elif DirNamesJS.EXTERNAL.value == self._filedir.name:
@@ -2155,6 +2153,10 @@ class ParseTextJS:
             return self._parse_colour_namer()
         elif FileNamesJS.CLOTHING_SHOP_V2_FULL.value == self._filename:
             return self._parse_clothing_shop_v2()
+        elif FileNamesJS.TIME_FULL.value == self._filename:
+            return self._parse_time()
+        elif FileNamesJS.TIME_MACROS_FULL.value == self._filename:
+            return self._parse_time_macros()
         return self.parse_normal()
 
     def _parse_bedroom_pills(self):
@@ -2497,6 +2499,17 @@ class ParseTextJS:
             ".replace(/[^a-zA-Z"
         })
 
+    def _parse_time(self):
+        """只有月份和星期"""
+        return self.parse_type_only({"const monthNames", "const daysOfWeek"})
+
+    def _parse_time_macros(self):
+        """只有几句话"""
+        return self.parse_type_only({
+            "School term finishes today.", "School term finishes on ", "School term starts on ",
+            "ampm = hour"
+        })
+
     """ 04-variables """
     def parse_variables(self) -> list[bool]:
         """ 04-variables """
@@ -2700,26 +2713,6 @@ class ParseTextJS:
             'return ["tiny",'
         })
 
-    """ time """
-    def parse_time(self) -> list[bool]:
-        """ time """
-        if FileNamesJS.TIME_FULL.value == self._filename:
-            return self._parse_time()
-        elif FileNamesJS.TIME_MACROS_FULL.value == self._filename:
-            return self._parse_time_macros()
-        return self.parse_normal()
-
-    def _parse_time(self):
-        """只有月份和星期"""
-        return self.parse_type_only({"const monthNames", "const daysOfWeek"})
-
-    def _parse_time_macros(self):
-        """只有几句话"""
-        return self.parse_type_only({
-            "School term finishes today.", "School term finishes on ", "School term starts on ",
-            "ampm = hour"
-        })
-
     """ 03-Templates """
     def parse_templates(self) -> list[bool]:
         if FileNamesJS.T_MISC_FULL.value == self._filename:
@@ -2813,6 +2806,8 @@ class ParseTextJS:
             return self._parse_widgets()
         elif FileNamesJS.TEXT_FULL.value == self._filename:
             return self._parse_text()
+        elif FileNamesJS.EFFECT_FULL.value == self._filename:
+            return self._parse_effect()
         return self.parse_normal()
 
     def _parse_widgets(self):
@@ -2820,6 +2815,51 @@ class ParseTextJS:
 
     def _parse_text(self):
         return self.parse_type_only({"statChange", 'return "'})
+
+    def _parse_effect(self):
+        results = []
+        multi_element_flag = False
+        multi_swikifier_flag = False
+        for line in self._lines:
+            line = line.strip()
+            if not line:
+                results.append(False)
+                continue
+
+            if line == "element(":
+                multi_element_flag = True
+                results.append(False)
+                continue
+            elif multi_element_flag and line == ");":
+                multi_element_flag = False
+                results.append(False)
+                continue
+            elif multi_element_flag:
+                results.append(True)
+                continue
+
+            if line == "sWikifier(":
+                multi_element_flag = True
+                results.append(False)
+                continue
+            elif multi_element_flag and line == ");":
+                multi_element_flag = False
+                results.append(False)
+                continue
+            elif multi_element_flag:
+                results.append(True)
+                continue
+
+            if '"' in line:
+                results.append(True)
+            elif '`' in line:
+                results.append(True)
+            elif "'" in line:
+                results.append(True)
+            else:
+                results.append(False)
+
+        return results
 
     """ 常规 """
     def parse_normal(self) -> list[bool]:
@@ -2856,6 +2896,9 @@ class ParseTextJS:
             elif (
                 "altText.toys = " in line
                 or "altText.start = " in line
+                or "<span" in line
+                or "sWikifier(" in line
+                or "span(" in line
             ):
                 results.append(True)
             else:

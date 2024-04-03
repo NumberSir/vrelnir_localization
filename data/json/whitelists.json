@@ -11,7 +11,9 @@
     "npc-compressor.js",
     "sexShopMenu.js",
     "sexToysInventory.js",
-    "UI.js"
+    "ui.js",
+    "time-macros.js",
+    "time.js"
   ],
   "04-Variables": [
     "colours.js",
@@ -30,16 +32,13 @@
     "pregnancy-types.js",
     "story-functions.js"
   ],
-  "time": [
-    "time-macros.js",
-    "time.js"
-  ],
   "03-Templates": [
     "t-actions.js",
     "t-bodyparts.js",
     "t-misc.js"
   ],
   "base-system": [
+    "effect.js",
     "text.js",
     "widgets.js"
   ],

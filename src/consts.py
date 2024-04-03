@@ -207,10 +207,12 @@ class FileNamesJS(Enum):
     INGAME_FULL = "ingame.js"
     SEXSHOP_MENU_FULL = "sexShopMenu.js"
     SEXTOY_INVENTORY_FULL = "sexToysInventory.js"
-    UI_FULL = "UI.js"
+    UI_FULL = "ui.js"
     NPC_COMPRESSOR_FULL = "npc-compressor.js"
     COLOUR_NAMER_FULL = "colour-namer.js"
     CLOTHING_SHOP_V2_FULL = "clothing-shop-v2.js"
+    TIME_FULL = "time.js"
+    TIME_MACROS_FULL = "time-macros.js"
 
     """ 04-variables """
     COLOURS_FULL = "colours.js"
@@ -228,10 +230,6 @@ class FileNamesJS(Enum):
     STORY_FUNCTIONS_FULL = "story-functions.js"
     PREGNANCY_TYPES_FULL = "pregnancy-types.js"
 
-    """ time """
-    TIME_FULL = "time.js"
-    TIME_MACROS_FULL = "time-macros.js"
-
     """ 03-Templates """
     T_MISC_FULL = "t-misc.js"
     T_ACTIONS_FULL = "t-actions.js"
@@ -241,6 +239,7 @@ class FileNamesJS(Enum):
     COLOR_NAMER_FULL = "color-namer.js"
 
     """ base-system """
+    EFFECT_FULL = "effect.js"
     TEXT_FULL = "text.js"
     WIDGETS_FULL = "widgets.js"
 
