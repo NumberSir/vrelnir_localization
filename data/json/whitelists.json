@@ -24,7 +24,7 @@
     "actions.js",
     "effects.js",
     "macros-masturbation.js",
-    "slimeControl.js"
+    "slime-control.js"
   ],
   "04-Pregnancy": [
     "children-story-functions.js",
