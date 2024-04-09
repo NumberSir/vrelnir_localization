@@ -1,5 +1,8 @@
 import asyncio
 import datetime
+import os
+from pathlib import Path
+
 from src.log import logger
 
 import httpx
@@ -60,7 +63,7 @@ class Credit:
         members_data = await self._get_issue_members(owner, repo, per_page, pages)
         return sorted(list(set(self._filter_issue_members(members_data))))
 
-    async def _get_issue_members(self, owner: str = "Eltirosto", repo: str = "Degrees-of-Lewdity-Chinese-Localization", per_page: int = 100, pages: int = 6):
+    async def _get_issue_members(self, owner: str = "Eltirosto", repo: str = "Degrees-of-Lewdity-Chinese-Localization", per_page: int = 100, pages: int = 6) -> list[dict]:
         url = f"https://api.github.com/repos/{owner}/{repo}/issues"
         headers = {"Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"}
         results = []
@@ -98,7 +101,8 @@ async def main():
     issue_members: str = '\n- '.join(issue_members)
 
     time = datetime.datetime.now().strftime("%Y%m%d")
-    with open(f"CREDITS-{time}.md", "w", encoding="utf-8") as fp:
+    os.makedirs(Path(__file__).parent / "data", exist_ok=True)
+    with open(Path(__file__).parent / "data" / f"CREDITS-{time}.md", "w", encoding="utf-8") as fp:
         fp.write(
             "## 欲都孤儿 贡献者名单\n"
             f"> {time}\n"
