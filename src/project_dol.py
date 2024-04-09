@@ -781,8 +781,8 @@ class ProjectDOL:
             with open(FILE_VERSION_EDIT_WORLD, "r", encoding="utf-8") as fp:
                 lines = fp.readlines()
             for idx, line in enumerate(lines):
-                if "version: " in line.strip():
-                    lines[idx] = f'version: "{version}",\n'
+                if "versionName: " in line.strip():
+                    lines[idx] = f'versionName: "{version}",\n'
                     break
             with open(FILE_VERSION_EDIT_WORLD, "w", encoding="utf-8") as fp:
                 fp.writelines(lines)
@@ -790,8 +790,8 @@ class ProjectDOL:
             with open(FILE_VERSION_EDIT_COMMON, "r", encoding="utf-8") as fp:
                 lines = fp.readlines()
             for idx, line in enumerate(lines):
-                if "version: " in line.strip():
-                    lines[idx] = f'version: "{version}",\n'
+                if "versionName: " in line.strip():
+                    lines[idx] = f'versionName: "{version}",\n'
                     break
             with open(FILE_VERSION_EDIT_COMMON, "w", encoding="utf-8") as fp:
                 fp.writelines(lines)
