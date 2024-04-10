@@ -40,7 +40,8 @@
   "base-system": [
     "effect.js",
     "text.js",
-    "widgets.js"
+    "widgets.js",
+    "stat-changes.js"
   ],
   "external": [
     "color-namer.js"

@@ -242,6 +242,7 @@ class FileNamesJS(Enum):
     EFFECT_FULL = "effect.js"
     TEXT_FULL = "text.js"
     WIDGETS_FULL = "widgets.js"
+    STAT_CHANGES_FULL = "stat-changes.js"
 
     """ base-clothing """
     UDPATE_CLOTHES_FULL = "update-clothes.js"

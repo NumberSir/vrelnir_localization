@@ -2808,6 +2808,8 @@ class ParseTextJS:
             return self._parse_text()
         elif FileNamesJS.EFFECT_FULL.value == self._filename:
             return self._parse_effect()
+        elif FileNamesJS.STAT_CHANGES_FULL.value == self._filename:
+            return self._parse_stat_changes()
         return self.parse_normal()
 
     def _parse_widgets(self):
@@ -2860,6 +2862,10 @@ class ParseTextJS:
                 results.append(False)
 
         return results
+
+    def _parse_stat_changes(self):
+        return self.parse_type_only({"return '", 'return "'})
+
 
     """ 常规 """
     def parse_normal(self) -> list[bool]:
