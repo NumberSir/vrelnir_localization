@@ -1,13 +1,11 @@
 import re
 from pathlib import Path
 
-from . import logger
 from .consts import *
 from .tools.variables_process import VariablesProcess
 
 
 class ParseTextTwee:
-
     def __init__(self, lines: list[str], filepath: Path):
         self._lines = lines
         self._filepath = filepath
@@ -44,7 +42,10 @@ class ParseTextTwee:
                 continue
 
             for var_item in compared_vars:
-                if f"<<set {var_item['var']}" not in line and f"run {var_item['var']}" not in line:
+                if (
+                    f"<<set {var_item['var']}" not in line
+                    and f"run {var_item['var']}" not in line
+                ):
                     continue
 
                 if any(var_line in line for var_line in var_item["lines"]):
@@ -101,8 +102,9 @@ class ParseTextTwee:
         return self.parse_normal()
 
     """√ framework-tools """
+
     def parse_framework(self):
-        """ 00-framework-tools"""
+        """00-framework-tools"""
         if FileNamesTwee.WAITING_ROOM_FULL.value == self._filename:
             return self._parse_waiting_room()
         return self.parse_normal()
@@ -110,15 +112,18 @@ class ParseTextTwee:
     def _parse_waiting_room(self):
         """很少很简单"""
         return [
-            line.strip() and (
+            line.strip()
+            and (
                 "<span " in line.strip()
                 or (not line.startswith("<") and "::" not in line)
-            ) for line in self._lines
+            )
+            for line in self._lines
         ]
 
     """√ config """
+
     def parse_config(self):
-        """ 01-config """
+        """01-config"""
         if FileNamesTwee.START_FULL.value == self._filename:
             return self._parse_start()
         elif FileNamesTwee.VERSION_INFO_FULL.value == self._filename:
@@ -128,24 +133,26 @@ class ParseTextTwee:
     def _parse_start(self):
         """很少很简单"""
         return [
-            line.strip() and (
+            line.strip()
+            and (
                 "<span " in line.strip()
                 or "<<link [[" in line.strip()
                 or any(re.findall(r"^(\w|- )", line.strip()))
-            ) for line in self._lines
+            )
+            for line in self._lines
         ]
 
     def _parse_version_info(self):
         """很少很简单"""
         return [
-            line.strip() and (
-                not line.strip().startswith("<") and "::" not in line
-            ) for line in self._lines
+            line.strip() and (not line.strip().startswith("<") and "::" not in line)
+            for line in self._lines
         ]
 
     """√ variables """
+
     def parse_variables(self):
-        """ 04-Variables """
+        """04-Variables"""
         if FileNamesTwee.CANVASMODEL_FULL.value == self._filename:
             return self._parse_canvasmodel()
         elif FileNamesTwee.VERSION_UPDATE_FULL.value == self._filename:
@@ -165,8 +172,10 @@ class ParseTextTwee:
         return self.parse_type_only("<<link [[")
 
     def _parse_version_update(self):
-        """只有 <span 和 <<link """
-        return self.parse_type_only({"<span ", "<<link ", "replace(/[^a-zA-Z", "if $earSlime.event"})
+        """只有 <span 和 <<link"""
+        return self.parse_type_only(
+            {"<span ", "<<link ", "replace(/[^a-zA-Z", "if $earSlime.event"}
+        )
 
     def _parse_passage_footer(self):
         """有点麻烦"""
@@ -200,11 +209,11 @@ class ParseTextTwee:
         return results
 
     def _parse_pregnancy_var(self):
-        """只有 "name": """
+        """只有 "name":"""
         return self.parse_type_only({'"name": '})
 
     def _parse_variables_static(self):
-        """ variables-static.twee """
+        """variables-static.twee"""
         results = []
         multirow_set_flag = False
         for line in self._lines:
@@ -231,18 +240,16 @@ class ParseTextTwee:
 
             if "setup.breastsizes" in line:
                 results.append(True)
-            elif (
-                '"name": "' in line
-                or '"message": "' in line
-            ):
+            elif '"name": "' in line or '"message": "' in line:
                 results.append(True)
             else:
                 results.append(False)
         return results
 
     """√ base-clothing """
+
     def parse_base_clothing(self):
-        """ base-clothing """
+        """base-clothing"""
         if FileNamesTwee.CAPTIONTEXT_FULL.value == self._filename:
             return self._parse_captiontext()
         # elif FileNamesTwee.CLOTHING.value in self._filename and FileNamesTwee.CLOTHING_SETS_FULL.value != self._filename:
@@ -266,11 +273,7 @@ class ParseTextTwee:
                 results.append(False)
                 continue
 
-            if (
-                self.is_comment(line)
-                or self.is_event(line)
-                or self.is_only_marks(line)
-            ):
+            if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
                 results.append(False)
             elif self.is_tag_span(line):
                 results.append(True)
@@ -299,11 +302,16 @@ class ParseTextTwee:
                 continue
 
             """跨行注释，逆天"""
-            if (line in ["/*", "<!--"] or (any(line.startswith(_) for _ in {"/*", "<!--"}) and all(_ not in line for _ in {"*/", "-->"}))):
+            if line in ["/*", "<!--"] or (
+                any(line.startswith(_) for _ in {"/*", "<!--"})
+                and all(_ not in line for _ in {"*/", "-->"})
+            ):
                 multirow_comment_flag = True
                 results.append(False)
                 continue
-            elif multirow_comment_flag and (line in ["*/", "-->"] or any(line.endswith(_) for _ in {"*/", "-->"})):
+            elif multirow_comment_flag and (
+                line in ["*/", "-->"] or any(line.endswith(_) for _ in {"*/", "-->"})
+            ):
                 multirow_comment_flag = False
                 results.append(False)
                 continue
@@ -312,7 +320,9 @@ class ParseTextTwee:
                 continue
 
             """就为这一个单开一档，逆天"""
-            if (line.startswith("<<run ") or line.startswith("<<set ")) and ">>" not in line:
+            if (
+                line.startswith("<<run ") or line.startswith("<<set ")
+            ) and ">>" not in line:
                 multirow_json_flag = True
                 results.append(False)
                 continue
@@ -320,7 +330,16 @@ class ParseTextTwee:
                 multirow_json_flag = False
                 results.append(False)
                 continue
-            elif multirow_json_flag and any(_ in line for _ in {'"start"', '"joiner"', '"end"', "replace(/[^a-zA-Z", "notEquippedItem.name"}):
+            elif multirow_json_flag and any(
+                _ in line
+                for _ in {
+                    '"start"',
+                    '"joiner"',
+                    '"end"',
+                    "replace(/[^a-zA-Z",
+                    "notEquippedItem.name",
+                }
+            ):
                 results.append(True)
                 continue
             elif multirow_json_flag:
@@ -354,10 +373,7 @@ class ParseTextTwee:
 
     def _parse_clothing_init(self):
         """只有 desc:"""
-        return self.parse_type_only({
-            "desc:", "V.outfit = ", 'word:"',
-            'name: "'
-        })
+        return self.parse_type_only({"desc:", "V.outfit = ", 'word:"', 'name: "'})
 
     def _parse_wardrobes(self):
         """多了一个<<wearlink_norefresh " """
@@ -385,7 +401,10 @@ class ParseTextTwee:
                 continue
 
             """跨行set，逆天"""
-            if (line.startswith("<<set _itemStats ") or line.startswith("<<set _sortedItemColors")) and ">>" not in line:
+            if (
+                line.startswith("<<set _itemStats ")
+                or line.startswith("<<set _sortedItemColors")
+            ) and ">>" not in line:
                 multirow_set_flag = True
                 results.append(False)
                 continue
@@ -414,8 +433,8 @@ class ParseTextTwee:
                 results.append(False)
             elif (
                 self.is_tag_span(line)
-                or '<<wearlink_norefresh' in line
-                or '>>.' in line
+                or "<<wearlink_norefresh" in line
+                or ">>." in line
                 or self.is_tag_label(line)
                 or self.is_widget_print(line)
                 or self.is_widget_option(line)
@@ -433,9 +452,13 @@ class ParseTextTwee:
         return results
 
     """√ base-combat """
+
     def parse_base_combat(self):
-        """ base-combat """
-        if FileNamesTwee.ACTIONS_FULL.value == self._filename or FileNamesTwee.ACTIONS.value in self._filename:
+        """base-combat"""
+        if (
+            FileNamesTwee.ACTIONS_FULL.value == self._filename
+            or FileNamesTwee.ACTIONS.value in self._filename
+        ):
             return self._parse_actions()
         if FileNamesTwee.STALK_FULL.value == self._filename:
             return self._parse_stalk()
@@ -449,7 +472,7 @@ class ParseTextTwee:
             return self._parse_combat_effects()
         elif self._filename in {
             FileNamesTwee.NPC_GENERATION_FULL.value,
-            FileNamesTwee.NPC_DAMAGE_FULL.value
+            FileNamesTwee.NPC_DAMAGE_FULL.value,
         }:
             return self._parse_npc_span()
         elif FileNamesTwee.SPEECH_SYDNEY_FULL.value == self._filename:
@@ -491,7 +514,12 @@ class ParseTextTwee:
                 results.append(False)
                 continue
 
-            if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line) or line == "<<print either(":
+            if (
+                self.is_comment(line)
+                or self.is_event(line)
+                or self.is_only_marks(line)
+                or line == "<<print either("
+            ):
                 results.append(False)
             elif (
                 self.is_tag_span(line)
@@ -535,11 +563,16 @@ class ParseTextTwee:
                 results.append(False)
                 continue
 
-            if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line) or line == "<<print either(":
+            if (
+                self.is_comment(line)
+                or self.is_event(line)
+                or self.is_only_marks(line)
+                or line == "<<print either("
+            ):
                 results.append(False)
             elif (
                 self.is_tag_span(line)
-                or '<<skill_difficulty ' in line
+                or "<<skill_difficulty " in line
                 or ">>." in line
                 or "<<print $NPCList[0].fullDescription>>" in line
             ):
@@ -551,7 +584,7 @@ class ParseTextTwee:
         return results
 
     def _parse_generation(self):
-        """只有 <span """
+        """只有 <span"""
         results = []
         multirow_d_flag = False
         for line in self._lines:
@@ -594,10 +627,14 @@ class ParseTextTwee:
                 or line == "_tentacle.desc"
             ):
                 results.append(False)
-            elif self.is_tag_span(line) or self.is_widget_actions_tentacle(line) or self.is_widget_if(line):
+            elif (
+                self.is_tag_span(line)
+                or self.is_widget_actions_tentacle(line)
+                or self.is_widget_if(line)
+            ):
                 results.append(True)
             elif (
-                '.desc.includes' in line
+                ".desc.includes" in line
                 or "fullDesc.includes" in line
                 or "<<takeHandholdingVirginity" in line
             ):
@@ -617,16 +654,19 @@ class ParseTextTwee:
                 results.append(False)
                 continue
 
-            if (
-                self.is_comment(line)
-                or self.is_event(line)
-                or self.is_only_marks(line)
-            ):
+            if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
                 results.append(False)
-            elif any(_ in line for _ in {
-                "_tentacledata.desc", "fullDesc.includes",
-                '{"desc":', "you", "You", "YOU"
-            }):
+            elif any(
+                _ in line
+                for _ in {
+                    "_tentacledata.desc",
+                    "fullDesc.includes",
+                    '{"desc":',
+                    "you",
+                    "You",
+                    "YOU",
+                }
+            ):
                 results.append(True)
             elif self.is_only_widgets(line):
                 results.append(False)
@@ -645,17 +685,18 @@ class ParseTextTwee:
                 continue
 
             """跨行注释/script，逆天"""
-            if (
-                line in ["/*", "<!--"]
-                or (
-                    any(line.startswith(_) for _ in {"/*", "<!--"})
-                    and all(_ not in line for _ in {"*/", "-->"})
-                )
+            if line in ["/*", "<!--"] or (
+                any(line.startswith(_) for _ in {"/*", "<!--"})
+                and all(_ not in line for _ in {"*/", "-->"})
             ):
                 multirow_widget_flag = True
                 results.append(False)
                 continue
-            elif multirow_widget_flag and line in ["*/", "-->"] or any(line.endswith(_) for _ in {"*/", "-->"}):
+            elif (
+                multirow_widget_flag
+                and line in ["*/", "-->"]
+                or any(line.endswith(_) for _ in {"*/", "-->"})
+            ):
                 multirow_widget_flag = False
                 results.append(False)
                 continue
@@ -665,19 +706,17 @@ class ParseTextTwee:
 
             if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
                 results.append(False)
-            elif (
-                self.is_tag_span(line)
-                or self.is_widget_print(line)
+            elif self.is_tag_span(line) or self.is_widget_print(line):
+                results.append(True)
+            elif any(
+                _ in line for _ in {"<<wheeze", ">>.", "$worn.", "fullDescription"}
             ):
                 results.append(True)
-            elif any(_ in line for _ in {
-                "<<wheeze",
-                ">>.",
-                "$worn.",
-                "fullDescription"
-            }):
-                results.append(True)
-            elif self.is_only_widgets(line) or self.is_json_line(line) or ("<<set " in line and ">>" not in line):
+            elif (
+                self.is_only_widgets(line)
+                or self.is_json_line(line)
+                or ("<<set " in line and ">>" not in line)
+            ):
                 results.append(False)
             else:
                 results.append(True)
@@ -685,10 +724,13 @@ class ParseTextTwee:
 
     def _parse_npc_span(self):
         """只有 <span"""
-        return self.parse_type_only({
-            "<span ", "<<set $NPCList[_n].fullDescription",
-            "<<set $NPCList[_n].breastdesc"
-        })
+        return self.parse_type_only(
+            {
+                "<span ",
+                "<<set $NPCList[_n].fullDescription",
+                "<<set $NPCList[_n].breastdesc",
+            }
+        )
 
     def _parse_speech_sydney(self):
         """有点麻烦"""
@@ -699,18 +741,11 @@ class ParseTextTwee:
                 results.append(False)
                 continue
 
-            if (
-                self.is_comment(line)
-                or self.is_event(line)
-                or self.is_only_marks(line)
-            ):
+            if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
                 results.append(False)
             elif line.startswith("`"):
                 results.append(True)
-            elif (
-                self.is_only_widgets(line)
-                or ("<<set " in line and ">>" not in line)
-            ):
+            elif self.is_only_widgets(line) or ("<<set " in line and ">>" not in line):
                 results.append(False)
             else:
                 results.append(True)
@@ -738,18 +773,14 @@ class ParseTextTwee:
                 results.append(True)
                 continue
 
-            if (
-                self.is_comment(line)
-                or self.is_event(line)
-                or self.is_only_marks(line)
-            ):
+            if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
                 results.append(False)
             elif (
                 line.startswith('"')
-                or line.startswith('`')
-                or line.startswith('<<default>>')
-                or line.startswith('<<He>> ')
-                or line.startswith('<<bHe>> ')
+                or line.startswith("`")
+                or line.startswith("<<default>>")
+                or line.startswith("<<He>> ")
+                or line.startswith("<<bHe>> ")
                 or "<span " in line
                 or any(re.findall(r"<<case \d", line))
             ):
@@ -817,14 +848,11 @@ class ParseTextTwee:
 
             if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
                 results.append(False)
-            elif (
-                "<" in line and (
-                    self.is_tag_span(line)
-                    or self.is_tag_label(line)
-                )
-            ):
+            elif "<" in line and (self.is_tag_span(line) or self.is_tag_label(line)):
                 results.append(True)
-            elif "<" in line and (self.is_only_widgets(line) or self.is_json_line(line)):
+            elif "<" in line and (
+                self.is_only_widgets(line) or self.is_json_line(line)
+            ):
                 results.append(False)
             else:
                 results.append(True)
@@ -875,6 +903,7 @@ class ParseTextTwee:
         return results
 
     """ base-debug """
+
     def parse_base_debug(self):
         return self.parse_normal()
 
@@ -889,8 +918,9 @@ class ParseTextTwee:
         return self.parse_type_only("name_cap")
 
     """ base-system """
+
     def parse_base_system(self):
-        """ base-system """
+        """base-system"""
         if FileNamesTwee.CHARACTERISTICS_FULL.value == self._filename:
             return self._parse_characteristic()
         elif FileNamesTwee.SOCIAL_FULL.value == self._filename:
@@ -906,7 +936,7 @@ class ParseTextTwee:
         elif self._filename in {
             FileNamesTwee.DEVIANCY_FULL.value,
             FileNamesTwee.SYSTEM_EXHIBITIONISM_FULL.value,
-            FileNamesTwee.PROMISCUITY_FULL.value
+            FileNamesTwee.PROMISCUITY_FULL.value,
         }:
             return self._parse_sex_stat()
         elif FileNamesTwee.FAME_FULL.value == self._filename:
@@ -960,18 +990,15 @@ class ParseTextTwee:
                 results.append(False)
                 continue
 
-            if (
-                self.is_comment(line)
-                or self.is_event(line)
-                or self.is_only_marks(line)
-            ):
+            if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
                 results.append(False)
             elif (
                 "description: " in line
                 or "{ name :" in line
                 or "preText: " in line
                 or 'level: "None"' in line
-                or line == '<<if $_number isnot "an unknown number of" and $_number isnot "more than one" and $_number gt 1>>'
+                or line
+                == '<<if $_number isnot "an unknown number of" and $_number isnot "more than one" and $_number gt 1>>'
                 or self.is_tag_span(line)
                 or "bad.pushUnique" in line
                 or "good.pushUnique" in line
@@ -999,11 +1026,7 @@ class ParseTextTwee:
                 results.append(False)
                 continue
 
-            if (
-                self.is_comment(line)
-                or self.is_event(line)
-                or self.is_only_marks(line)
-            ):
+            if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
                 results.append(False)
             elif (
                 "description: '" in line
@@ -1011,10 +1034,7 @@ class ParseTextTwee:
                 or "preText: " in line
             ):
                 results.append(True)
-            elif (
-                self.is_json_line(line)
-                or self.is_only_widgets(line)
-            ):
+            elif self.is_json_line(line) or self.is_only_widgets(line):
                 results.append(False)
             else:
                 results.append(True)
@@ -1022,11 +1042,21 @@ class ParseTextTwee:
 
     def _parse_traits(self):
         """half-json"""
-        return self.parse_type_only({
-            "name:", "text:", "title:", "<summary", "<<option",
-            'return "', "Display Format:", "<label>S", "<<link",
-            "return `", "result"
-        })
+        return self.parse_type_only(
+            {
+                "name:",
+                "text:",
+                "title:",
+                "<summary",
+                "<<option",
+                'return "',
+                "Display Format:",
+                "<label>S",
+                "<<link",
+                "return `",
+                "result",
+            }
+        )
 
     def _parse_body_writing(self):
         """有点麻烦"""
@@ -1037,11 +1067,7 @@ class ParseTextTwee:
                 results.append(False)
                 continue
 
-            if (
-                self.is_comment(line)
-                or self.is_event(line)
-                or self.is_only_marks(line)
-            ):
+            if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
                 results.append(False)
             elif self.is_tag_span(line) or self.is_widget_print(line):
                 results.append(True)
@@ -1080,7 +1106,11 @@ class ParseTextTwee:
 
             if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
                 results.append(False)
-            elif self.is_tag_span(line) or self.is_widget_button(line) or self.is_widget_print(line):
+            elif (
+                self.is_tag_span(line)
+                or self.is_widget_button(line)
+                or self.is_widget_print(line)
+            ):
                 results.append(True)
             elif self.is_only_widgets(line):
                 results.append(False)
@@ -1094,9 +1124,7 @@ class ParseTextTwee:
 
     def _parse_fame(self):
         """set $_output to"""
-        return self.parse_type_only({
-            "<<set $_output"
-        })
+        return self.parse_type_only({"<<set $_output"})
 
     def _parse_feats(self):
         """json"""
@@ -1144,11 +1172,16 @@ class ParseTextTwee:
                 continue
 
             """跨行注释/set，逆天"""
-            if (line in ["/*", "<!--"] or (any(line.startswith(_) for _ in {"/*", "<!--"}) and all(_ not in line for _ in {"*/", "-->"}))):
+            if line in ["/*", "<!--"] or (
+                any(line.startswith(_) for _ in {"/*", "<!--"})
+                and all(_ not in line for _ in {"*/", "-->"})
+            ):
                 multirow_comment_flag = True
                 results.append(False)
                 continue
-            elif multirow_comment_flag and (line in ["*/", "-->"] or any(line.endswith(_) for _ in {"*/", "-->"})):
+            elif multirow_comment_flag and (
+                line in ["*/", "-->"] or any(line.endswith(_) for _ in {"*/", "-->"})
+            ):
                 multirow_comment_flag = False
                 results.append(False)
                 continue
@@ -1166,10 +1199,24 @@ class ParseTextTwee:
                 or "<<set $NPCList[_ii].penisdesc" in line
             ):
                 results.append(True)
-            elif "<<set $NPCName[_i" in line and all(_ not in line for _ in {
-                ".gender", ".pronoun", "size to", "1>>", "0>>", ".outfits.pushUnique(",
-                "_val", "_rollover", "9>>", "random", "undefined", "delete", "crossdressing"
-            }):
+            elif "<<set $NPCName[_i" in line and all(
+                _ not in line
+                for _ in {
+                    ".gender",
+                    ".pronoun",
+                    "size to",
+                    "1>>",
+                    "0>>",
+                    ".outfits.pushUnique(",
+                    "_val",
+                    "_rollover",
+                    "9>>",
+                    "random",
+                    "undefined",
+                    "delete",
+                    "crossdressing",
+                }
+            ):
                 results.append(True)
             elif self.is_tag_span(line):
                 results.append(True)
@@ -1197,9 +1244,9 @@ class ParseTextTwee:
                 multirow_set_flag = False
                 results.append(False)
                 continue
-            elif multirow_set_flag and any(_ in line for _ in {
-                "_names.push", "_pre.push"
-            }):
+            elif multirow_set_flag and any(
+                _ in line for _ in {"_names.push", "_pre.push"}
+            ):
                 results.append(False)
                 continue
             elif multirow_set_flag:
@@ -1225,7 +1272,9 @@ class ParseTextTwee:
 
             """跨行注释，逆天"""
             if line in ["/*", "<!--"] or (
-                    any(line.startswith(_) for _ in {"/*", "<!--"}) and all(_ not in line for _ in {"*/", "-->"})):
+                any(line.startswith(_) for _ in {"/*", "<!--"})
+                and all(_ not in line for _ in {"*/", "-->"})
+            ):
                 multirow_comment_flag = True
                 results.append(False)
                 continue
@@ -1261,11 +1310,17 @@ class ParseTextTwee:
                 continue
 
             """跨行注释/error，逆天"""
-            if line in ["/*", "<!--", "<<error {"] or (any(line.startswith(_) for _ in {"/*", "<!--", "<<error {"}) and all(_ not in line for _ in {"*/", "-->", "}>>"})):
+            if line in ["/*", "<!--", "<<error {"] or (
+                any(line.startswith(_) for _ in {"/*", "<!--", "<<error {"})
+                and all(_ not in line for _ in {"*/", "-->", "}>>"})
+            ):
                 multirow_comment_flag = True
                 results.append(False)
                 continue
-            elif multirow_comment_flag and (line in ["*/", "-->", "}>>"] or any(line.endswith(_) for _ in {"*/", "-->", "}>>"})):
+            elif multirow_comment_flag and (
+                line in ["*/", "-->", "}>>"]
+                or any(line.endswith(_) for _ in {"*/", "-->", "}>>"})
+            ):
                 multirow_comment_flag = False
                 results.append(False)
                 continue
@@ -1313,12 +1368,15 @@ class ParseTextTwee:
 
             """跨行注释/error，逆天"""
             if line in ["/*", "<!--", "<<error {"] or (
-                    any(line.startswith(_) for _ in {"/*", "<!--", "<<error {"}) and all(
-                    _ not in line for _ in {"*/", "-->", "}>>"})):
+                any(line.startswith(_) for _ in {"/*", "<!--", "<<error {"})
+                and all(_ not in line for _ in {"*/", "-->", "}>>"})
+            ):
                 multirow_comment_flag = True
                 results.append(False)
                 continue
-            elif line in ["*/", "-->", "}>>"] or any(line.endswith(_) for _ in {"*/", "-->", "}>>"}):
+            elif line in ["*/", "-->", "}>>"] or any(
+                line.endswith(_) for _ in {"*/", "-->", "}>>"}
+            ):
                 multirow_comment_flag = False
                 results.append(False)
                 continue
@@ -1339,14 +1397,20 @@ class ParseTextTwee:
     def _parse_sleep(self):
         """<span , <<link, 纯文本"""
         return [
-            line.strip() and (
+            line.strip()
+            and (
                 "<<link [[" in line.strip()
-                or (not line.strip().startswith("<") and not line.strip().startswith("/*") and "::" not in line.strip())
+                or (
+                    not line.strip().startswith("<")
+                    and not line.strip().startswith("/*")
+                    and "::" not in line.strip()
+                )
                 or "<span " in line.strip()
                 or "$earSlimeEvent" in line.strip()
                 or "$earSlime.event" in line.strip()
                 or "<<case " in line.strip()
-            ) for line in self._lines
+            )
+            for line in self._lines
         ]
 
     def _parse_stat_changes(self):
@@ -1364,7 +1428,10 @@ class ParseTextTwee:
                 continue
 
             """跨行注释，逆天"""
-            if line in ["/*", "<!--"] or (any(line.startswith(_) for _ in {"/*", "<!--"}) and all(_ not in line for _ in {"*/", "-->"})):
+            if line in ["/*", "<!--"] or (
+                any(line.startswith(_) for _ in {"/*", "<!--"})
+                and all(_ not in line for _ in {"*/", "-->"})
+            ):
                 multirow_comment_flag = True
                 results.append(False)
                 continue
@@ -1402,7 +1469,10 @@ class ParseTextTwee:
                 continue
 
             """跨行注释，逆天"""
-            if line in ["/*", "<!--"] or (any(line.startswith(_) for _ in {"/*", "<!--"}) and all(_ not in line for _ in {"*/", "-->"})):
+            if line in ["/*", "<!--"] or (
+                any(line.startswith(_) for _ in {"/*", "<!--"})
+                and all(_ not in line for _ in {"*/", "-->"})
+            ):
                 multirow_comment_flag = True
                 results.append(False)
                 continue
@@ -1421,17 +1491,20 @@ class ParseTextTwee:
                 or "<span " in line
                 or self.is_widget_print(line)
                 or "<<set _args[0]" in line
-                or '<<if $_npc.penisdesc' in line
+                or "<<if $_npc.penisdesc" in line
             ):
                 results.append(True)
-            elif any(_ == line for _ in {
-                "$worn.over_upper.name\\",
-                "$worn.over_lower.name\\",
-                "$worn.upper.name\\",
-                "$worn.lower.name\\",
-                "$worn.under_lower.name\\",
-                "$worn.genitals.name"
-            }):
+            elif any(
+                _ == line
+                for _ in {
+                    "$worn.over_upper.name\\",
+                    "$worn.over_lower.name\\",
+                    "$worn.upper.name\\",
+                    "$worn.lower.name\\",
+                    "$worn.under_lower.name\\",
+                    "$worn.genitals.name",
+                }
+            ):
                 results.append(True)
             elif self.is_only_widgets(line):
                 results.append(False)
@@ -1450,7 +1523,8 @@ class ParseTextTwee:
     def _parse_transformations(self):
         """<span, <<print, 纯文本"""
         return [
-            line.strip() and (
+            line.strip()
+            and (
                 "<span " in line.strip()
                 or "<<print " in line.strip()
                 or (
@@ -1460,7 +1534,8 @@ class ParseTextTwee:
                     and not line.strip().startswith("/*")
                     and not self.is_json_line(line.strip())
                 )
-            ) for line in self._lines
+            )
+            for line in self._lines
         ]
 
     def _parse_system_widgets(self):
@@ -1475,11 +1550,16 @@ class ParseTextTwee:
                 continue
 
             """跨行注释，逆天"""
-            if (line in ["/*", "<!--"] or (any(line.startswith(_) for _ in {"/*", "<!--"}) and all(_ not in line for _ in {"*/", "-->"}))):
+            if line in ["/*", "<!--"] or (
+                any(line.startswith(_) for _ in {"/*", "<!--"})
+                and all(_ not in line for _ in {"*/", "-->"})
+            ):
                 multirow_comment_flag = True
                 results.append(False)
                 continue
-            elif multirow_comment_flag and (line in ["*/", "-->"] or any(line.endswith(_) for _ in {"*/", "-->"})):
+            elif multirow_comment_flag and (
+                line in ["*/", "-->"] or any(line.endswith(_) for _ in {"*/", "-->"})
+            ):
                 multirow_comment_flag = False
                 results.append(False)
                 continue
@@ -1521,8 +1601,10 @@ class ParseTextTwee:
                 self.is_tag_span(line)
                 or self.is_tag_label(line)
                 or self.is_widget_print(line)
-                or "<<print either(" in line and ">>" in line
-                or 'name: "' in line or 'name : "' in line
+                or "<<print either(" in line
+                and ">>" in line
+                or 'name: "' in line
+                or 'name : "' in line
                 or ">>." in line
                 or self.is_widget_link(line)
                 or "if $earSlime.event" in line
@@ -1546,8 +1628,9 @@ class ParseTextTwee:
         return results
 
     """ flavour-text-generators """
+
     def parse_flavour_text(self):
-        """ flavour-text-generators """
+        """flavour-text-generators"""
         if FileNamesTwee.BODY_COMMENTS_FULL.value == self._filename:
             return self._parse_body_comments()
         elif FileNamesTwee.EXHIBITIONISM_FULL.value == self._filename:
@@ -1608,6 +1691,7 @@ class ParseTextTwee:
         return self.parse_type_between(["<<set _possibilities to ["], ["]>>"])
 
     """ 其它 """
+
     def parse_normal(self):
         return self._parse_normal()
 
@@ -1635,11 +1719,16 @@ class ParseTextTwee:
                 continue
 
             """跨行注释，逆天"""
-            if (line in ["/*", "<!--"] or (any(line.startswith(_) for _ in {"/*", "<!--"}) and all(_ not in line for _ in {"*/", "-->"}))):
+            if line in ["/*", "<!--"] or (
+                any(line.startswith(_) for _ in {"/*", "<!--"})
+                and all(_ not in line for _ in {"*/", "-->"})
+            ):
                 multirow_comment_flag = True
                 results.append(False)
                 continue
-            elif multirow_comment_flag and (line in ["*/", "-->"] or any(line.endswith(_) for _ in {"*/", "-->"})):
+            elif multirow_comment_flag and (
+                line in ["*/", "-->"] or any(line.endswith(_) for _ in {"*/", "-->"})
+            ):
                 multirow_comment_flag = False
                 results.append(False)
                 continue
@@ -1652,7 +1741,9 @@ class ParseTextTwee:
                 multirow_print_flag = True
                 results.append(False)
                 continue
-            elif multirow_print_flag and (line.startswith(")>>") or line.endswith(')>></span>"')):
+            elif multirow_print_flag and (
+                line.startswith(")>>") or line.endswith(')>></span>"')
+            ):
                 if line != ")>>":
                     results.append(True)
                 else:
@@ -1672,9 +1763,9 @@ class ParseTextTwee:
                 multirow_script_flag = False
                 results.append(False)
                 continue
-            elif multirow_script_flag and any(_ in line for _ in {
-                ".replace(/[^a-zA-Z"
-            }):
+            elif multirow_script_flag and any(
+                _ in line for _ in {".replace(/[^a-zA-Z"}
+            ):
                 results.append(True)
                 continue
             elif multirow_script_flag:
@@ -1734,12 +1825,20 @@ class ParseTextTwee:
                 continue
 
             """突如其来的json"""
-            if ((line.startswith("<<set ") or line.startswith("<<error {")) and ">>" not in line) or line.endswith("[") or line.endswith("{") or line.endswith("("):
+            if (
+                (
+                    (line.startswith("<<set ") or line.startswith("<<error {"))
+                    and ">>" not in line
+                )
+                or line.endswith("[")
+                or line.endswith("{")
+                or line.endswith("(")
+            ):
                 maybe_json_flag = True
-                if any(_ in line for _ in {
-                    "<<set _hairColorByName",
-                    "<<set _fringeColorByName"
-                }):
+                if any(
+                    _ in line
+                    for _ in {"<<set _hairColorByName", "<<set _fringeColorByName"}
+                ):
                     results.append(True)
                     continue
                 results.append(False)
@@ -1749,16 +1848,26 @@ class ParseTextTwee:
                 results.append(False)
                 continue
             elif maybe_json_flag and (
-                '"Orphan":"orphan"' in line or "hint:`" in line
-                or 'museum:"' in line or 'journal: `' in line
-                or 'name:"' in line or 'stolen:"' in line
-                or 'recovered:"' in line or '"Rest":' in line
-                or '"Stroke":' in line or '"Vines"' in line
-                or '"Tentacles"' in line or '"Plainwhite"' in line
-                or '"Wavywhite"' in line or '"Cowgirls"' in line
-                or '"Hearts"' in line or '"Trees"' in line
-                or '"Crosses"' in line or '"Cowgirl"' in line
-                or '"Cat"' in line or '"Puppy"' in line
+                '"Orphan":"orphan"' in line
+                or "hint:`" in line
+                or 'museum:"' in line
+                or "journal: `" in line
+                or 'name:"' in line
+                or 'stolen:"' in line
+                or 'recovered:"' in line
+                or '"Rest":' in line
+                or '"Stroke":' in line
+                or '"Vines"' in line
+                or '"Tentacles"' in line
+                or '"Plainwhite"' in line
+                or '"Wavywhite"' in line
+                or '"Cowgirls"' in line
+                or '"Hearts"' in line
+                or '"Trees"' in line
+                or '"Crosses"' in line
+                or '"Cowgirl"' in line
+                or '"Cat"' in line
+                or '"Puppy"' in line
                 or "'Owl plushie'" in line
                 or '"Loose"' in line
                 or '"Messy"' in line
@@ -1782,7 +1891,9 @@ class ParseTextTwee:
                 continue
 
             """还有这个"""
-            if line.startswith("<<run $(`#${_id}") and ('"Take" : ' in line or '"Present" : ' in line):
+            if line.startswith("<<run $(`#${_id}") and (
+                '"Take" : ' in line or '"Present" : ' in line
+            ):
                 results.append(True)
                 continue
 
@@ -1811,15 +1922,11 @@ class ParseTextTwee:
                 multirow_run_flag = False
                 results.append(False)
                 continue
-            elif multirow_run_flag and (
-                "Enable indexedDB" in line
-            ):
+            elif multirow_run_flag and ("Enable indexedDB" in line):
                 multirow_run_flag = False
                 results.append(True)
                 continue
-            elif multirow_run_flag and (
-                "'Owl plushie'" in line
-            ):
+            elif multirow_run_flag and ("'Owl plushie'" in line):
                 results.append(True)
                 continue
             elif multirow_run_flag:
@@ -1829,19 +1936,17 @@ class ParseTextTwee:
             if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
                 results.append(False)
                 continue
-            elif (
-                "<" in line and (
-                    self.is_tag_span(line)
-                    or self.is_tag_label(line)
-                    or self.is_tag_input(line)
-                    or self.is_widget_note(line)
-                    or self.is_widget_print(line)
-                    or self.is_widget_option(line)
-                    or self.is_widget_button(line)
-                    or self.is_widget_link(line)
-                )
+            elif "<" in line and (
+                self.is_tag_span(line)
+                or self.is_tag_label(line)
+                or self.is_tag_input(line)
+                or self.is_widget_note(line)
+                or self.is_widget_print(line)
+                or self.is_widget_option(line)
+                or self.is_widget_button(line)
+                or self.is_widget_link(line)
             ):
-                if '.replaceAll("["' in line or '.replace(/\[/g' in line:
+                if '.replaceAll("["' in line or ".replace(/\[/g" in line:
                     results.append(False)
                     continue
                 results.append(True)
@@ -1849,15 +1954,17 @@ class ParseTextTwee:
             elif (
                 '<<if $tentacles[$tentacleindex].desc.includes("pale")>>' in line
                 or "<<if $_mirror is 'mirror'>>" in line
-                or '<<run _bodyPartOptions.delete($featsBoosts.tattoos[_l].bodypart)>>' in line
-                or '$_examine' in line
-                or '<<if $pubtask is' in line
-                or '<<run _featsTattooOptions.push(' in line
-                or '<<if $NPCList[_nn].penis' in line
-                or '<<if $watersportsdisable is "f" and $consensual is 0 and $enemyanger gte random(20, 200) and ($NPCList[_nn].penis is "none" or !$NPCList[_nn].penisdesc.includes("strap-on")) and _condomResult isnot "contained" and _args[0] isnot "short">>' in line
-                or '<<if $NPCList[0].penisdesc' in line
-                or '<<if $NPCList[_n].condom' in line
-                or '<<takeKissVirginityNamed' in line
+                or "<<run _bodyPartOptions.delete($featsBoosts.tattoos[_l].bodypart)>>"
+                in line
+                or "$_examine" in line
+                or "<<if $pubtask is" in line
+                or "<<run _featsTattooOptions.push(" in line
+                or "<<if $NPCList[_nn].penis" in line
+                or '<<if $watersportsdisable is "f" and $consensual is 0 and $enemyanger gte random(20, 200) and ($NPCList[_nn].penis is "none" or !$NPCList[_nn].penisdesc.includes("strap-on")) and _condomResult isnot "contained" and _args[0] isnot "short">>'
+                in line
+                or "<<if $NPCList[0].penisdesc" in line
+                or "<<if $NPCList[_n].condom" in line
+                or "<<takeKissVirginityNamed" in line
                 or "<<cheatBodyliquidOnPart" in line
                 or "<<generateRole" in line
                 or "<<takeVirginity" in line
@@ -1892,14 +1999,13 @@ class ParseTextTwee:
                 or '<<case "Wash">>' in line
                 or '<<case "Walk">>' in line
                 or '<<case "' in line
-                or '<<case `' in line
+                or "<<case `" in line
                 or "<<case '" in line
                 or "<span" in line
             ):
                 results.append(True)
-            elif (
-                ("<" in line and self.is_only_widgets(line))
-                or (maybe_json_flag and self.is_json_line(line))
+            elif ("<" in line and self.is_only_widgets(line)) or (
+                maybe_json_flag and self.is_json_line(line)
             ):
                 results.append(False)
                 continue
@@ -1908,18 +2014,14 @@ class ParseTextTwee:
         return results
 
     """ 归整 """
+
     def parse_type_only(self, pattern: str | set[str]) -> list[bool]:
         """指文件中只有一种或几种简单字符格式需要提取"""
         if isinstance(pattern, str):
-            return [
-                line.strip() and
-                pattern in line.strip()
-                for line in self._lines
-            ]
+            return [line.strip() and pattern in line.strip() for line in self._lines]
 
         return [
-            line.strip() and
-            any((_ in line.strip() for _ in pattern))
+            line.strip() and any((_ in line.strip() for _ in pattern))
             for line in self._lines
         ]
 
@@ -1927,14 +2029,12 @@ class ParseTextTwee:
         """指文件中只有一种或几种正则格式需要提取"""
         if isinstance(pattern, str):
             return [
-                line.strip() and
-                any(re.findall(pattern, line.strip()))
+                line.strip() and any(re.findall(pattern, line.strip()))
                 for line in self._lines
             ]
 
         return [
-            line.strip() and
-            any(re.findall(_, line.strip()) for _ in pattern)
+            line.strip() and any(re.findall(_, line.strip()) for _ in pattern)
             for line in self._lines
         ]
 
@@ -1942,26 +2042,27 @@ class ParseTextTwee:
         """以xx开头的"""
         if isinstance(pattern, str):
             return [
-                line.strip() and
-                line.strip().startswith(pattern)
+                line.strip() and line.strip().startswith(pattern)
                 for line in self._lines
             ]
 
         return [
-            line.strip() and
-            any((line.strip().startswith(_) for _ in pattern))
+            line.strip() and any((line.strip().startswith(_) for _ in pattern))
             for line in self._lines
         ]
 
     def parse_type_pure_text(self) -> list[bool]:
         """指文件中只有纯文本需要提取"""
         return [
-            line.strip() and
-            not line.strip().startswith("<") and "::" not in line.strip()
+            line.strip()
+            and not line.strip().startswith("<")
+            and "::" not in line.strip()
             for line in self._lines
         ]
 
-    def parse_type_between(self, starts: list[str], ends: list[str], contain: bool = False) -> list[bool]:
+    def parse_type_between(
+        self, starts: list[str], ends: list[str], contain: bool = False
+    ) -> list[bool]:
         """指文件中只有这两部分之间的内容需要提取"""
         results = []
         needed_flag = False
@@ -1985,17 +2086,22 @@ class ParseTextTwee:
         return results
 
     """ 判断 """
+
     @staticmethod
     def is_comment(line: str) -> bool:
         """注释"""
         if line.startswith("*") or line.startswith("*/") or line.startswith("-->"):
             return True
-        return any(line.startswith(_) for _ in {"/*", "<!--"}) and any(line.endswith(_) for _ in {"*/", "-->"})
+        return any(line.startswith(_) for _ in {"/*", "<!--"}) and any(
+            line.endswith(_) for _ in {"*/", "-->"}
+        )
 
     @staticmethod
     def is_json_line(line: str) -> bool:
-        """ xxx: yyy """
-        return any(re.findall(r"^[\w\"]*\s*:\s*[ `\'/\$\.\w\":,\|\(\)\{\}\[\]]+,*$", line))
+        """xxx: yyy"""
+        return any(
+            re.findall(r"^[\w\"]*\s*:\s*[ `\'/\$\.\w\":,\|\(\)\{\}\[\]]+,*$", line)
+        )
 
     @staticmethod
     def is_only_marks(line: str) -> bool:
@@ -2010,32 +2116,39 @@ class ParseTextTwee:
     @staticmethod
     def is_tag_span(line: str) -> bool:
         """<span???>xxx"""
-        return any(re.findall(r'<span.*?>[\"\w\.\-+\$]', line))
+        return any(re.findall(r"<span.*?>[\"\w\.\-+\$]", line))
 
     @staticmethod
     def is_tag_label(line: str) -> bool:
         """<label>xxx</label>"""
-        return any(re.findall(r"<label>[\w\-+]", line)) or any(re.findall(r"\w</label>", line))
+        return any(re.findall(r"<label>[\w\-+]", line)) or any(
+            re.findall(r"\w</label>", line)
+        )
 
     @staticmethod
     def is_tag_input(line: str) -> bool:
-        """<input """
+        """<input"""
         return any(re.findall(r"<input.*?value=\"", line))
 
     @staticmethod
     def is_widget_script(line: str) -> bool:
-        """<<script """
+        """<<script"""
         return any(re.findall(r"<<script", line))
 
     @staticmethod
     def is_widget_note(line: str) -> bool:
-        """<note """
+        """<note"""
         return any(re.findall(r"<<note\s\"", line))
 
     @staticmethod
     def is_widget_print(line: str) -> bool:
         """<<print xxx>>"""
-        return any(re.findall(r"<<print\s[^<]*[\"\'`\w]+[\-\?\s\w\.\$,\'\"<>\[\]\(\)/]+(?:\)>>|\">>|\'>>|`>>|\]>>|>>)", line))
+        return any(
+            re.findall(
+                r"<<print\s[^<]*[\"\'`\w]+[\-\?\s\w\.\$,\'\"<>\[\]\(\)/]+(?:\)>>|\">>|\'>>|`>>|\]>>|>>)",
+                line,
+            )
+        )
 
     @staticmethod
     def is_widget_if(line: str) -> bool:
@@ -2044,23 +2157,30 @@ class ParseTextTwee:
 
     @staticmethod
     def is_widget_option(line: str) -> bool:
-        """<<option """
+        """<<option"""
         return any(re.findall(r"<<option\s\"", line))
 
     @staticmethod
     def is_widget_button(line: str) -> bool:
-        """<<option """
+        """<<option"""
         return any(re.findall(r"<<button ", line))
 
     @staticmethod
     def is_widget_link(line: str) -> bool:
-        """<<link [[xxx|yyy]]>>, <<link "xxx">> """
-        return any(re.findall(r"<<link\s*(\[\[|\"\w|`\w|\'\w|\"\(|`\(|\'\(|_\w|`)", line))
+        """<<link [[xxx|yyy]]>>, <<link "xxx">>"""
+        return any(
+            re.findall(r"<<link\s*(\[\[|\"\w|`\w|\'\w|\"\(|`\(|\'\(|_\w|`)", line)
+        )
 
     @staticmethod
     def is_widget_high_rate_link(line: str) -> bool:
         """高频选项"""
-        return any(re.findall(r"<<link \[\[(Next\||Next\s\||Leave\||Refuse\||Return\||Resume\||Confirm\||Continue\||Stop\||Phase\|)", line))
+        return any(
+            re.findall(
+                r"<<link \[\[(Next\||Next\s\||Leave\||Refuse\||Return\||Resume\||Confirm\||Continue\||Stop\||Phase\|)",
+                line,
+            )
+        )
 
     @staticmethod
     def is_widget_actions_tentacle(line: str) -> bool:
@@ -2083,22 +2203,38 @@ class ParseTextTwee:
             line = line.replace(w, "", -1)
 
         if "<" not in line and "$" not in line and not line.startswith("_"):
-            return (not line.strip()) or ParseTextTwee.is_comment(line.strip()) or ParseTextTwee.is_only_marks(line.strip()) or False
+            return (
+                (not line.strip())
+                or ParseTextTwee.is_comment(line.strip())
+                or ParseTextTwee.is_only_marks(line.strip())
+                or False
+            )
         tags = {_ for _ in re.findall(r"(<[/\s\w\"=\-@\$\+\'\.]*>)", line) if _}
         for t in tags:
             line = line.replace(t, "", -1)
 
         if "$" not in line and not line.startswith("_"):
-            return (not line.strip()) or ParseTextTwee.is_comment(line.strip()) or ParseTextTwee.is_only_marks(line.strip()) or False
+            return (
+                (not line.strip())
+                or ParseTextTwee.is_comment(line.strip())
+                or ParseTextTwee.is_only_marks(line.strip())
+                or False
+            )
 
-        vars_ = {_ for _ in re.findall(r"((?:\$|_)[^_][#;\w\.\(\)\[\]\"\'`]*)", line) if _}
+        vars_ = {
+            _ for _ in re.findall(r"((?:\$|_)[^_][#;\w\.\(\)\[\]\"\'`]*)", line) if _
+        }
         for v in vars_:
             line = line.replace(v, "", -1)
-        return (not line.strip()) or ParseTextTwee.is_comment(line.strip()) or ParseTextTwee.is_only_marks(line.strip()) or False
+        return (
+            (not line.strip())
+            or ParseTextTwee.is_comment(line.strip())
+            or ParseTextTwee.is_only_marks(line.strip())
+            or False
+        )
 
 
 class ParseTextJS:
-
     def __init__(self, lines: list[str], filepath: Path):
         self._lines = lines
         self._filepath = filepath
@@ -2127,8 +2263,9 @@ class ParseTextJS:
         return self.parse_normal()
 
     """ 03-JavaScript """
+
     def parse_javascript(self) -> list[bool]:
-        """ 03-JavaScript """
+        """03-JavaScript"""
         if FileNamesJS.BEDROOM_PILLS_FULL.value == self._filename:
             return self._parse_bedroom_pills()
         elif FileNamesJS.BASE_FULL.value == self._filename:
@@ -2169,9 +2306,10 @@ class ParseTextJS:
                 results.append(False)
                 continue
 
-            if any(_ in line for _ in {
-                "name:", "description:", "onTakeMessage:", "warning_label:"
-            }) and not line.startswith("*"):
+            if any(
+                _ in line
+                for _ in {"name:", "description:", "onTakeMessage:", "warning_label:"}
+            ) and not line.startswith("*"):
                 if line.endswith(":"):
                     next_flag = True
                     results.append(False)
@@ -2183,17 +2321,20 @@ class ParseTextJS:
                 results.append(True)
                 continue
 
-            if (any(_ in line for _ in {
-                '<span class="hpi_auto_label">',
-                'class="hpi_take_pills"',
-                "item.autoTake() ?",
-                "item.hpi_take_pills ?",
-                "</a>",
-                '"Effective for "',
-                'return "',
-                "return this.autoTake()",
-                "const itemName"
-            })):
+            if any(
+                _ in line
+                for _ in {
+                    '<span class="hpi_auto_label">',
+                    'class="hpi_take_pills"',
+                    "item.autoTake() ?",
+                    "item.hpi_take_pills ?",
+                    "</a>",
+                    '"Effective for "',
+                    'return "',
+                    "return this.autoTake()",
+                    "const itemName",
+                }
+            ):
                 results.append(True)
             else:
                 results.append(False)
@@ -2201,7 +2342,7 @@ class ParseTextJS:
         return results
 
     def _parse_base(self):
-        """ T.text_output """
+        """T.text_output"""
         results = []
         for idx, line in enumerate(self._lines):
             line = line.strip()
@@ -2234,16 +2375,25 @@ class ParseTextJS:
                 results.append(False)
                 continue
             elif inner_html_flag:
-                if any(_ in line for _ in {
-                    "<abbr>", "<span>", "<option", "<button",
-                    "<h3>", "<<swarminit"
-                }):
+                if any(
+                    _ in line
+                    for _ in {
+                        "<abbr>",
+                        "<span>",
+                        "<option",
+                        "<button",
+                        "<h3>",
+                        "<<swarminit",
+                    }
+                ):
                     results.append(True)
                     continue
                 results.append(False)
                 continue
 
-            if any(_ in line for _ in {"link: [`", 'link: ["', "link: [(", "text_only: "}):
+            if any(
+                _ in line for _ in {"link: [`", 'link: ["', "link: [(", "text_only: "}
+            ):
                 results.append(True)
             else:
                 results.append(False)
@@ -2252,7 +2402,7 @@ class ParseTextJS:
 
     def _parse_eyes_related(self):
         """怪东西"""
-        return self.parse_type_only({'sentence += ', '"."'})
+        return self.parse_type_only({"sentence += ", '"."'})
 
     def _parse_furniture(self):
         """json"""
@@ -2267,10 +2417,20 @@ class ParseTextJS:
                 results.append(False)
                 continue
 
-            if any(_ in line for _ in {
-                "namecap: ", "description: ", "${item.owned()",
-                "<span ", "<option "
-            }) or ("Buy it" in line and "/*" not in line) or "Make a gift for :" in line:
+            if (
+                any(
+                    _ in line
+                    for _ in {
+                        "namecap: ",
+                        "description: ",
+                        "${item.owned()",
+                        "<span ",
+                        "<option ",
+                    }
+                )
+                or ("Buy it" in line and "/*" not in line)
+                or "Make a gift for :" in line
+            ):
                 results.append(True)
             else:
                 results.append(False)
@@ -2385,10 +2545,14 @@ class ParseTextJS:
 
     def _parse_ingame(self):
         """序数词词缀"""
-        return self.parse_type_only({
-            'return i + "st";', 'return i + "nd";',
-            'return i + "rd";', 'return i + "th";'
-        })
+        return self.parse_type_only(
+            {
+                'return i + "st";',
+                'return i + "nd";',
+                'return i + "rd";',
+                'return i + "th";',
+            }
+        )
 
     def _parse_ui(self):
         """text"""
@@ -2409,7 +2573,9 @@ class ParseTextJS:
             elif text_flag and not self.is_only_marks(line):
                 results.append(True)
 
-            elif "text =" in line and "let text" not in line and "const text" not in line:
+            elif (
+                "text =" in line and "let text" not in line and "const text" not in line
+            ):
                 results.append(True)
             elif "<span" in line:
                 results.append(True)
@@ -2418,7 +2584,7 @@ class ParseTextJS:
                 or "npc.breastsdesc =" in line
                 or "const breastSizes =" in line
                 or 'women = "' in line
-                or 'men = ' in line
+                or "men = " in line
                 or ".replace(/[^a-zA-Z" in line
             ):
                 results.append(True)
@@ -2493,11 +2659,9 @@ class ParseTextJS:
         return results
 
     def _parse_clothing_shop_v2(self):
-        return self.parse_type_only({
-            "const optionsFrom",
-            "const optionsTo",
-            ".replace(/[^a-zA-Z"
-        })
+        return self.parse_type_only(
+            {"const optionsFrom", "const optionsTo", ".replace(/[^a-zA-Z"}
+        )
 
     def _parse_time(self):
         """只有月份和星期"""
@@ -2505,14 +2669,19 @@ class ParseTextJS:
 
     def _parse_time_macros(self):
         """只有几句话"""
-        return self.parse_type_only({
-            "School term finishes today.", "School term finishes on ", "School term starts on ",
-            "ampm = hour"
-        })
+        return self.parse_type_only(
+            {
+                "School term finishes today.",
+                "School term finishes on ",
+                "School term starts on ",
+                "ampm = hour",
+            }
+        )
 
     """ 04-variables """
+
     def parse_variables(self) -> list[bool]:
-        """ 04-variables """
+        """04-variables"""
         if FileNamesJS.FEATS_FULL.value == self._filename:
             return self._parse_feats()
         elif FileNamesJS.COLOURS_FULL.value == self._filename:
@@ -2523,7 +2692,7 @@ class ParseTextJS:
 
     def _parse_feats(self):
         """json"""
-        return self.parse_type_only({"title: ", "desc: ", "hint: "})
+        return self.parse_type_only({"title: ", "desc: ", "hint: ", ".html"})
 
     def _parse_colours(self):
         """json"""
@@ -2534,8 +2703,9 @@ class ParseTextJS:
         return self.parse_type_only('"')
 
     """ special-masturbation """
+
     def parse_masturbation(self) -> list[bool]:
-        """ special-masturbation """
+        """special-masturbation"""
         if FileNamesJS.ACTIONS_FULL.value == self._filename:
             return self._parse_actions()
         elif FileNamesJS.EFFECTS_FULL.value == self._filename:
@@ -2555,7 +2725,11 @@ class ParseTextJS:
                 results.append(False)
                 continue
 
-            if line.startswith("result.text") and line.endswith("{") or line.endswith("="):
+            if (
+                line.startswith("result.text")
+                and line.endswith("{")
+                or line.endswith("=")
+            ):
                 multirow_text_flag = True
                 results.append(True)
                 continue
@@ -2579,10 +2753,16 @@ class ParseTextJS:
                 results.append(True)
                 continue
 
-            if any(_ in line for _ in {
-                "result.text", "text:", "result.options.push", ".name;",
-                '" : "',
-            }):
+            if any(
+                _ in line
+                for _ in {
+                    "result.text",
+                    "text:",
+                    "result.options.push",
+                    ".name;",
+                    '" : "',
+                }
+            ):
                 results.append(True)
             elif (
                 line.startswith("? '")
@@ -2616,10 +2796,13 @@ class ParseTextJS:
             elif (
                 append_fragment_flag
                 and not self.is_only_marks(line)
-                and line not in {
-                    "Wikifier.wikifyEval(", "span(",
-                    "altText.selectedToy", "altText.toys =",
-                    "toy1.name"
+                and line
+                not in {
+                    "Wikifier.wikifyEval(",
+                    "span(",
+                    "altText.selectedToy",
+                    "altText.toys =",
+                    "toy1.name",
                 }
             ):
                 results.append(True)
@@ -2646,8 +2829,7 @@ class ParseTextJS:
             elif "fragment.append(wikifier(" in line:
                 results.append(True)
             elif "fragment.append(" in line and any(
-                _ not in line
-                for _ in {"''", "' '", '""', '" "', "``", "` `", "br()"}
+                _ not in line for _ in {"''", "' '", '""', '" "', "``", "` `", "br()"}
             ):
                 results.append(True)
             elif (
@@ -2674,8 +2856,9 @@ class ParseTextJS:
         return self.parse_type_only({"namecap", "name : name"})
 
     """ 04-pregnancy """
+
     def parse_pregnancy(self) -> list[bool]:
-        """ 04-pregnancy """
+        """04-pregnancy"""
         if FileNamesJS.CHILDREN_STORY_FUNCTIONS_FULL.value == self._filename:
             return self._parse_children_story_functions()
         elif FileNamesJS.PREGNANCY_FULL.value == self._filename:
@@ -2691,29 +2874,34 @@ class ParseTextJS:
         return self.parse_type_only({"const wordList", "wordList.push"})
 
     def _parse_pregnancy(self):
-        return self.parse_type_only({
-            "names = ['",
-            "names.pushUnique",
-            "spermOwner.name +",
-            "spermOwner.fullDescription +",
-            ".replace(/[^a-zA-Z"
-        })
+        return self.parse_type_only(
+            {
+                "names = ['",
+                "names.pushUnique",
+                "spermOwner.name +",
+                "spermOwner.fullDescription +",
+                ".replace(/[^a-zA-Z",
+            }
+        )
 
     def _parse_story_functions(self):
-        return self.parse_type_only({
-            "name = (caps ?", "name = caps ?", "name = name[0]"
-        })
+        return self.parse_type_only(
+            {"name = (caps ?", "name = caps ?", "name = name[0]"}
+        )
 
     def _parse_pregnancy_types(self):
-        return self.parse_type_only({
-            'return "tiny";',
-            'return "small";',
-            'return "normal";',
-            'return "large";',
-            'return ["tiny",'
-        })
+        return self.parse_type_only(
+            {
+                'return "tiny";',
+                'return "small";',
+                'return "normal";',
+                'return "large";',
+                'return ["tiny",',
+            }
+        )
 
     """ 03-Templates """
+
     def parse_templates(self) -> list[bool]:
         if FileNamesJS.T_MISC_FULL.value == self._filename:
             return self._parse_t_misc()
@@ -2761,18 +2949,17 @@ class ParseTextJS:
         return self.parse_type_only("either(")
 
     """ external """
+
     def parse_external(self) -> list[bool]:
         if FileNamesJS.COLOR_NAMER_FULL.value == self._filename:
             return self._parse_color_namer()
         return self.parse_normal()
 
     def _parse_color_namer(self):
-        return self.parse_type_between(
-            starts=["var colors = {"],
-            ends=["}"]
-        )
+        return self.parse_type_between(starts=["var colors = {"], ends=["}"])
 
     """ base-clothing """
+
     def parse_clothing(self):
         if FileNamesJS.UDPATE_CLOTHES_FULL.value == self._filename:
             return self._parse_update_clothes()
@@ -2797,10 +2984,13 @@ class ParseTextJS:
         return results
 
     def _parse_clothing(self):
-        """ 0.4.2.3 改动"""
-        return self.parse_type_only({"name_cap:", "description:", "<<link `", "altDamage:", "name_simple:"})
+        """0.4.2.3 改动"""
+        return self.parse_type_only(
+            {"name_cap:", "description:", "<<link `", "altDamage:", "name_simple:"}
+        )
 
     """ base-system """
+
     def parse_system(self):
         if FileNamesJS.WIDGETS_FULL.value == self._filename:
             return self._parse_widgets()
@@ -2813,7 +3003,9 @@ class ParseTextJS:
         return self.parse_normal()
 
     def _parse_widgets(self):
-        return self.parse_type_only({".name_cap,", "addfemininityfromfactor(", "playerAwareTheyArePregnant()"})
+        return self.parse_type_only(
+            {".name_cap,", "addfemininityfromfactor(", "playerAwareTheyArePregnant()"}
+        )
 
     def _parse_text(self):
         return self.parse_type_only({"statChange", 'return "'})
@@ -2854,7 +3046,7 @@ class ParseTextJS:
 
             if '"' in line:
                 results.append(True)
-            elif '`' in line:
+            elif "`" in line:
                 results.append(True)
             elif "'" in line:
                 results.append(True)
@@ -2866,8 +3058,8 @@ class ParseTextJS:
     def _parse_stat_changes(self):
         return self.parse_type_only({"return '", 'return "'})
 
-
     """ 常规 """
+
     def parse_normal(self) -> list[bool]:
         """常规"""
         results = []
@@ -2887,17 +3079,16 @@ class ParseTextJS:
             elif (
                 append_fragment_flag
                 and not self.is_only_marks(line)
-                and line not in {
-                    "Wikifier.wikifyEval(", "span(", "altText.selectedToy"
-                }
+                and line not in {"Wikifier.wikifyEval(", "span(", "altText.selectedToy"}
             ):
                 results.append(True)
             elif "fragment.append(" in line and any(
-                _ not in line
-                for _ in {"''", "' '", '""', '" "', "``", "` `", "br()"}
+                _ not in line for _ in {"''", "' '", '""', '" "', "``", "` `", "br()"}
             ):
                 results.append(True)
-            elif ("addfemininityfromfactor(" in line and line.endswith(');')) or '"Pregnant Looking Belly"' in line:
+            elif (
+                "addfemininityfromfactor(" in line and line.endswith(");")
+            ) or '"Pregnant Looking Belly"' in line:
                 results.append(True)
             elif (
                 "altText.toys = " in line
@@ -2913,22 +3104,20 @@ class ParseTextJS:
         return results
 
     """ 归整 """
+
     def parse_type_only(self, pattern: str | set[str]) -> list[bool]:
         """指文件中只有一种或几种简单字符格式需要提取"""
         if isinstance(pattern, str):
-            return [
-                line.strip() and
-                pattern in line.strip()
-                for line in self._lines
-            ]
+            return [line.strip() and pattern in line.strip() for line in self._lines]
 
         return [
-            line.strip() and
-            any((_ in line.strip() for _ in pattern))
+            line.strip() and any((_ in line.strip() for _ in pattern))
             for line in self._lines
         ]
 
-    def parse_type_between(self, starts: list[str], ends: list[str], contain: bool = False) -> list[bool]:
+    def parse_type_between(
+        self, starts: list[str], ends: list[str], contain: bool = False
+    ) -> list[bool]:
         """指文件中只有这两部分之间的内容需要提取"""
         results = []
         needed_flag = False
@@ -2966,7 +3155,4 @@ class ParseTextJS:
         return ParseTextTwee.is_only_widgets(line)
 
 
-__all__ = [
-    "ParseTextTwee",
-    "ParseTextJS"
-]
+__all__ = ["ParseTextTwee", "ParseTextJS"]
