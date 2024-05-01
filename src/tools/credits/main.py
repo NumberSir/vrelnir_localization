@@ -33,7 +33,6 @@ class Credit:
             f'{member["user"]["username"]}({member["user"]["nickname"]})'
             if member["user"].get("nickname")
             else f'{member["user"]["username"]}'
-
             for member in members
             if member["totalPoints"]
         ]
@@ -48,7 +47,7 @@ class Credit:
         params = {
             "editsOnly": 1,
             "wpFormIdentifier": "mw-listusers-form",
-            "limit": limit
+            "limit": limit,
         }
         response = await self.client.get(url, params=params)
         logger.info("miraheze members Finished")
@@ -58,31 +57,36 @@ class Credit:
         html = etree.HTML(html)
         return html.xpath("//bdi/text()")
 
-    async def build_issue_members(self, owner: str = "Eltirosto", repo: str = "Degrees-of-Lewdity-Chinese-Localization", per_page: int = 100, pages: int = 6):
+    async def build_issue_members(
+        self,
+        owner: str = "Eltirosto",
+        repo: str = "Degrees-of-Lewdity-Chinese-Localization",
+        per_page: int = 100,
+        pages: int = 6,
+    ):
         """有反馈过 issue 的"""
         members_data = await self._get_issue_members(owner, repo, per_page, pages)
         return sorted(list(set(self._filter_issue_members(members_data))))
 
-    async def _get_issue_members(self, owner: str = "Eltirosto", repo: str = "Degrees-of-Lewdity-Chinese-Localization", per_page: int = 100, pages: int = 6) -> list[dict]:
+    async def _get_issue_members(
+        self,
+        owner: str = "Eltirosto",
+        repo: str = "Degrees-of-Lewdity-Chinese-Localization",
+        per_page: int = 100,
+        pages: int = 6,
+    ) -> list[dict]:
         url = f"https://api.github.com/repos/{owner}/{repo}/issues"
         headers = {"Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"}
         results = []
-        for page in range(1, pages+1):
-            params = {
-                "state": "all",
-                "per_page": per_page,
-                "page": page
-            }
+        for page in range(1, pages + 1):
+            params = {"state": "all", "per_page": per_page, "page": page}
             response = await self.client.get(url, params=params, headers=headers)
             results.extend(response.json())
         logger.info("issue members Finished")
         return results
 
     def _filter_issue_members(self, members_data: list[dict]):
-        return [
-            member["user"]["login"]
-            for member in members_data
-        ]
+        return [member["user"]["login"] for member in members_data]
 
     @property
     def client(self):
@@ -96,13 +100,15 @@ async def main():
         miraheze_members: list[str] = await credit.build_miraheze_members()
         issue_members: list[str] = await credit.build_issue_members(pages=3)
 
-    paratranz_members: str = '\n- '.join(paratranz_members)
-    miraheze_members: str = '\n- '.join(miraheze_members)
-    issue_members: str = '\n- '.join(issue_members)
+    paratranz_members: str = "\n- ".join(paratranz_members)
+    miraheze_members: str = "\n- ".join(miraheze_members)
+    issue_members: str = "\n- ".join(issue_members)
 
     time = datetime.datetime.now().strftime("%Y%m%d")
     os.makedirs(Path(__file__).parent / "data", exist_ok=True)
-    with open(Path(__file__).parent / "data" / f"CREDITS-{time}.md", "w", encoding="utf-8") as fp:
+    with open(
+        Path(__file__).parent / "data" / f"CREDITS-{time}.md", "w", encoding="utf-8"
+    ) as fp:
         fp.write(
             "## 欲都孤儿 贡献者名单\n"
             f"> {time}\n"
@@ -111,19 +117,20 @@ async def main():
             "<summary>点击展开</summary>\n\n"
             f"- {paratranz_members}\n\n"
             "</details>\n\n"
-            
             "### 为建设中文维基提供过贡献的诸位（排名不分先后）：\n"
             "<details>\n"
             "<summary>点击展开</summary>\n\n"
             f"- {miraheze_members}\n\n"
             "</details>\n\n"
-            
             "### 为改进汉化内容提供过贡献的诸位（排名不分先后）：\n"
             "<details>\n"
             "<summary>点击展开</summary>\n\n"
             f"- {issue_members}\n\n"
-            "</details>"
+            "</details>\n\n"
+            "---\n"
+            "本游戏的汉化版制作、维护与更新属实不易，十分感谢以上不吝提供帮助、做出贡献的诸位。"
         )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     asyncio.run(main())
