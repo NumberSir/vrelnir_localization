@@ -3008,7 +3008,7 @@ class ParseTextJS:
         )
 
     def _parse_text(self):
-        return self.parse_type_only({"statChange", 'return "'})
+        return self.parse_type_only({".statChange", 'return "'})
 
     def _parse_effect(self):
         results = []
@@ -3056,7 +3056,7 @@ class ParseTextJS:
         return results
 
     def _parse_stat_changes(self):
-        return self.parse_type_only({"return '", 'return "'})
+        return self.parse_type_only({"return '", 'return "', ".statChange"})
 
     """ 常规 """
 
