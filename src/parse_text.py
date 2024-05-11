@@ -1258,7 +1258,7 @@ class ParseTextTwee:
 
     def _parse_plant_objects(self):
         """json"""
-        return self.parse_type_only("plural:")
+        return self.parse_type_only({"plural:", "singular:"})
 
     def _parse_radio(self):
         """有点麻烦"""
