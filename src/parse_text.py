@@ -778,6 +778,7 @@ class ParseTextTwee:
             elif (
                 line.startswith('"')
                 or line.startswith("`")
+                or line.startswith("[")
                 or line.startswith("<<default>>")
                 or line.startswith("<<He>> ")
                 or line.startswith("<<bHe>> ")
@@ -2333,6 +2334,7 @@ class ParseTextJS:
                     'return "',
                     "return this.autoTake()",
                     "const itemName",
+                    "${itemName}",
                 }
             ):
                 results.append(True)
