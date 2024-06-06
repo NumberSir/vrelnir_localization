@@ -34,8 +34,10 @@ class ProjectDOL:
     def __init__(self, type_: str = "common"):
         with open(DIR_JSON_ROOT / "blacklists.json", "r", encoding="utf-8") as fp:
             self._blacklists: dict[str, list] = json.load(fp)
+
         with open(DIR_JSON_ROOT / "whitelists.json", "r", encoding="utf-8") as fp:
             self._whitelists: dict[str, list] = json.load(fp)
+
         self._type: str = type_
         self._version: str = None
         self._mention_name = "" if self._type == "common" else "dev"

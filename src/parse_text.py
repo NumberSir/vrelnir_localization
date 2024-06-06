@@ -1706,11 +1706,8 @@ class ParseTextTwee:
         maybe_json_flag = False
         multirow_run_line_pool_flag = False  # 草!
         multirow_print_flag = False  # 叠屎山了开始
-        multirow_switch_flag = False
-
-        # 这两个是家具的
-        multirow_wallpaper_flag = False
-        multirow_poster_flag = False
+        multirow_switch_slime_flag = False
+        multirow_switch_material_flag = False
 
         shop_clothes_hint_flag = False  # 草
         for line in self._lines:
@@ -1727,9 +1724,7 @@ class ParseTextTwee:
                 multirow_comment_flag = True
                 results.append(False)
                 continue
-            elif multirow_comment_flag and (
-                line in ["*/", "-->"] or any(line.endswith(_) for _ in {"*/", "-->"})
-            ):
+            elif multirow_comment_flag and (line in ["*/", "-->"] or any(line.endswith(_) for _ in {"*/", "-->"})):
                 multirow_comment_flag = False
                 results.append(False)
                 continue
@@ -1742,9 +1737,7 @@ class ParseTextTwee:
                 multirow_print_flag = True
                 results.append(False)
                 continue
-            elif multirow_print_flag and (
-                line.startswith(")>>") or line.endswith(')>></span>"')
-            ):
+            elif multirow_print_flag and (line.startswith(")>>") or line.endswith(')>></span>"')):
                 if line != ")>>":
                     results.append(True)
                 else:
@@ -1764,9 +1757,7 @@ class ParseTextTwee:
                 multirow_script_flag = False
                 results.append(False)
                 continue
-            elif multirow_script_flag and any(
-                _ in line for _ in {".replace(/[^a-zA-Z"}
-            ):
+            elif multirow_script_flag and any(_ in line for _ in {".replace(/[^a-zA-Z"}):
                 results.append(True)
                 continue
             elif multirow_script_flag:
@@ -1814,23 +1805,32 @@ class ParseTextTwee:
 
             """就为了 earSlime 专门弄这个"""
             if "<<switch $earSlime" in line:
-                multirow_switch_flag = True
+                multirow_switch_slime_flag = True
                 results.append(True)
                 continue
-            elif multirow_switch_flag and "<</switch>>" in line:
-                multirow_switch_flag = False
+            elif multirow_switch_slime_flag and "<</switch>>" in line:
+                multirow_switch_slime_flag = False
                 results.append(True)
                 continue
-            elif multirow_switch_flag:
+            elif multirow_switch_slime_flag:
+                results.append(True)
+                continue
+
+            """现在又有 material 了"""
+            if "<<switch _material" in line:
+                multirow_switch_material_flag = True
+                results.append(True)
+                continue
+            elif multirow_switch_material_flag and "<</switch>>" in line:
+                multirow_switch_material_flag = False
+                results.append(True)
+                continue
+            elif multirow_switch_material_flag:
                 results.append(True)
                 continue
 
             """突如其来的json"""
-            if (
-                (
-                    (line.startswith("<<set ") or line.startswith("<<error {"))
-                    and ">>" not in line
-                )
+            if (((line.startswith("<<set ") or line.startswith("<<error {")) and ">>" not in line)
                 or line.endswith("[")
                 or line.endswith("{")
                 or line.endswith("(")
@@ -2245,7 +2245,9 @@ class ParseTextJS:
 
     def parse(self) -> list[bool]:
         """"""
-        if DirNamesJS.JAVASCRIPT.value == self._filedir.name:
+        if DirNamesJS.SETUP.value == self._filedir.name:
+            return self.parse_setup()
+        elif DirNamesJS.JAVASCRIPT.value == self._filedir.name:
             return self.parse_javascript()
         elif DirNamesJS.VARIABLES.value == self._filedir.name:
             return self.parse_variables()
@@ -2263,8 +2265,17 @@ class ParseTextJS:
             return self.parse_system()
         return self.parse_normal()
 
-    """ 03-JavaScript """
+    """01-setup"""
+    def parse_setup(self) -> list[bool]:
+        """01-setup"""
+        if FileNamesJS.WEATHER_DESCRIPTION_FULL.value == self._filename:
+            return self._parse_weather_description()
+        return self.parse_normal()
 
+    def _parse_weather_description(self):
+        return self.parse_type_only({"'", '"', "`"})
+
+    """ 03-JavaScript """
     def parse_javascript(self) -> list[bool]:
         """03-JavaScript"""
         if FileNamesJS.BEDROOM_PILLS_FULL.value == self._filename:
@@ -2307,10 +2318,9 @@ class ParseTextJS:
                 results.append(False)
                 continue
 
-            if any(
-                _ in line
-                for _ in {"name:", "description:", "onTakeMessage:", "warning_label:"}
-            ) and not line.startswith("*"):
+            if any(_ in line for _ in {
+                "name:", "description:", "onTakeMessage:", "warning_label:"
+            }) and not line.startswith("*"):
                 if line.endswith(":"):
                     next_flag = True
                     results.append(False)
@@ -2326,6 +2336,9 @@ class ParseTextJS:
                 _ in line
                 for _ in {
                     '<span class="hpi_auto_label">',
+                    "<span class='hpi_auto_label'>",
+                    "hpi_name_",
+                    "<span id",
                     'class="hpi_take_pills"',
                     "item.autoTake() ?",
                     "item.hpi_take_pills ?",
@@ -2553,6 +2566,7 @@ class ParseTextJS:
                 'return i + "nd";',
                 'return i + "rd";',
                 'return i + "th";',
+                'names'
             }
         )
 
@@ -3035,14 +3049,14 @@ class ParseTextJS:
                 continue
 
             if line == "sWikifier(":
-                multi_element_flag = True
+                multi_swikifier_flag = True
                 results.append(False)
                 continue
-            elif multi_element_flag and line == ");":
-                multi_element_flag = False
+            elif multi_swikifier_flag and line == ");":
+                multi_swikifier_flag = False
                 results.append(False)
                 continue
-            elif multi_element_flag:
+            elif multi_swikifier_flag:
                 results.append(True)
                 continue
 
@@ -3066,31 +3080,71 @@ class ParseTextJS:
         """常规"""
         results = []
         append_fragment_flag = False
+        multi_swikifier_flag = False
+        multi_result_array_flag = False
+        multi_return_flag = False
         for line in self._lines:
             line = line.strip()
             if not line:
                 results.append(False)
                 continue
 
+            if line == "sWikifier(":
+                multi_swikifier_flag = True
+                results.append(False)
+                continue
+            elif multi_swikifier_flag and line == ");":
+                multi_swikifier_flag = False
+                results.append(False)
+                continue
+            elif multi_swikifier_flag:
+                results.append(True)
+                continue
+
             if line == "fragment.append(":
                 append_fragment_flag = True
                 results.append(False)
+                continue
             elif append_fragment_flag and line == ");":
                 append_fragment_flag = False
                 results.append(False)
+                continue
             elif (
                 append_fragment_flag
                 and not self.is_only_marks(line)
                 and line not in {"Wikifier.wikifyEval(", "span(", "altText.selectedToy"}
             ):
                 results.append(True)
-            elif "fragment.append(" in line and any(
-                _ not in line for _ in {"''", "' '", '""', '" "', "``", "` `", "br()"}
-            ):
+                continue
+
+            if line == "resultArray.push(":
+                multi_result_array_flag = True
+                results.append(False)
+                continue
+            elif multi_result_array_flag and line == ");":
+                multi_result_array_flag = False
+                results.append(False)
+                continue
+            elif multi_result_array_flag:
                 results.append(True)
-            elif (
-                "addfemininityfromfactor(" in line and line.endswith(");")
-            ) or '"Pregnant Looking Belly"' in line:
+                continue
+
+            # 有病吧，写代码能不能一致点
+            if line == "return [":
+                multi_return_flag = True
+                results.append(False)
+                continue
+            elif multi_return_flag and (line.endswith(".random();") or line.endswith(".random()")):
+                multi_return_flag = False
+                results.append(False)
+                continue
+            elif multi_return_flag:
+                results.append(True)
+                continue
+
+            if "fragment.append(" in line and any(_ not in line for _ in {"''", "' '", '""', '" "', "``", "` `", "br()"}):
+                results.append(True)
+            elif ("addfemininityfromfactor(" in line and line.endswith(");")) or '"Pregnant Looking Belly"' in line:
                 results.append(True)
             elif (
                 "altText.toys = " in line
@@ -3098,6 +3152,7 @@ class ParseTextJS:
                 or "<span" in line
                 or "sWikifier(" in line
                 or "span(" in line
+                or "resultArray.push" in line
             ):
                 results.append(True)
             else:

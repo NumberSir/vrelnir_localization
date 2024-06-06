@@ -1,4 +1,7 @@
 {
+  "01-setup": [
+    "weather-descriptions.js"
+  ],
   "03-JavaScript": [
     "base.js",
     "bedroom-pills.js",
@@ -24,7 +27,8 @@
     "actions.js",
     "effects.js",
     "macros-masturbation.js",
-    "slime-control.js"
+    "slime-control.js",
+    "audience.js"
   ],
   "04-Pregnancy": [
     "children-story-functions.js",
@@ -60,7 +64,8 @@
     "clothing-over-head.js",
     "clothing-over-lower.js",
     "clothing-over-upper.js",
-    "clothing-under.js",
+    "clothing-under-lower.js",
+    "clothing-under-upper.js",
     "clothing-under-lower.js",
     "clothing-under-upper.js",
     "clothing-upper.js"
