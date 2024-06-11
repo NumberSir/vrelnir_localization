@@ -31,7 +31,7 @@ def changelog2paratranz():
             "translation": ""
         } for line in lines if line.strip()
     ]
-    with open(Path(__file__).parent / f"{current_version}.json", "w", encoding="utf-8") as fp:
+    with open(Path(__file__).parent / "data" / f"{current_version}.json", "w", encoding="utf-8") as fp:
         json.dump(result, fp, ensure_ascii=False, indent=2)
     VERSION = current_version
     CHANGELOG_TXT = lines
@@ -58,7 +58,7 @@ def paratranz2changelog(version: str = None):
             if line == en:
                 CHANGELOG_TXT[idx_changelog] = f"{cn}\n"
                 continue
-    with open(Path(__file__).parent / f"{version}.txt", "w", encoding="utf-8") as fp:
+    with open(Path(__file__).parent / "data" / f"{version}.txt", "w", encoding="utf-8") as fp:
         fp.writelines(CHANGELOG_TXT)
 
 
