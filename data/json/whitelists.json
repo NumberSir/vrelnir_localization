@@ -45,7 +45,8 @@
     "effect.js",
     "text.js",
     "widgets.js",
-    "stat-changes.js"
+    "stat-changes.js",
+    "skin-color.js"
   ],
   "external": [
     "color-namer.js"

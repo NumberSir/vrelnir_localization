@@ -3153,6 +3153,9 @@ class ParseTextJS:
                 or "sWikifier(" in line
                 or "span(" in line
                 or "resultArray.push" in line
+                or "statChange" in line
+                or "<span" in line
+                or "reasons.push" in line
             ):
                 results.append(True)
             else:
