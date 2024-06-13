@@ -29,13 +29,13 @@ class Credit:
         return response.json()
 
     def _filter_scored_paratranz_members(self, members: list[dict]) -> list[str]:
-        return [
+        return sorted([
             f'{member["user"]["username"]}({member["user"]["nickname"]})'
             if member["user"].get("nickname")
             else f'{member["user"]["username"]}'
             for member in members
             if member["totalPoints"]
-        ]
+        ])
 
     async def build_miraheze_members(self, limit: int = 500):
         """中文维基有贡献的"""
@@ -55,7 +55,7 @@ class Credit:
 
     def _filter_scored_miraheze_members(self, html: str):
         html = etree.HTML(html)
-        return html.xpath("//bdi/text()")
+        return sorted(html.xpath("//bdi/text()"))
 
     async def build_issue_members(
         self,
