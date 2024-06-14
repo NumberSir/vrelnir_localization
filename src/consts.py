@@ -194,6 +194,7 @@ class DirNamesJS(Enum):
     EXTERNAL = "external"
     BASE_SYSTEM = "base-system"
     BASE_CLOTHING = "base-clothing"
+    MAIN = "01-main"
 
 
 class FileNamesJS(Enum):
@@ -250,6 +251,9 @@ class FileNamesJS(Enum):
     """ base-clothing """
     UDPATE_CLOTHES_FULL = "update-clothes.js"
     CLOTHING = "clothing-"
+
+    """ 01-main """
+    TOOLTIPS = "02-tooltips.js"
 
 
 HIGH_RATE_LINKS = {

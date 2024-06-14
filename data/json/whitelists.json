@@ -70,5 +70,8 @@
     "clothing-under-lower.js",
     "clothing-under-upper.js",
     "clothing-upper.js"
+  ],
+  "01-main": [
+    "02-tooltips.js"
   ]
 }

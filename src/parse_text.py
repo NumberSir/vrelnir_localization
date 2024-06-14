@@ -2263,6 +2263,8 @@ class ParseTextJS:
             return self.parse_clothing()
         elif DirNamesJS.BASE_SYSTEM.value == self._filedir.name:
             return self.parse_system()
+        elif DirNamesJS.MAIN.value == self._filedir.name:
+            return self.parse_main()
         return self.parse_normal()
 
     """01-setup"""
@@ -3074,8 +3076,18 @@ class ParseTextJS:
     def _parse_stat_changes(self):
         return self.parse_type_only({"return '", 'return "', ".statChange"})
 
-    """ 常规 """
+    """ 01-main """
+    def parse_main(self):
+        if FileNamesJS.TOOLTIPS.value == self._filename:
+            return self._parse_tooltips()
+        return self.parse_normal()
 
+    def _parse_tooltips(self):
+        return self.parse_type_only({
+            '"', '`', "Description", "Output", "<span", "<br>"
+        })
+
+    """ 常规 """
     def parse_normal(self) -> list[bool]:
         """常规"""
         results = []
