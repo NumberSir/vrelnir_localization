@@ -217,6 +217,7 @@ class FileNamesJS(Enum):
     CLOTHING_SHOP_V2_FULL = "clothing-shop-v2.js"
     TIME_FULL = "time.js"
     TIME_MACROS_FULL = "time-macros.js"
+    SAVE_FULL = "save.js"
 
     """ 04-variables """
     COLOURS_FULL = "colours.js"

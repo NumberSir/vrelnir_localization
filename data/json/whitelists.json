@@ -16,7 +16,8 @@
     "sexToysInventory.js",
     "ui.js",
     "time-macros.js",
-    "time.js"
+    "time.js",
+    "save.js"
   ],
   "04-Variables": [
     "colours.js",

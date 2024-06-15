@@ -2308,6 +2308,8 @@ class ParseTextJS:
             return self._parse_time()
         elif FileNamesJS.TIME_MACROS_FULL.value == self._filename:
             return self._parse_time_macros()
+        elif FileNamesJS.SAVE_FULL.value == self._filename:
+            return self._parse_save()
         return self.parse_normal()
 
     def _parse_bedroom_pills(self):
@@ -2695,6 +2697,55 @@ class ParseTextJS:
                 "ampm = hour",
             }
         )
+
+    def _parse_save(self):
+        """save.js"""
+        results = []
+        multi_strings_flag = False
+        multi_textmap_flag = False
+        for line in self._lines:
+            line = line.strip()
+            if not line:
+                results.append(False)
+                continue
+
+            if line.startswith("strings:") and "]" not in line:
+                multi_strings_flag = True
+                results.append(False)
+                continue
+            elif multi_strings_flag and line.endswith("],"):
+                multi_strings_flag = False
+                results.append(False)
+                continue
+            elif multi_strings_flag:
+                results.append(True)
+                continue
+
+            if line.startswith("textMap:") and "}" not in line:
+                multi_textmap_flag = True
+                results.append(False)
+                continue
+            elif multi_textmap_flag and line.endswith("},"):
+                multi_textmap_flag = False
+                results.append(False)
+                continue
+            elif multi_textmap_flag:
+                results.append(True)
+                continue
+
+            if any(_ in line for _ in {
+                "Wikifier.wikifyEval",
+                "Degrees of Lewdity.",
+                "displayName:"
+                "textMap:"
+                "strings:"
+            }):
+                results.append(True)
+            else:
+                results.append(False)
+
+        return results
+
 
     """ 04-variables """
 
@@ -3168,6 +3219,8 @@ class ParseTextJS:
                 or "statChange" in line
                 or "<span" in line
                 or "reasons.push" in line
+                or "displayName:" in line
+                or "textMap:" in line
             ):
                 results.append(True)
             else:
