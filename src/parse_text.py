@@ -145,8 +145,11 @@ class ParseTextTwee:
     def _parse_version_info(self):
         """很少很简单"""
         return [
-            line.strip() and (not line.strip().startswith("<") and "::" not in line)
-            for line in self._lines
+            line.strip() and (
+                line.strip().startswith("<h")
+                or line.strip().startswith("<p")
+                or line.strip().startswith("[[")
+            ) for line in self._lines
         ]
 
     """√ variables """

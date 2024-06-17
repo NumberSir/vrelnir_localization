@@ -2,15 +2,19 @@ import asyncio
 from pathlib import Path
 from src.parse_text import ParseTextTwee, ParseTextJS
 
-FILE_BASE = r"D:\Users\Administrator\Documents\GitHub\vrelnir_localization\degrees-of-lewdity-master\game"
-FILE_NAME = r"base-clothing/clothing-sets.twee"
+FILE_BASE = r"D:\Users\numbersir\Documents\GitHub\vrelnir_localization\degrees-of-lewdity-master\game"
+FILE_NAME = r"01-config/versionInfo.twee"
 FILE_PATH = Path(rf"{FILE_BASE}/{FILE_NAME}")
 
 with open(FILE_PATH, "r", encoding="utf-8") as fp:
     CONTENT = fp.read()
 with open(FILE_PATH, "r", encoding="utf-8") as fp:
     LINES = fp.readlines()
-PT = ParseTextTwee(lines=LINES, filepath=FILE_PATH) if FILE_PATH.name.endswith("twee") else ParseTextJS(lines=LINES, filepath=FILE_PATH)
+PT = (
+    ParseTextTwee(lines=LINES, filepath=FILE_PATH)
+    if FILE_PATH.name.endswith("twee")
+    else ParseTextJS(lines=LINES, filepath=FILE_PATH)
+)
 
 
 async def test_fetch_lines():
@@ -20,10 +24,17 @@ async def test_fetch_lines():
     bl = PT.parse()
     if FILE_PATH.name.endswith("twee"):
         pre_bool_list = PT.pre_parse_set_run(True)
-        bl = [
-            True if pre_bool_list[idx] or line else False
-            for idx, line in enumerate(bl)
-        ]
+        if not pre_bool_list:
+            bl = [
+                bool(line)
+                for idx, line in enumerate(bl)
+            ]
+        else:
+            bl = [
+                True
+                if pre_bool_list[idx] or line
+                else False for idx, line in enumerate(bl)
+            ]
     # print(f"bool: {len(bl)} - lines: {len(LINES)} - pre: {len(pre_bool_list)}")
     for idx, line in enumerate(LINES):
         if bl[idx]:
@@ -53,7 +64,7 @@ async def test_fetch_pos():
                 for idx_, char in enumerate(tmp_):
                     if char != "[":
                         continue
-                    passage_name = tmp_[:idx_ - 1].strip()
+                    passage_name = tmp_[: idx_ - 1].strip()
                     break
                 else:
                     raise
@@ -67,12 +78,16 @@ async def test_fetch_pos():
                     pos_start += 1
             print(f"passage: {passage_name}")
             print(f"line: {line}".replace("\t", "\\t").replace("\n", "\\n"))
-            print(f"pos: {pos_relative + pos_start if pos_relative is not None else pos_global + pos_start}")
-            print(f"global: {pos_global + pos_start}: {len(CONTENT)} | {CONTENT[pos_global + pos_start]}\n")
+            print(
+                f"pos: {pos_relative + pos_start if pos_relative is not None else pos_global + pos_start}"
+            )
+            print(
+                f"global: {pos_global + pos_start}: {len(CONTENT)} | {CONTENT[pos_global + pos_start]}\n"
+            )
         if pos_relative is not None and not line.startswith("::"):
             pos_relative += len(line)
         pos_global += len(line)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     asyncio.run(test_fetch_lines())
