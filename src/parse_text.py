@@ -1841,7 +1841,7 @@ class ParseTextTwee:
                 maybe_json_flag = True
                 if any(
                     _ in line
-                    for _ in {"<<set _hairColorByName", "<<set _fringeColorByName"}
+                    for _ in {"<<set _hairColorByName", "<<set _fringeColorByName", "<<set $savedHairStyles"}
                 ):
                     results.append(True)
                     continue
@@ -1853,10 +1853,10 @@ class ParseTextTwee:
                 continue
             elif maybe_json_flag and (
                 '"Orphan":"orphan"' in line
-                or "hint:`" in line
-                or 'museum:"' in line
-                or "journal: `" in line
-                or 'name:"' in line
+                or "hint:" in line
+                or 'museum:' in line
+                or "journal:`" in line
+                or 'name:' in line
                 or 'stolen:"' in line
                 or 'recovered:"' in line
                 or '"Rest":' in line
@@ -1889,6 +1889,7 @@ class ParseTextTwee:
                 or '":"' in line
                 or '": "' in line
                 or '" : "' in line
+                or 'Default: {' in line
                 or ("<<run " in line and "$worn." in line)
             ):
                 results.append(True)
@@ -2006,6 +2007,12 @@ class ParseTextTwee:
                 or "<<case `" in line
                 or "<<case '" in line
                 or "<span" in line
+                or "<<if _args[0] is" in line
+                or "<<if _args[1] is" in line
+                or "<<if _args[2] is" in line
+                or "<<if _args[3] is" in line
+                or "<<if _args[4] is" in line
+                or "<<if _args[5] is" in line
             ):
                 results.append(True)
             elif ("<" in line and self.is_only_widgets(line)) or (
@@ -2683,7 +2690,12 @@ class ParseTextJS:
 
     def _parse_clothing_shop_v2(self):
         return self.parse_type_only(
-            {"const optionsFrom", "const optionsTo", ".replace(/[^a-zA-Z"}
+            {
+                "const options",
+                ".replace(/[^a-zA-Z",
+                "prompt(",
+                "message:"
+            }
         )
 
     def _parse_time(self):
@@ -2698,6 +2710,7 @@ class ParseTextJS:
                 "School term finishes on ",
                 "School term starts on ",
                 "ampm = hour",
+                "<span"
             }
         )
 
