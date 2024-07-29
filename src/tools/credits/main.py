@@ -94,7 +94,7 @@ class Credit:
 
 
 async def main():
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(verify=False) as client:
         credit = Credit(client)
         paratranz_members: list[str] = await credit.build_paratranz_members()
         miraheze_members: list[str] = await credit.build_miraheze_members()

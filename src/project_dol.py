@@ -59,7 +59,7 @@ class ProjectDOL:
 
     """ 获取最新版本 """
     async def fetch_latest_version(self, is_quiet: bool = True):
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(verify=False) as client:
             if self._type == "common":
                 url = f"{REPOSITORY_URL_COMMON}/-/raw/master/version"
             elif self._type == "world":
@@ -94,7 +94,7 @@ class ProjectDOL:
     async def fetch_latest_repository(self):
         """获取最新仓库内容"""
         logger.info(f"===== 开始获取最新{self._mention_name}仓库内容 ...")
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(verify=False) as client:
             if self._type == "common":
                 zip_url = REPOSITORY_ZIP_URL_COMMON
             elif self._type == "world":
@@ -717,7 +717,7 @@ class ProjectDOL:
 
     async def get_lastest_commit(self) -> None:
         ref_name = self.get_type("master", "master", "dev")
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(verify=False) as client:
             response = await client.get(REPOSITORY_COMMITS_URL_COMMON, params={"ref_name": ref_name})
             if response.status_code != 200:
                 logger.error("获取源仓库 commit 出错！")
@@ -984,7 +984,7 @@ class ProjectDOL:
 
     """ i18n 相关"""
     async def download_modloader_autobuild(self):
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(verify=False) as client:
             await self._get_latest_modloader_autobuild(client)
 
     async def _get_latest_modloader_autobuild(self, client: httpx.AsyncClient):

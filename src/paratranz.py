@@ -22,7 +22,7 @@ class Paratranz:
         with contextlib.suppress(httpx.TimeoutException):
             await self.trigger_export()
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(verify=False) as client:
             flag = False
             for _ in range(3):
                 try:
@@ -42,7 +42,7 @@ class Paratranz:
         """触发导出"""
         logger.info(f"===== 开始导出{self._mention_name}汉化文件 ...")
         url = f"{PARATRANZ_BASE_URL}/projects/{self._project_id}/artifacts"
-        httpx.post(url, headers=PARATRANZ_HEADERS)
+        httpx.post(url, headers=PARATRANZ_HEADERS, verify=False)
         logger.info(f"##### {self._mention_name}汉化文件已导出 !\n")
 
     async def download_export(self, client: httpx.AsyncClient):

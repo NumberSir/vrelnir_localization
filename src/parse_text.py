@@ -1855,7 +1855,7 @@ class ParseTextTwee:
                 '"Orphan":"orphan"' in line
                 or "hint:" in line
                 or 'museum:' in line
-                or "journal:`" in line
+                or "journal:" in line
                 or 'name:' in line
                 or 'stolen:"' in line
                 or 'recovered:"' in line
@@ -2013,6 +2013,7 @@ class ParseTextTwee:
                 or "<<if _args[3] is" in line
                 or "<<if _args[4] is" in line
                 or "<<if _args[5] is" in line
+                or 'tooltip="' in line
             ):
                 results.append(True)
             elif ("<" in line and self.is_only_widgets(line)) or (
