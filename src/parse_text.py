@@ -1857,8 +1857,8 @@ class ParseTextTwee:
                 or 'museum:' in line
                 or "journal:" in line
                 or 'name:' in line
-                or 'stolen:"' in line
-                or 'recovered:"' in line
+                or 'stolen:' in line
+                or 'recovered:' in line
                 or '"Rest":' in line
                 or '"Stroke":' in line
                 or '"Vines"' in line
@@ -1959,14 +1959,12 @@ class ParseTextTwee:
             elif (
                 '<<if $tentacles[$tentacleindex].desc.includes("pale")>>' in line
                 or "<<if $_mirror is 'mirror'>>" in line
-                or "<<run _bodyPartOptions.delete($featsBoosts.tattoos[_l].bodypart)>>"
-                in line
+                or "<<run _bodyPartOptions.delete($featsBoosts.tattoos[_l].bodypart)>>" in line
                 or "$_examine" in line
                 or "<<if $pubtask is" in line
                 or "<<run _featsTattooOptions.push(" in line
                 or "<<if $NPCList[_nn].penis" in line
-                or '<<if $watersportsdisable is "f" and $consensual is 0 and $enemyanger gte random(20, 200) and ($NPCList[_nn].penis is "none" or !$NPCList[_nn].penisdesc.includes("strap-on")) and _condomResult isnot "contained" and _args[0] isnot "short">>'
-                in line
+                or '<<if $watersportsdisable is "f" and $consensual is 0 and $enemyanger gte random(20, 200) and ($NPCList[_nn].penis is "none" or !$NPCList[_nn].penisdesc.includes("strap-on")) and _condomResult isnot "contained" and _args[0] isnot "short">>' in line
                 or "<<if $NPCList[0].penisdesc" in line
                 or "<<if $NPCList[_n].condom" in line
                 or "<<takeKissVirginityNamed" in line
@@ -2013,7 +2011,7 @@ class ParseTextTwee:
                 or "<<if _args[3] is" in line
                 or "<<if _args[4] is" in line
                 or "<<if _args[5] is" in line
-                or 'tooltip="' in line
+                or 'tooltip=' in line
             ):
                 results.append(True)
             elif ("<" in line and self.is_only_widgets(line)) or (
