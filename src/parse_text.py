@@ -2332,7 +2332,10 @@ class ParseTextJS:
                 continue
 
             if any(_ in line for _ in {
-                "name:", "description:", "onTakeMessage:", "warning_label:"
+                "name:",
+                "description:",
+                "onTakeMessage:",
+                "warning_label:"
             }) and not line.startswith("*"):
                 if line.endswith(":"):
                     next_flag = True
@@ -2361,6 +2364,7 @@ class ParseTextJS:
                     "return this.autoTake()",
                     "const itemName",
                     "${itemName}",
+                    "<span"
                 }
             ):
                 results.append(True)
@@ -3236,6 +3240,7 @@ class ParseTextJS:
                 or "reasons.push" in line
                 or "displayName:" in line
                 or "textMap:" in line
+                or 'const output = month' in line
             ):
                 results.append(True)
             else:
