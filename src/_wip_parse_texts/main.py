@@ -4,36 +4,59 @@ import re
 
 from pathlib import Path
 
-from src.parse_texts.consts import *
-from src.parse_texts.log import *
+from src.parse_texts.log import logger
+from src.parse_texts.consts import (
+    DIR_PASSAGE,
+    DIR_TARGET,
+    DIR_GAME_TEXTS,
+    DIR_PARATRANZ_EXPORT,
+    GAME_TEXTS_NAME,
+    PTN_COMMENT,
+    PTN_MACRO,
+    PTN_TAG,
+    GENERAL_LIMIT,
+)
 
 
 class ParseTwine:
-    def __init__(self):
-        self._twine_filepaths: list[Path] = []  # 记录所有 twine 文件绝对路径
+    def __init__(self) -> None:
+        # 记录所有 twine 文件绝对路径
+        self._twine_filepaths: list[Path] = []
 
-        self._twine_passage_names: list[str] = []  # 记录所有段落名称
-        self._twine_passage_data: dict[str, dict] = {}  # 详细记录所有段落信息，等待进一步处理
-        self._twine_passage_data_flat: list[dict] = []  # 扁平化处理，只有一层
+        # 记录所有段落名称
+        self._twine_passage_names: list[str] = []
+        # 详细记录所有段落信息，等待进一步处理
+        self._twine_passage_data: dict[str, dict] = {}
+        # 扁平化处理，只有一层
+        self._twine_passage_data_flat: list[dict] = []
 
-        self._twine_elements_data: dict[str, dict] = {}  # 详细记录所有元素信息，等待进一步处理
-        self._twine_elements_data_flat: list[dict] = []  # 扁平化处理，只有一层
+        # 详细记录所有元素信息，等待进一步处理
+        self._twine_elements_data: dict[str, dict] = {}
+        # 扁平化处理，只有一层
+        self._twine_elements_data_flat: list[dict] = []
 
-        self._twine_combined_elements_data: dict[str, dict] = {}  # 详细记录经过组合后的元素信息，等待进一步处理
-        self._twine_combined_elements_data_flat: list[dict] = []  # 扁平化处理，只有一层
+        # 详细记录经过组合后的元素信息，等待进一步处理
+        self._twine_combined_elements_data: dict[str, dict] = {}
+        # 扁平化处理，只有一层
+        self._twine_combined_elements_data_flat: list[dict] = []
 
-        self._paratranz_detailed_raw_data: dict[str, list[dict]] = {}  # 旧版汉化方式词条添加各种信息，等待进一步处理
+        # 旧版汉化方式词条添加各种信息，等待进一步处理
+        self._paratranz_detailed_raw_data: dict[str, list[dict]] = {}
 
-        self._paratranz_elements_data: dict[str, dict] = {}  # 处理成可在 paratranz 导入的格式，等待进一步处理
-        self._paratranz_elements_data_flat: list[dict] = []  # 扁平化处理，只有一层
+        # 处理成可在 paratranz 导入的格式，等待进一步处理
+        self._paratranz_elements_data: dict[str, dict] = {}
+        # 扁平化处理，只有一层
+        self._paratranz_elements_data_flat: list[dict] = []
 
     @staticmethod
-    def init_dirs():
+    def init_dirs() -> None:
+        """创建目录"""
         for dir_ in {DIR_PASSAGE, DIR_TARGET}:
             os.makedirs(dir_, exist_ok=True)
 
     # 入口函数
-    def parse(self):
+    def parse(self) -> None:
+        """入口函数"""
         self.get_all_twine_filepaths()
         self.get_all_twine_passages()
 
@@ -47,14 +70,15 @@ class ParseTwine:
         self.build_paratranz_format()
 
     # 文件路径
-    def get_all_twine_filepaths(self):
+    def get_all_twine_filepaths(self) -> None:
         """获取所有文件绝对路径，方便下一步提取"""
         logger.info("开始获取所有 twine 文件绝对路径……")
-        for root, dirs, files in os.walk(DIR_GAME_TEXTS):
-            for file in files:
-                if not file.endswith(".twee"):
-                    continue
-                self._twine_filepaths.append(Path(root) / file)
+        self._twine_filepaths = [
+            Path(root) / file
+            for root, _, files in os.walk(DIR_GAME_TEXTS)
+            for file in files
+            if file.endswith(".twee")
+        ]
 
         logger.info("所有 twine 文件绝对路径已获取！")
 
@@ -73,10 +97,12 @@ class ParseTwine:
             content_slices = content.split("\n::")[1:]  # 按照段落标题的标识符分割
 
             # 这一步是以游戏源代码的 "game" 文件夹为根目录切割成相对路径
-            relative_filepath = Path().joinpath(*filepath.parts[filepath.parts.index(GAME_TEXTS_NAME)+2:]).__str__()
+            relative_filepath = Path().joinpath(*filepath.parts[filepath.parts.index(GAME_TEXTS_NAME) + 2:]).__str__()
             for slice_ in content_slices:
-                passage_name = slice_.split("\n")[0].strip()  # 段落名称，在接下来的处理中会除去[]与{}中的内容
-                passage_body = "\n".join(slice_.split("\n")[1:-1])  # 段落内容，不包括段落标题行的所有内容
+                # 段落名称，在接下来的处理中会除去[]与{}中的内容
+                passage_name = slice_.split("\n")[0].strip()
+                # 段落内容，不包括段落标题行的所有内容
+                passage_body = "\n".join(slice_.split("\n")[1:-1])
                 passage_full = f":: {passage_name}\n{passage_body}"
 
                 if passage_name.endswith("]"):
@@ -87,7 +113,7 @@ class ParseTwine:
                     "filepath": relative_filepath,
                     "passage_name": passage_name,
                     "passage_body": passage_body,
-                    "passage_full": passage_full
+                    "passage_full": passage_full,
                 }
 
                 self._twine_passage_names.append(passage_name)
@@ -114,7 +140,7 @@ class ParseTwine:
                 "type": type_,
                 "element": match.group(),
                 "pos_start": match.start(),
-                "pos_end": match.end()
+                "pos_end": match.end(),
             }
             self._twine_elements_data_flat.append(element)
             if fp not in self._twine_elements_data:
@@ -162,14 +188,10 @@ class ParseTwine:
 
                         # 因为按照 pos_start 排序过了，所以被注释包裹的元素一定在注释的后面
                         # 因此当出现后者开头小于前者结尾时一定是前者是注释，后者是被注释包住的元素
-                        if elements_copy[idx+i]["pos_start"] < element["pos_end"]:
-                            elements[idx+i] = None
+                        if elements_copy[idx + i]["pos_start"] < element["pos_end"]:
+                            elements[idx + i] = None
 
-                self._twine_elements_data[filepath][passage] = [
-                    element
-                    for element in elements
-                    if element is not None
-                ]
+                self._twine_elements_data[filepath][passage] = [element for element in elements if element is not None]
         self.sort_elements_data()
 
     # 纯文本
@@ -177,7 +199,7 @@ class ParseTwine:
         # sourcery skip: hoist-statement-from-if
         """夹在其它元素之间的就是 plain text"""
         logger.info("开始获取所有 twine 纯文本元素……")
-        
+
         for filepath, elements_data in self._twine_elements_data.items():
             for passage, elements in elements_data.items():
                 content = self._twine_passage_data[filepath][passage]["passage_body"]
@@ -188,7 +210,7 @@ class ParseTwine:
                     # 这里比较特殊，因为要进行两次判断，一次向前判断一次向后判断
                     # 已经提取的元素开头不是段落开头的情况下，才有纯文本
                     if idx <= 0 < element["pos_start"]:
-                        text = content[:element["pos_start"]]
+                        text = content[: element["pos_start"]]
                         pos_start = 0
                         pos_end = element["pos_start"]
                         elements.append({
@@ -197,18 +219,18 @@ class ParseTwine:
                             "type": "text",
                             "element": text,
                             "pos_start": pos_start,
-                            "pos_end": pos_end
+                            "pos_end": pos_end,
                         })
 
                     # 非末尾，开头的向后二次判断合并进这里
                     if idx < len(elements_copy) - 1:
                         # 前后两元素中间没有内容，因此没有纯文本
-                        if element["pos_end"] == elements_copy[idx+1]["pos_start"]:
+                        if element["pos_end"] == elements_copy[idx + 1]["pos_start"]:
                             continue
 
-                        text = content[element["pos_end"]: elements_copy[idx+1]["pos_start"]]
+                        text = content[element["pos_end"]: elements_copy[idx + 1]["pos_start"]]
                         pos_start = element["pos_end"]
-                        pos_end = elements_copy[idx+1]["pos_start"]
+                        pos_end = elements_copy[idx + 1]["pos_start"]
 
                     # 已经提取的元素末尾之后可能有纯文本
                     else:
@@ -216,7 +238,7 @@ class ParseTwine:
                         if element["pos_end"] >= len(content):
                             continue
 
-                        text = content[element["pos_end"]:]
+                        text = content[element["pos_end"] :]
                         pos_start = element["pos_end"]
                         pos_end = len(content)
 
@@ -226,7 +248,7 @@ class ParseTwine:
                         "type": "text",
                         "element": text,
                         "pos_start": pos_start,
-                        "pos_end": pos_end
+                        "pos_end": pos_end,
                     }
                     elements.append(text_element)
 
@@ -239,10 +261,7 @@ class ParseTwine:
         """按照元素的位置排序，方便下一步操作"""
         for filepath, elements_data in self._twine_elements_data.items():
             for passage, elements in elements_data.items():
-                self._twine_elements_data[filepath][passage] = sorted(
-                    elements,
-                    key=lambda elem: elem["pos_start"]
-                )
+                self._twine_elements_data[filepath][passage] = sorted(elements, key=lambda elem: elem["pos_start"])
 
     # 先按照开闭组合一遍
     def combine_twine_element_pairs(self):
@@ -257,7 +276,7 @@ class ParseTwine:
                 "element": elem,
                 "pos_start": start,
                 "pos_end": end,
-                "length": end - start
+                "length": end - start,
             }
             if fp not in self._twine_combined_elements_data:
                 self._twine_combined_elements_data[fp] = {pg: [combined]}
@@ -341,7 +360,7 @@ class ParseTwine:
                             flag = True
 
                             if length > GENERAL_LIMIT:  # 太长，因此不考虑这个组合，只单独把这一个 macro 元素加进去就好了，然后直接跳出
-                                _add_element(filepath, passage, content[head_start:head_end], head_start, head_end)
+                                _add_element(filepath, passage, content[head_start:head_end], head_start, head_end,)
                                 break
 
                             # 注意添加之后，应该跳过中间这些被合并的部分，从末尾的下一个元素开始继续大循环
@@ -465,9 +484,9 @@ class ParseTwine:
                         if i == 0:  # i==0 指自己，因此跳过
                             continue
 
-                        tail_elem = elements_copy[idx+i]["element"]
-                        tail_end = elements_copy[idx+i]["pos_end"]
-                        tail_length = elements_copy[idx+i]["length"]
+                        tail_elem = elements_copy[idx + i]["element"]
+                        tail_end = elements_copy[idx + i]["pos_end"]
+                        tail_length = elements_copy[idx + i]["length"]
                         full_length += tail_length
                         if full_length > GENERAL_LIMIT:  # 超了，只合并到上一处
                             combined = {
@@ -476,7 +495,7 @@ class ParseTwine:
                                 "element": full_elem,
                                 "pos_start": pos_start,
                                 "pos_end": pos_end,
-                                "length": full_length - tail_length
+                                "length": full_length - tail_length,
                             }
                             temp_elements.append(combined)
                             self._twine_combined_elements_data_flat.append(combined)
@@ -498,7 +517,7 @@ class ParseTwine:
                             "element": full_elem,
                             "pos_start": pos_start,
                             "pos_end": pos_end,
-                            "length": full_length
+                            "length": full_length,
                         }
                         temp_elements.append(combined)
                         self._twine_combined_elements_data_flat.append(combined)
@@ -513,18 +532,19 @@ class ParseTwine:
     def build_paratranz_detailed_raw_data(self):
         """一次性函数，将旧汉化方式的译文、词条状态提取出详细信息"""
         logger.info("开始生成旧汉化方式译文详细信息……")
-        def _add_element(fp: str, orig: str, trns: str, stg: int, info: list):
+
+        def _add_element(fp_: str, orig: str, trns: str, stg: int, info: list):
             data = {
-                "filepath": fp,
+                "filepath": fp_,
                 "original": orig,
                 "translation": trns,
                 "stage": stg,
-                "pos_info": info
+                "pos_info": info,
             }
-            if fp not in self._paratranz_detailed_raw_data:
-                self._paratranz_detailed_raw_data[fp] = [data]
+            if fp_ not in self._paratranz_detailed_raw_data:
+                self._paratranz_detailed_raw_data[fp_] = [data]
             else:
-                self._paratranz_detailed_raw_data[fp].append(data)
+                self._paratranz_detailed_raw_data[fp_].append(data)
 
         for root, dirs, files in os.walk(DIR_PARATRANZ_EXPORT):
             if "失效" in root or "日志" in root or "测试" in root:
@@ -536,8 +556,8 @@ class ParseTwine:
                     continue
                 else:
                     filename = file.replace(".csv.json", ".twee")
-                filepath = (Path(root) / filename)
-                filepath = Path().joinpath(*filepath.parts[filepath.parts.index("raw")+1:]).__str__()
+                filepath = Path(root) / filename
+                filepath = Path().joinpath(*filepath.parts[filepath.parts.index("raw") + 1:]).__str__()
 
                 # 文件在新版里没有，可能删了或者改名了
                 if filepath not in self._twine_passage_data:
@@ -568,8 +588,9 @@ class ParseTwine:
                             {
                                 "passage": passage_name,
                                 "pos_start": match.start(),
-                                "pos_end": match.end()
-                            } for match in matches
+                                "pos_end": match.end(),
+                            }
+                            for match in matches
                         ])
                         # 也有可能在所有段落中都找不到，这种情况下报错
                         flag = True
@@ -596,10 +617,13 @@ class ParseTwine:
                         element_pos_start = element["pos_start"]
                         element_pos_end = element["pos_end"]
                         # 情况1: pz 被 elem 包住
-                        if element_pos_start < paratranz_pos_start and element_pos_end > paratranz_pos_end:
+                        if (
+                            element_pos_start < paratranz_pos_start
+                            and element_pos_end > paratranz_pos_end
+                        ):
                             ...
 
-                        # 情况2: 
+                        # 情况2:
 
     # 修改格式为可以在 paratranz 导入的文件
     def build_paratranz_format(self):
@@ -622,7 +646,7 @@ class ParseTwine:
                 "original": orig,
                 "translation": trns,
                 "context": ctx,
-                "stage": stg
+                "stage": stg,
             }
             if fp not in self._paratranz_elements_data:
                 self._paratranz_elements_data[fp] = {pg: [paratranz]}
@@ -635,7 +659,7 @@ class ParseTwine:
             for passage, elements in elements_data.items():
                 for idx, element in enumerate(elements):
                     key = f"{filepath.replace('.twee', '')}|{passage}|{idx}"
-                    _add_element(filepath, passage, key, element['element'], "", "", 0)
+                    _add_element(filepath, passage, key, element["element"], "", "", 0)
         logger.info("已修改为 paratranz 格式！")
 
     # 导出为文件
@@ -655,7 +679,7 @@ class ParseTwine:
             json.dump(self._twine_combined_elements_data, fp, ensure_ascii=False, indent=2)
 
         with open(DIR_TARGET / "twine_combined_elements_data_flat.json", "w", encoding="utf-8") as fp:
-            json.dump(self._twine_combined_elements_data_flat, fp, ensure_ascii=False, indent=2)
+            json.dump(self._twine_combined_elements_data_flat, fp, ensure_ascii=False, indent=2,)
 
         with open(DIR_TARGET / "paratranz_detailed_raw_data.json", "w", encoding="utf-8") as fp:
             json.dump(self._paratranz_detailed_raw_data, fp, ensure_ascii=False, indent=2)
@@ -672,10 +696,7 @@ def main():
     parser.export_data()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
 
-
-__all__ = [
-    "ParseTwine"
-]
+__all__ = ["ParseTwine"]

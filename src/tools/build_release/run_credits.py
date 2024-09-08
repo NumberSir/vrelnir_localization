@@ -11,11 +11,14 @@ from lxml import etree
 
 from src.consts import PARATRANZ_TOKEN, GITHUB_ACCESS_TOKEN
 
+DIR_RELEASE = Path("D:\\Users\\numbersir\\Documents\\GitHub\\Degrees-of-Lewdity-Chinese-Localization")
+
 
 class Credit:
     def __init__(self, client: httpx.AsyncClient):
         self._client = client
 
+    """ PARATRANZ """
     async def build_paratranz_members(self, project_id: int = 4780) -> list[str]:
         """Paratranz 有贡献的"""
         members = await self._get_paratranz_members(project_id)
@@ -37,12 +40,13 @@ class Credit:
             if member["totalPoints"]
         ])
 
-    async def build_miraheze_members(self, limit: int = 500):
+    """ WIKI """
+    async def build_miraheze_members(self, limit: int = 600):
         """中文维基有贡献的"""
         members_html = await self._get_miraheze_members(limit)
         return self._filter_scored_miraheze_members(members_html)
 
-    async def _get_miraheze_members(self, limit: int = 500):
+    async def _get_miraheze_members(self, limit: int = 600):
         url = f"https://degreesoflewditycn.miraheze.org/wiki/{quote('特殊:用户列表')}"
         params = {
             "editsOnly": 1,
@@ -57,6 +61,7 @@ class Credit:
         html = etree.HTML(html)
         return sorted(html.xpath("//bdi/text()"))
 
+    """ GITHUB """
     async def build_issue_members(
         self,
         owner: str = "Eltirosto",
@@ -88,6 +93,7 @@ class Credit:
     def _filter_issue_members(self, members_data: list[dict]):
         return [member["user"]["login"] for member in members_data]
 
+    """ PROPERTY """
     @property
     def client(self):
         return self._client
@@ -105,31 +111,35 @@ async def main():
     issue_members: str = "\n- ".join(issue_members)
 
     time = datetime.datetime.now().strftime("%Y%m%d")
-    os.makedirs(Path(__file__).parent / "data", exist_ok=True)
-    with open(
-        Path(__file__).parent / "data" / f"CREDITS-{time}.md", "w", encoding="utf-8"
-    ) as fp:
-        fp.write(
-            "## 欲都孤儿 贡献者名单\n"
-            f"> {time}\n"
-            "### 为汉化做出过贡献的诸位（排名不分先后）：\n"
-            "<details>\n"
-            "<summary>点击展开</summary>\n\n"
-            f"- {paratranz_members}\n\n"
-            "</details>\n\n"
-            "### 为建设中文维基提供过贡献的诸位（排名不分先后）：\n"
-            "<details>\n"
-            "<summary>点击展开</summary>\n\n"
-            f"- {miraheze_members}\n\n"
-            "</details>\n\n"
-            "### 为改进汉化内容提供过贡献的诸位（排名不分先后）：\n"
-            "<details>\n"
-            "<summary>点击展开</summary>\n\n"
-            f"- {issue_members}\n\n"
-            "</details>\n\n"
-            "---\n"
-            "本游戏的汉化版制作、维护与更新属实不易，十分感谢以上不吝提供帮助、做出贡献的诸位。"
-        )
+    os.makedirs(Path(__file__).parent / "credits", exist_ok=True)
+
+    content = (
+        "## 欲都孤儿 贡献者名单\n"
+        f"> {time}\n"
+        "### 为汉化做出过贡献的诸位（排名不分先后）：\n"
+        "<details>\n"
+        "<summary>点击展开</summary>\n\n"
+        f"- {paratranz_members}\n\n"
+        "</details>\n\n"
+        "### 为建设中文维基提供过贡献的诸位（排名不分先后）：\n"
+        "<details>\n"
+        "<summary>点击展开</summary>\n\n"
+        f"- {miraheze_members}\n\n"
+        "</details>\n\n"
+        "### 为改进汉化内容提供过贡献的诸位（排名不分先后）：\n"
+        "<details>\n"
+        "<summary>点击展开</summary>\n\n"
+        f"- {issue_members}\n\n"
+        "</details>\n\n"
+        "---\n"
+        "本游戏的汉化版制作、维护与更新属实不易，十分感谢以上不吝提供帮助、做出贡献的诸位。"
+    )
+
+    with open(Path(__file__).parent / "credits" / "CREDITS.md", "w", encoding="utf-8") as fp:
+        fp.write(content)
+
+    with open(DIR_RELEASE / "CREDITS.md", "w", encoding="utf-8") as fp:
+        fp.write(content)
 
 
 if __name__ == "__main__":

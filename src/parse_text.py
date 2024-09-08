@@ -2,7 +2,7 @@ import re
 from pathlib import Path
 
 from .consts import *
-from .tools.variables_process import VariablesProcess
+from .tools.process_variables import VariablesProcess
 
 
 class ParseTextTwee:

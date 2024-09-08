@@ -54,7 +54,7 @@ from src import (
     SOURCE_TYPE,
 )
 
-from src.tools.variables_process import VariablesProcess as VP
+from src.tools.process_variables import VariablesProcess as VP
 
 
 async def process_common(dol_common: ProjectDOL, pt: Paratranz, chs_version: str):
@@ -116,14 +116,14 @@ async def process_common(dol_common: ProjectDOL, pt: Paratranz, chs_version: str
     await dol_common.apply_dicts(blacklist_dirs, blacklist_files, debug_flag=False)
 
     # """ 有些额外需要更改的 """
-    # dol_common.change_css()  # 更换一些样式和硬编码文本
-    # dol_common.replace_banner()  # 更换游戏头图
-    # dol_common.change_version(chs_version)  # 更换游戏版本号
+    dol_common.change_css()  # 更换一些样式和硬编码文本
+    dol_common.replace_banner()  # 更换游戏头图
+    dol_common.change_version(chs_version)  # 更换游戏版本号
 
     # """ 编译成游戏 """
-    # dol_common.compile(chs_version)
-    # dol_common.package_zip(chs_version)  # 自动打包成 zip
-    # dol_common.run()  # 运行
+    dol_common.compile(chs_version)
+    dol_common.package_zip(chs_version)  # 自动打包成 zip
+    dol_common.run()  # 运行
 
 
 async def main():
@@ -135,9 +135,7 @@ async def main():
 
     pt_common = Paratranz(type_=SOURCE_TYPE)
     if not PARATRANZ_TOKEN:
-        logger.error(
-            "未填写 PARATRANZ_TOKEN, 汉化包下载可能失败，请前往 https://paratranz.cn/users/my 的设置栏中查看自己的 token, 并在 .env 中填写\n"
-        )
+        logger.error("未填写 PARATRANZ_TOKEN, 汉化包下载可能失败，请前往 https://paratranz.cn/users/my 的设置栏中查看自己的 token, 并在 .env 中填写\n")
         return
 
     await process_common(dol_common, pt_common, chs_version=CHINESE_VERSION)

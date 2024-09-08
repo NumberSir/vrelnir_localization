@@ -9,7 +9,7 @@ from src import (
     CHINESE_VERSION,
     SOURCE_TYPE
 )
-from src.tools.variables_process import VariablesProcess as VP
+from src.tools.process_variables import VariablesProcess as VP
 
 async def process_common(dol_common: ProjectDOL, pt: Paratranz, chs_version: str):
     """

@@ -2,7 +2,7 @@ import contextlib
 import csv
 import datetime
 import re
-from .ast import Acorn, JSSyntaxError
+from .ast_javascript import Acorn, JSSyntaxError
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote
@@ -23,7 +23,7 @@ import stat
 from .consts import *
 from .log import logger
 from .parse_text import *
-from .utils import *
+from .download import *
 
 LOGGER_COLOR = logger.opt(colors=True)
 
@@ -912,8 +912,6 @@ class ProjectDOL:
     def package_zip(self, chs_version: str = "chs"):
         """ 打包游戏 """
         today = datetime.datetime.now().strftime("%Y%m%d")
-        with open(DIR_GAME_ROOT_COMMON / "version", "r", encoding="utf-8") as fp:
-            version = fp.read()
         with zf(DIR_GAME_ROOT_COMMON / f"dol-{chs_version}-{today}.zip", "w", compresslevel=9, compression=ZIP_DEFLATED) as zfp:
             for root, dir_list, file_list in os.walk(DIR_GAME_ROOT_COMMON):
                 for file in file_list:
