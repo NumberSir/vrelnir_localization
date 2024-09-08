@@ -8,3 +8,5 @@ beautifulsoup4~=4.12.2
 orjson~=3.9.2
 dukpy~=0.3.0
 lxml~=4.9.3
+typing_extensions~=4.12.2
+PyGithub~=2.4.0
