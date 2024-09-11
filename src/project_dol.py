@@ -2,18 +2,18 @@ import contextlib
 import csv
 import datetime
 import re
+import os
+import platform
 from .ast_javascript import Acorn, JSSyntaxError
-from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 from zipfile import ZipFile as zf, ZIP_DEFLATED
 from aiofiles import open as aopen
+from pathlib import Path
 
 import asyncio
 import json
 import httpx
-import os
-import platform
 import shutil
 import subprocess
 import time
@@ -30,7 +30,6 @@ LOGGER_COLOR = logger.opt(colors=True)
 
 class ProjectDOL:
     """本地化主类"""
-
     def __init__(self, type_: str = "common"):
         with open(DIR_JSON_ROOT / "blacklists.json", "r", encoding="utf-8") as fp:
             self._blacklists: dict[str, list] = json.load(fp)
@@ -62,8 +61,6 @@ class ProjectDOL:
         async with httpx.AsyncClient(verify=False) as client:
             if self._type == "common":
                 url = f"{REPOSITORY_URL_COMMON}/-/raw/master/version"
-            elif self._type == "world":
-                url = f"{REPOSITORY_URL_WORLD}/-/raw/master/version"
             else:
                 url = f"{REPOSITORY_URL_DEV}/-/raw/dev/version"
             response = await client.get(url)
@@ -79,13 +76,9 @@ class ProjectDOL:
             await self.fetch_latest_version()
         if self._is_latest:  # 下载慢，是最新就不要重复下载了
             dol_path_zip = DIR_ROOT / f"dol{self._mention_name}.zip"
-            if (DIR_ROOT / "dol.zip").exists() or (DIR_ROOT / f"dol{self._mention_name}.zip").exists():
-                with contextlib.suppress(shutil.Error, FileNotFoundError):
-                    shutil.move(DIR_ROOT / "dol.zip", DIR_TEMP_ROOT)
+            if dol_path_zip.exists():
                 with contextlib.suppress(shutil.Error, FileNotFoundError):
                     shutil.move(dol_path_zip, DIR_TEMP_ROOT)
-                with contextlib.suppress(shutil.Error, FileNotFoundError):
-                    shutil.move(DIR_ROOT / f"dol世扩.zip", DIR_TEMP_ROOT)
                 await self.unzip_latest_repository()
                 return
         await self.fetch_latest_repository()
@@ -97,8 +90,6 @@ class ProjectDOL:
         async with httpx.AsyncClient(verify=False) as client:
             if self._type == "common":
                 zip_url = REPOSITORY_ZIP_URL_COMMON
-            elif self._type == "world":
-                zip_url = REPOSITORY_ZIP_URL_WORLD
             else:
                 zip_url = REPOSITORY_ZIP_URL_DEV
             flag = False
@@ -151,8 +142,6 @@ class ProjectDOL:
         self._game_texts_file_lists = []
         if self._type == "common":
             texts_dir = DIR_GAME_TEXTS_COMMON
-        elif self._type == "world":
-            texts_dir = DIR_GAME_TEXTS_WORLD
         else:
             texts_dir = DIR_GAME_TEXTS_DEV
         for root, dir_list, file_list in os.walk(texts_dir):
@@ -184,8 +173,6 @@ class ProjectDOL:
             await self.fetch_latest_version()
         if self._type == "common":
             dir_name = DIR_GAME_ROOT_COMMON_NAME
-        elif self._type == "world":
-            dir_name = DIR_GAME_ROOT_WORLD_NAME
         else:
             dir_name = DIR_GAME_ROOT_DEV_NAME
         for file in self._game_texts_file_lists:
@@ -497,8 +484,6 @@ class ProjectDOL:
 
         if self._type == "common":
             DIR_GAME_TEXTS = DIR_GAME_TEXTS_COMMON
-        elif self._type == "world":
-            DIR_GAME_TEXTS = DIR_GAME_TEXTS_WORLD
         else:
             DIR_GAME_TEXTS = DIR_GAME_TEXTS_DEV
         logger.info(f"===== 开始覆写{self._mention_name}汉化 ...")
@@ -527,19 +512,17 @@ class ProjectDOL:
                     file_mapping[Path(root).absolute() / file] = DIR_GAME_TEXTS / Path(root).relative_to(DIR_RAW_DICTS / type_manual / self._version / "csv" / "game") / f"{file.split('.')[0]}.twee".replace("utf8\\", "")
 
         tasks = [
-            self._apply_for_gather(csv_file, twee_file, debug_flag=debug_flag, type_manual=type_manual)
+            self._apply_for_gather(csv_file, twee_file, debug_flag=debug_flag)
             for idx, (csv_file, twee_file) in enumerate(file_mapping.items())
         ]
         await asyncio.gather(*tasks)
         logger.info(f"##### {self._mention_name}汉化覆写完毕 !\n")
 
-    async def _apply_for_gather(self, csv_file: Path, target_file: Path, debug_flag: bool = False, type_manual: str = None):
+    async def _apply_for_gather(self, csv_file: Path, target_file: Path, debug_flag: bool = False):
         """gather 用"""
         with open(target_file, "r", encoding="utf-8") as fp:
             raw_targets: list[str] = fp.readlines()
         raw_targets_temp = raw_targets.copy()
-        needed_replace_outfit_name_cap_flag = False
-        type_manual = type_manual or self._type
 
         with open(csv_file, "r", encoding="utf-8") as fp:
             for row in csv.reader(fp):
@@ -553,17 +536,13 @@ class ProjectDOL:
                 zh = re.sub('^(“)', '"', zh)
                 zh = re.sub('(”)$', '"', zh)
                 if self._is_lack_angle(zh, en):
-                    logger.warning(f"\t!!! 可能的尖括号数量错误：{en} | {zh} | https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
+                    logger.warning(f"\t!!! 可能的尖括号数量错误：{en} | {zh} | https://paratranz.cn/projects/{PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
                     if debug_flag:
-                        webbrowser.open(f"https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
-                # if self._is_lack_square(zh, en):
-                #     logger.warning(f"\t!!! 可能的方括号数量错误：{en} | {zh} | https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
-                #     if debug_flag:
-                #         webbrowser.open(f"https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
+                        webbrowser.open(f"https://paratranz.cn/projects/{PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
                 if self._is_different_event(zh, en):
-                    logger.warning(f"\t!!! 可能的事件名称错翻：{en} | {zh} | https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
+                    logger.warning(f"\t!!! 可能的事件名称错翻：{en} | {zh} | https://paratranz.cn/projects/{PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
                     if debug_flag:
-                        webbrowser.open(f"https://paratranz.cn/projects/{PARATRANZ_PROJECT_WE_ID if type_manual == 'world' else PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
+                        webbrowser.open(f"https://paratranz.cn/projects/{PARATRANZ_PROJECT_DOL_ID}/strings?text={quote(en)}")
 
                 for idx_, target_row in enumerate(raw_targets_temp):
                     if not target_row.strip():
@@ -584,7 +563,6 @@ class ProjectDOL:
                     LOGGER_COLOR.error(f"{target_file}")
         with open(target_file, "w", encoding="utf-8") as fp:
             fp.writelines(raw_targets)
-
         # logger.info(f"\t- ({idx + 1} / {full}) {target_file.__str__().split('game')[1]} 覆写完毕")
 
     @staticmethod
@@ -716,7 +694,7 @@ class ProjectDOL:
         return False
 
     async def get_lastest_commit(self) -> None:
-        ref_name = self.get_type("master", "master", "dev")
+        ref_name = self.get_type("master", "dev")
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.get(REPOSITORY_COMMITS_URL_COMMON, params={"ref_name": ref_name})
             if response.status_code != 200:
@@ -735,18 +713,16 @@ class ProjectDOL:
             json.dump(latest_commit, fp, ensure_ascii=False, indent=2)
             logger.info(f"#### {self._mention_name}最新 commit 已写入！")
 
-    def get_type(self, common, world, dev):
+    def get_type(self, common, dev):
         if self._type == "common":
             return common
-        elif self._type == "world":
-            return world
         else:
             return dev
 
     @property
     def game_dir(self) -> Path:
         """获得游戏目录"""
-        return self.get_type(DIR_GAME_ROOT_COMMON, DIR_GAME_ROOT_WORLD, DIR_GAME_ROOT_DEV)
+        return self.get_type(DIR_GAME_ROOT_COMMON, DIR_GAME_ROOT_DEV)
 
     """其他要修改的东西"""
     def change_css(self):
@@ -779,24 +755,14 @@ class ProjectDOL:
 
     def change_version(self, version: str = ""):
         """修改版本号"""
-        if self._type == "world":
-            with open(FILE_VERSION_EDIT_WORLD, "r", encoding="utf-8") as fp:
-                lines = fp.readlines()
-            for idx, line in enumerate(lines):
-                if "versionName: " in line.strip():
-                    lines[idx] = f'versionName: "{version}",\n'
-                    break
-            with open(FILE_VERSION_EDIT_WORLD, "w", encoding="utf-8") as fp:
-                fp.writelines(lines)
-        else:
-            with open(FILE_VERSION_EDIT_COMMON, "r", encoding="utf-8") as fp:
-                lines = fp.readlines()
-            for idx, line in enumerate(lines):
-                if "versionName: " in line.strip():
-                    lines[idx] = f'versionName: "{version}",\n'
-                    break
-            with open(FILE_VERSION_EDIT_COMMON, "w", encoding="utf-8") as fp:
-                fp.writelines(lines)
+        with open(FILE_VERSION_EDIT_COMMON, "r", encoding="utf-8") as fp:
+            lines = fp.readlines()
+        for idx, line in enumerate(lines):
+            if "versionName: " in line.strip():
+                lines[idx] = f'versionName: "{version}",\n'
+                break
+        with open(FILE_VERSION_EDIT_COMMON, "w", encoding="utf-8") as fp:
+            fp.writelines(lines)
 
     """ 删删删 """
     async def drop_all_dirs(self, force=False):
@@ -997,16 +963,6 @@ class ProjectDOL:
             async with aopen(DIR_TEMP_ROOT / "modloader.zip", "wb+") as afp:
                 async for char in response.iter_raw():
                     await afp.write(char)
-
-
-
-        # response = await client.get(url, headers={
-        #     "accept": "application/vnd.github+json",
-        #     "Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"
-        # }, follow_redirects=True, timeout=60)
-        # logger.info(f"status: {response.status_code}")
-        # with open(DIR_TEMP_ROOT / "modloader.zip", "wb") as fp:
-        #     fp.write(response.content)
 
 
 __all__ = [

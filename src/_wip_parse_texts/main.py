@@ -4,8 +4,8 @@ import re
 
 from pathlib import Path
 
-from src.parse_texts.log import logger
-from src.parse_texts.consts import (
+from src._wip_parse_texts.log import logger
+from src._wip_parse_texts.consts import (
     DIR_PASSAGE,
     DIR_TARGET,
     DIR_GAME_TEXTS,

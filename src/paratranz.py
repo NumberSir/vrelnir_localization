@@ -12,7 +12,7 @@ class Paratranz:
     """下载汉化包相关"""
     def __init__(self, type_: str = "common"):
         self._type = type_
-        self._project_id = PARATRANZ_PROJECT_DOL_ID if type_ in {"common", "dev"} else PARATRANZ_PROJECT_WE_ID
+        self._project_id = PARATRANZ_PROJECT_DOL_ID
         self._mention_name = "" if self._type == "common" else "dev"
 
     async def download_from_paratranz(self) -> bool:

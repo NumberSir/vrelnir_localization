@@ -27,8 +27,8 @@ async def chunk_download(
 ):
     """切片下载"""
     if not save_path.exists():
-        with open(save_path, "wb") as fp:
-            pass
+        with open(save_path, "wb") as _:
+            ...
     headers = (
         {"Range": f"bytes={start}-{end}"} | headers_
         if headers_

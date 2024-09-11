@@ -19,7 +19,6 @@ PARATRANZ_TOKEN = os.getenv("PARATRANZ_TOKEN") or ""  # 必填，在个人设置
 PARATRANZ_BASE_URL = "https://paratranz.cn/api"
 PARATRANZ_HEADERS = {"Authorization": PARATRANZ_TOKEN}
 PARATRANZ_PROJECT_DOL_ID = 4780  # DOL 项目 ID
-PARATRANZ_PROJECT_WE_ID = 8131  # DOL-WE 项目 ID
 CHINESE_VERSION = os.getenv("CHINESE_VERSION") or ""  # 必填，参考 README
 SOURCE_TYPE = os.getenv("SOURCE_TYPE") or "common"  # 必填，common 或 dev
 
@@ -31,9 +30,6 @@ GITHUB_ACCESS_TOKEN = os.getenv("GITHUB_ACCESS_TOKEN") or ""
 REPOSITORY_URL_COMMON = "https://gitgud.io/Vrelnir/degrees-of-lewdity"
 REPOSITORY_ZIP_URL_COMMON = "https://gitgud.io/Vrelnir/degrees-of-lewdity/-/archive/master/degrees-of-lewdity-master.zip"
 REPOSITORY_COMMITS_URL_COMMON = "https://gitgud.io/api/v4/projects/8430/repository/commits"
-REPOSITORY_URL_WORLD = "https://gitgud.io/Wub/degrees-of-lewdity-world-expansion"
-REPOSITORY_ZIP_URL_WORLD = "https://gitgud.io/Wub/degrees-of-lewdity-world-expansion/-/archive/master/degrees-of-lewdity-world-expansion-master.zip"
-REPOSITORY_COMMITS_URL_WORLD = "https://gitgud.io/api/v4/projects/20811/repository/commits"
 REPOSITORY_URL_DEV = "https://gitgud.io/Vrelnir/degrees-of-lewdity"
 REPOSITORY_ZIP_URL_DEV = "https://gitgud.io/Vrelnir/degrees-of-lewdity/-/archive/dev/degrees-of-lewdity-dev.zip"
 
@@ -56,11 +52,6 @@ DIR_GAME_TEXTS_DEV = DIR_GAME_ROOT_DEV / "game"
 DIR_GAME_CSS_DEV = DIR_GAME_ROOT_DEV / "modules" / "css"
 DIR_GAME_ANDROID_ROOT_DEV = DIR_GAME_ROOT_DEV / "devTools" / "androidsdk" / "image" / "cordova"
 
-DIR_GAME_ROOT_WORLD_NAME = "degrees-of-lewdity-world-expansion-master"
-DIR_GAME_ROOT_WORLD = DIR_ROOT / DIR_GAME_ROOT_WORLD_NAME
-DIR_GAME_TEXTS_WORLD = DIR_GAME_ROOT_WORLD / "game"
-DIR_GAME_CSS_WORLD = DIR_GAME_ROOT_WORLD / "modules" / "css"
-
 DIR_RAW_DICTS = DIR_DATA_ROOT / "raw_dicts"
 
 DIR_PARATRANZ = DIR_DATA_ROOT / "paratranz"
@@ -71,7 +62,6 @@ FILE_PARATRANZ_ZIP = DIR_TEMP_ROOT / "paratranz_export.zip"
 FILE_COMMITS = DIR_JSON_ROOT / "commits.json"
 FILE_MODS = DIR_JSON_ROOT / "mod.json"
 FILE_VERSION_EDIT_COMMON = DIR_GAME_TEXTS_COMMON / "01-config" / "sugarcubeConfig.js"
-FILE_VERSION_EDIT_WORLD = DIR_GAME_TEXTS_WORLD / "01-config" / "sugarcubeConfig.js"
 
 SUFFIX_TWEE = ".twee"
 SUFFIX_JS = ".js"
@@ -280,15 +270,11 @@ __all__ = [
     "PARATRANZ_HEADERS",
     "PARATRANZ_TOKEN",
     "PARATRANZ_PROJECT_DOL_ID",
-    "PARATRANZ_PROJECT_WE_ID",
     "CHINESE_VERSION",
     "SOURCE_TYPE",
     "REPOSITORY_URL_COMMON",
     "REPOSITORY_ZIP_URL_COMMON",
     "REPOSITORY_COMMITS_URL_COMMON",
-    "REPOSITORY_URL_WORLD",
-    "REPOSITORY_ZIP_URL_WORLD",
-    "REPOSITORY_COMMITS_URL_WORLD",
     "REPOSITORY_URL_DEV",
     "REPOSITORY_ZIP_URL_DEV",
     "DIR_ROOT",
@@ -304,12 +290,8 @@ __all__ = [
     "DIR_GAME_ROOT_DEV_NAME",
     "DIR_GAME_ROOT_DEV",
     "DIR_GAME_TEXTS_DEV",
-    "DIR_GAME_CSS_WORLD",
     "DIR_GAME_CSS_DEV",
     "DIR_GAME_ANDROID_ROOT_DEV",
-    "DIR_GAME_ROOT_WORLD_NAME",
-    "DIR_GAME_ROOT_WORLD",
-    "DIR_GAME_TEXTS_WORLD",
     "DIR_RAW_DICTS",
     "DIR_PARATRANZ",
     "FILE_REPOSITORY_ZIP",
@@ -317,7 +299,6 @@ __all__ = [
     "FILE_COMMITS",
     "FILE_MODS",
     "FILE_VERSION_EDIT_COMMON",
-    "FILE_VERSION_EDIT_WORLD",
     "SUFFIX_TWEE",
     "SUFFIX_JS",
     "DirNamesTwee",
