@@ -178,8 +178,8 @@ class ReleaseBuild:
             html_filepath,
             DIR_GAME / HTML_FILENAME,
         )
-        subprocess.Popen(DIR_APK_BUILDER / "setup_deps.bat", cwd=DIR_APK_BUILDER, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).wait()
-        subprocess.Popen(DIR_APK_BUILDER / "build_app_debug.bat", cwd=DIR_APK_BUILDER, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).wait()
+        subprocess.Popen(DIR_APK_BUILDER / "setup_deps.bat", cwd=DIR_APK_BUILDER).wait()
+        subprocess.Popen(DIR_APK_BUILDER / "build_app_debug.bat", cwd=DIR_APK_BUILDER).wait()
         shutil.copyfile(
             DIR_TEMP / self.html_filename,
             DIR_BUILD_ASSETS / f"DoL-ModLoader-{self.game_version}-v{self.mod_loader_version}{polyfill_suffix}.APK",
@@ -191,6 +191,14 @@ class ReleaseBuild:
 
     def build_apk_polyfill(self):
         return self._build_apk(DIR_TEMP / self.html_polyfill_filename, "-polyfill")
+
+    @staticmethod
+    def rename_pre():
+        for file in os.listdir(DIR_BUILD_ASSETS):
+            if file.endswith(".mod.zip"):
+                shutil.move(DIR_BUILD_ASSETS / file, DIR_BUILD_ASSETS / f"{file[:-8]}-pre{file[-8:]}")
+            else:
+                shutil.move(DIR_BUILD_ASSETS / file, DIR_BUILD_ASSETS / f"{file[:-4]}-pre{file[-4:]}")
 
     """ BUILD RELEASE NOTE"""
     @staticmethod
@@ -354,7 +362,7 @@ async def main():
             """ 开始 """
             process.clear()
 
-            """ 运行 """
+            """ 运行 """  # TODO
 
             """ 下载 """
             await process.download_mod_loader()
@@ -371,6 +379,7 @@ async def main():
             process.build_compress_polyfill()
             process.build_apk_normal()
             process.build_apk_polyfill()
+            process.rename_pre()  # 预览版
 
             """ 构建 """
             process.generate_release_note()
