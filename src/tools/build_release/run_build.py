@@ -27,67 +27,51 @@ import shutil
 import subprocess
 import time
 import zipfile
-from pathlib import Path
 from zipfile import ZipFile
+from pathlib import Path
 
 import httpx
 
-from dotenv import load_dotenv
 from github import Github, Auth
+from github.Repository import Repository
 
 from src.tools.build_release.download import *
 from src.tools.build_release.log import *
-
-load_dotenv()
-ACCESS_TOKEN = os.getenv('GITHUB_ACCESS_TOKEN')
-
-ROOT = Path(__file__).parent
-DIR_TEMP = ROOT / "tmp"
-DIR_BUILD = ROOT / "build"
-DIR_BUILD_ASSETS = DIR_BUILD / "assets"
-DIR_CREDITS = ROOT / "credits"
-DIR_APK_BUILD_TOOLS = ROOT / "apk-build-tools"
-
-DIR_GAME = ROOT.parent.parent.parent / "degrees-of-lewdity-master"
-DIR_APK_BUILDER = DIR_GAME / "devTools" / "apkbuilder"
-DIR_REPO = Path("D:\\Users\\numbersir\\Documents\\GitHub\\Degrees-of-Lewdity-Chinese-Localization")
-
-FILE_LICENSE = DIR_GAME / "LICENSE"
-FILE_CREDITS = DIR_CREDITS / "CREDITS.md"
-FILE_README = DIR_REPO / "README.md"
-
-FILE_GRADLE = DIR_APK_BUILD_TOOLS / "gradle" / "gradle.zip"
-FILE_CMDLINE = DIR_APK_BUILD_TOOLS / "cmdline-tools" / "latest.zip"
-
-HTML_FILENAME = "Degrees of Lewdity.html"
+from src.tools.build_release.consts import *
 
 
 class ReleaseBuild:
     def __init__(self, github: Github, client: httpx.AsyncClient):
-        self._github = github
         self._client = client
+        self._github = github
+        self._repository: "Repository" = github.get_repo("Eltirosto/Degrees-of-Lewdity-Chinese-Localization")
 
     """ INIT """
     @staticmethod
     def clear():
+        """清理临时文件夹和构建文件"""
         shutil.rmtree(DIR_TEMP, ignore_errors=True)
         shutil.rmtree(DIR_BUILD_ASSETS, ignore_errors=True)
         os.makedirs(DIR_TEMP, exist_ok=True)
         os.makedirs(DIR_BUILD_ASSETS, exist_ok=True)
-        logger.info("> initialize successfully")
+        logger.info("initialize successfully")
 
-    """ ACTION """
+    """ ACTION """  # TODO
     def _trigger(self):
+        """触发自动构建"""
         ...
 
     def trigger_mod_loader(self):
+        """触发 ModLoader 自动构建 (Lyoko-Jeremie/DoLModLoaderBuild)"""
         ...
 
     def trigger_i18n(self):
+        """触发 I18N 自动构建 (NumberSir/DoL-I18n-Build)"""
         ...
 
     """ DOWNLOAD """
     async def _download(self, repo_name: str):
+        """下载构建好的文件"""
         repo = self.github.get_repo(repo_name)
         release = repo.get_latest_release()
         assets = release.get_assets()
@@ -106,15 +90,18 @@ class ReleaseBuild:
             await asyncio.gather(*tasks)
 
     async def download_mod_loader(self):
+        """下载 ModLoader 和 Imagepack"""
         await self._download("Lyoko-Jeremie/DoLModLoaderBuild")
-        logger.info("> ModLoader & Imagepack downloaded successfully")
+        logger.info("ModLoader & Imagepack downloaded successfully")
 
     async def download_i18n(self):
+        """下载 ModI18N """
         await self._download("NumberSir/DoL-I18n-Build")
-        logger.info("> ModI18N downloaded successfully")
+        logger.info("ModI18N downloaded successfully")
 
     """ DECOMPRESS """
     def decompress_mod_loader(self):
+        """只要解压出来的 html 文件"""
         with zipfile.ZipFile(DIR_TEMP / self.mod_loader_filename, "r") as zfp:
             for file in zfp.filelist:
                 if not file.filename.endswith(".html"):
@@ -123,39 +110,45 @@ class ReleaseBuild:
 
     """ BUILD ASSETS """
     def move_i18n(self):
+        """统一移到一个文件夹里"""
         shutil.copyfile(
             DIR_TEMP / self.i18n_filename,
             DIR_BUILD_ASSETS / self.i18n_filename,
         )
-        logger.info("> ModI18N built successfully")
+        logger.info("ModI18N built successfully")
 
     def rename_image_pack(self):
-        (DIR_TEMP / self.image_pack_filename).rename(
-            DIR_TEMP / f'{self.image_pack_filename.split("-")[0].split(".")[0]}-{self.game_version}.mod.zip')
+        """默认不带版本号，加上"""
+        (DIR_TEMP / self.image_pack_filename).rename(DIR_TEMP / f'{self.image_pack_filename.split("-")[0].split(".")[0]}-{self.game_version}.mod.zip')
 
     def move_image_pack(self):
+        """统一移到一个文件夹里"""
         shutil.copyfile(
             DIR_TEMP / self.image_pack_filename,
             DIR_BUILD_ASSETS / self.image_pack_filename,
         )
-        logger.info("> Imagepack built successfully")
+        logger.info("Imagepack built successfully")
 
     def _build_compress(self, html_filepath: Path, polyfill_suffix: str = ""):
+        """构建游戏本体压缩包"""
         with ZipFile(DIR_BUILD_ASSETS / f"DoL-ModLoader-{self.game_version}-v{self.mod_loader_version}{polyfill_suffix}.zip", "w") as zfp:
             zfp.write(filename=FILE_README, arcname=FILE_README.name)
             zfp.write(filename=FILE_LICENSE, arcname=FILE_LICENSE.name)
             zfp.write(filename=FILE_CREDITS, arcname=FILE_CREDITS.name)
             zfp.write(filename=html_filepath, arcname=HTML_FILENAME)
-        logger.info(f"> Zipfile{polyfill_suffix} built successfully")
+        logger.info(f"Zipfile{polyfill_suffix} built successfully")
 
     def build_compress_normal(self):
+        """构建游戏本体压缩包 (正常版)"""
         return self._build_compress(DIR_TEMP / self.html_filename)
 
     def build_compress_polyfill(self):
+        """构建游戏本体压缩包 (兼容版)"""
         return self._build_compress(DIR_TEMP / self.html_polyfill_filename, "-polyfill")
 
     @staticmethod
     def _pre_build_apk():
+        """用源码自带的打包工具打包前处理环境和打包脚本"""
         with ZipFile(FILE_GRADLE, "r") as zfp:
             zfp.extractall(DIR_APK_BUILDER / "androidsdk" / "gradle")
 
@@ -173,36 +166,43 @@ class ReleaseBuild:
             fp.write(content.replace("pause", ""))
 
     def _build_apk(self, html_filepath: Path, polyfill_suffix: str = ""):
+        """构建游戏本体 apk"""
         self._pre_build_apk()
         shutil.copyfile(
             html_filepath,
             DIR_GAME / HTML_FILENAME,
         )
         subprocess.Popen(DIR_APK_BUILDER / "setup_deps.bat", cwd=DIR_APK_BUILDER).wait()
-        subprocess.Popen(DIR_APK_BUILDER / "build_app_debug.bat", cwd=DIR_APK_BUILDER).wait()
+        subprocess.Popen(DIR_APK_BUILDER / "build_app_debug.bat", cwd=DIR_APK_BUILDER, stdout=subprocess.DEVNULL).wait()
         shutil.copyfile(
-            DIR_TEMP / self.html_filename,
+            DIR_DIST / self.apk_filename,
             DIR_BUILD_ASSETS / f"DoL-ModLoader-{self.game_version}-v{self.mod_loader_version}{polyfill_suffix}.APK",
         )
-        logger.info(f"> Apk{polyfill_suffix} built successfully")
+        logger.info(f"Apk{polyfill_suffix} built successfully")
 
     def build_apk_normal(self):
+        """构建游戏本体 apk (普通版)"""
         return self._build_apk(DIR_TEMP / self.html_filename)
 
     def build_apk_polyfill(self):
+        """构建游戏本体 apk (兼容版)"""
         return self._build_apk(DIR_TEMP / self.html_polyfill_filename, "-polyfill")
 
     @staticmethod
-    def rename_pre():
+    def rename_pre(flag: bool = True):
+        """如果是预发布，就加上 pre 后缀"""
+        if not flag:
+            return
         for file in os.listdir(DIR_BUILD_ASSETS):
             if file.endswith(".mod.zip"):
                 shutil.move(DIR_BUILD_ASSETS / file, DIR_BUILD_ASSETS / f"{file[:-8]}-pre{file[-8:]}")
             else:
                 shutil.move(DIR_BUILD_ASSETS / file, DIR_BUILD_ASSETS / f"{file[:-4]}-pre{file[-4:]}")
 
-    """ BUILD RELEASE NOTE"""
+    """ BUILD RELEASE """
     @staticmethod
     def fetch_changelog() -> str:
+        """手动填好 README 之后提取本次的更新日志"""
         with open(FILE_README, "r", encoding="utf-8") as fp:
             lines = fp.readlines()
 
@@ -224,6 +224,7 @@ class ReleaseBuild:
             flag = True
 
         issues.extend(re.findall(r"\[(issue[\-dc]*\d+)*?]", result))
+        result = f"{result}\n"
         for line in lines:
             if not line.startswith("[issue"):
                 continue
@@ -237,6 +238,7 @@ class ReleaseBuild:
 
     @staticmethod
     def calculate_md5() -> str:
+        """计算上传文件的 MD5 值"""
         result = "md5:"
         for file in os.listdir(DIR_BUILD_ASSETS):
             with open(DIR_BUILD_ASSETS / file, "rb") as fp:
@@ -246,39 +248,74 @@ class ReleaseBuild:
 
     @property
     def section_changelog(self) -> str:
+        """最终发布日志中的更新日志部分"""
         return self.fetch_changelog()
 
     @property
     def section_md5(self) -> str:
+        """最终发布日志中的 MD5 部分"""
         return self.calculate_md5()
 
-    def generate_release_note(self) -> None:
-        with open(DIR_BUILD / "note.md", "w", encoding="utf-8") as fp:
-            fp.write(
-                f"{self.section_changelog}"
-                "\n\n"
-                f"{self.section_md5}"
-                "\n\n"
-                "## 致谢名单\n"
-                "[CREDITS.md](CREDITS.md)"
-            )
-        logger.info("> release note generated successfully")
+    def generate_release_note(self) -> str:
+        """生成最终的发布日志"""
+        return (
+            f"{self.section_changelog}"
+            "\n\n"
+            f"{self.section_md5}"
+            "\n\n"
+            "## 致谢名单\n"
+            "[CREDITS.md](CREDITS.md)"
+        )
 
-    def release(self):
-        ...
+    def save_release_note(self):
+        """保存到本地以便校对"""
+        with open(DIR_BUILD / "note.md", "w", encoding="utf-8") as fp:
+            fp.write(self.release_note)
+        logger.info("release note generated successfully")
+
+    def release(self, *, draft: bool = True):
+        """
+        发布！
+
+        :param draft: 是否是草稿
+        """
+        git_release = self.repository.create_git_release(
+            tag=f"v{self.game_version}-chs-{self.i18n_version}",
+            name=f"v{self.game_version}-chs-{self.i18n_version}",
+            message=self.release_note,
+            draft=draft
+        )
+        for file in os.listdir(DIR_BUILD_ASSETS):
+            git_release.upload_asset(
+                path=(DIR_BUILD_ASSETS / file).__str__()
+            )
+        logger.info(f"RELEASE{'-draft' if draft else ''} successfully")
 
     """ PROPERTY """
     @property
+    def client(self) -> httpx.AsyncClient:
+        """http 客户端"""
+        return self._client
+
+    @property
     def github(self) -> Github:
+        """github 客户端"""
         return self._github
 
     @property
-    def client(self) -> httpx.AsyncClient:
-        return self._client
+    def repository(self) -> Repository:
+        """发布仓库"""
+        return self._repository
+
+    @property
+    def release_note(self) -> str:
+        """发布日志"""
+        return self.generate_release_note()
 
     """ FILENAME """
     @staticmethod
     def _get_tmp_filename(prefix: str = "", suffix: str = "") -> str:
+        """下载的 artifact 的文件名"""
         return [
             file
             for file in os.listdir(DIR_TEMP)
@@ -288,69 +325,87 @@ class ReleaseBuild:
 
     @staticmethod
     def _get_dist_filename() -> str:
+        """构建好的 apk 的文件名"""
         return [file for file in os.listdir(DIR_GAME / "dist")][0]
 
     def get_mod_loader_filename(self) -> str:
+        """下载的自动构建的 modloader 的文件名"""
         return self._get_tmp_filename(prefix="DoL-ModLoader")
 
     def get_image_pack_filename(self) -> str:
+        """下载的自动构建的 imagepack 的文件名"""
         return self._get_tmp_filename(prefix="GameOriginalImagePack")
 
     def get_i18n_filename(self) -> str:
+        """下载的自动构建的 i18n 的文件名"""
         return self._get_tmp_filename(prefix="ModI18N")
 
     def get_html_filename(self) -> str:
+        """解压出来的普通游戏本体 html 文件名"""
         return self._get_tmp_filename(prefix="Degrees of Lewdity", suffix="mod.html")
 
     def get_html_polyfill_filename(self) -> str:
+        """解压出来的兼容游戏本体 html 文件名"""
         return self._get_tmp_filename(prefix="Degrees of Lewdity", suffix="polyfill.html")
 
     @property
     def mod_loader_filename(self) -> str:
+        """下载的自动构建的 modloader 的文件名"""
         return self.get_mod_loader_filename()
 
     @property
     def image_pack_filename(self) -> str:
+        """下载的自动构建的 imagepack 的文件名"""
         return self.get_image_pack_filename()
 
     @property
     def i18n_filename(self) -> str:
+        """下载的自动构建的 i18n 的文件名"""
         return self.get_i18n_filename()
 
     @property
     def html_filename(self) -> str:
+        """解压出来的普通游戏本体 html 文件名"""
         return self.get_html_filename()
 
     @property
     def html_polyfill_filename(self) -> str:
+        """解压出来的兼容游戏本体 html 文件名"""
         return self.get_html_polyfill_filename()
 
     @property
     def apk_filename(self) -> str:
+        """构建好的 apk 的文件名"""
         return self._get_dist_filename()
 
     """ VERSION """
     @staticmethod
     def get_game_version() -> str:
+        """游戏本体版本号"""
         with open(DIR_GAME / "version", "r", encoding="utf-8") as fp:
             return fp.read().strip()
 
     def get_i18n_version(self) -> str:
-        return self.i18n_filename.split("-")[1]
+        """i18n 版本号"""
+        return self.i18n_filename.rstrip('mod.zip').split("-")[-1]
 
     def get_mod_loader_version(self) -> str:
+        """modloader 版本号"""
         return self.mod_loader_filename.split("-")[2]
 
     @property
     def game_version(self) -> str:
+        """游戏本体版本号"""
         return self.get_game_version()
 
     @property
     def i18n_version(self) -> str:
+        """i18n 版本号"""
         return self.get_i18n_version()
 
     @property
     def mod_loader_version(self) -> str:
+        """游戏本体版本号"""
         return self.get_mod_loader_version()
 
 
@@ -363,6 +418,8 @@ async def main():
             process.clear()
 
             """ 运行 """  # TODO
+            # process.trigger_mod_loader()
+            # process.trigger_i18n()
 
             """ 下载 """
             await process.download_mod_loader()
@@ -379,11 +436,15 @@ async def main():
             process.build_compress_polyfill()
             process.build_apk_normal()
             process.build_apk_polyfill()
-            process.rename_pre()  # 预览版
+            process.rename_pre(flag=True)  # 预览版
 
             """ 构建 """
             process.generate_release_note()
-    logger.info(f"> cost {time.time() - start:.2f} seconds")
+
+            """ 发布 """  # TODO
+            process.release(draft=True)
+
+    logger.info(f"cost {time.time() - start:.2f} seconds")
 
 if __name__ == '__main__':
     asyncio.run(main())
