@@ -2012,6 +2012,7 @@ class ParseTextTwee:
                 or "<<if _args[4] is" in line
                 or "<<if _args[5] is" in line
                 or 'tooltip=' in line
+                or "<<numberStepper" in line
             ):
                 results.append(True)
             elif ("<" in line and self.is_only_widgets(line)) or (

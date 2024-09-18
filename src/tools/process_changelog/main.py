@@ -12,13 +12,12 @@ os.makedirs("data", exist_ok=True)
 
 def changelog2paratranz(version: str = None):
     global VERSION, CHANGELOG_TXT
+     
     with open(Path(__file__).parent.parent.parent.parent / "degrees-of-lewdity-master" / "DoL Changelog.txt", "r", encoding="utf-8") as fp:
         lines = fp.readlines()
 
     current_version = version or lines[0].strip().strip(":")  # 0.4.3.0
     current_version_main = ".".join(current_version.split(".")[:-1])  # 0.4.3
-    print(current_version)
-    print(current_version_main)
     for idx, line in enumerate(lines):
         line = line.strip()
         if not line:
