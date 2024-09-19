@@ -1841,7 +1841,12 @@ class ParseTextTwee:
                 maybe_json_flag = True
                 if any(
                     _ in line
-                    for _ in {"<<set _hairColorByName", "<<set _fringeColorByName", "<<set $savedHairStyles"}
+                    for _ in {
+                        "<<set _hairColorByName",
+                        "<<set _fringeColorByName",
+                        "<<set $savedHairStyles",
+                        "<<numberStepper"
+                    }
                 ):
                     results.append(True)
                     continue
@@ -1891,6 +1896,7 @@ class ParseTextTwee:
                 or '" : "' in line
                 or 'Default: {' in line
                 or ("<<run " in line and "$worn." in line)
+                or "<<numberStepper" in line
             ):
                 results.append(True)
                 continue
