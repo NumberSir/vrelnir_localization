@@ -17,7 +17,8 @@
     "ui.js",
     "time-macros.js",
     "time.js",
-    "save.js"
+    "save.js",
+    "skin.js"
   ],
   "04-Variables": [
     "colours.js",
