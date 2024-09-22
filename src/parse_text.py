@@ -358,6 +358,7 @@ class ParseTextTwee:
                 or self.is_widget_link(line)
                 or "$_value2.name" in line
                 or "<<print $_label" in line
+                or "<<= $_label" in line
                 or "(No access)" in line
                 or self.is_widget_print(line)
                 or "replace(/[^a-zA-Z" in line
@@ -522,6 +523,7 @@ class ParseTextTwee:
                 or self.is_event(line)
                 or self.is_only_marks(line)
                 or line == "<<print either("
+                or line == "<<= either("
             ):
                 results.append(False)
             elif (
@@ -571,6 +573,7 @@ class ParseTextTwee:
                 or self.is_event(line)
                 or self.is_only_marks(line)
                 or line == "<<print either("
+                or line == "<<= either("
             ):
                 results.append(False)
             elif (
@@ -578,6 +581,7 @@ class ParseTextTwee:
                 or "<<skill_difficulty " in line
                 or ">>." in line
                 or "<<print $NPCList[0].fullDescription>>" in line
+                or "<<= $NPCList[0].fullDescription>>" in line
             ):
                 results.append(True)
             elif self.is_only_widgets(line) or self.is_json_line(line):
@@ -1455,6 +1459,7 @@ class ParseTextTwee:
                 or not line.startswith("<")
                 or '<<set _bedType to "' in line
                 or "<<print $_plant.plural.toLocaleUpperFirst()>>" in line
+                or "<<= $_plant.plural.toLocaleUpperFirst()>>" in line
                 or self.is_widget_print(line)
             ):
                 results.append(True)
@@ -1531,6 +1536,7 @@ class ParseTextTwee:
             and (
                 "<span " in line.strip()
                 or "<<print " in line.strip()
+                or "<<= " in line.strip()
                 or (
                     "::" not in line.strip()
                     and not line.strip().startswith("<")
@@ -1606,6 +1612,7 @@ class ParseTextTwee:
                 or self.is_tag_label(line)
                 or self.is_widget_print(line)
                 or "<<print either(" in line
+                or "<<= either(" in line
                 and ">>" in line
                 or 'name: "' in line
                 or 'name : "' in line
@@ -1736,7 +1743,7 @@ class ParseTextTwee:
                 continue
 
             """还有跨行print"""
-            if line.endswith("<<print either("):
+            if (line.endswith("<<print either(") or line.endswith("<<= either")):
                 multirow_print_flag = True
                 results.append(False)
                 continue
@@ -2162,7 +2169,7 @@ class ParseTextTwee:
         """<<print xxx>>"""
         return any(
             re.findall(
-                r"<<print\s[^<]*[\"\'`\w]+[\-\?\s\w\.\$,\'\"<>\[\]\(\)/]+(?:\)>>|\">>|\'>>|`>>|\]>>|>>)",
+                r"<<(?:print|=)\s[^<]*[\"\'`\w]+[\-\?\s\w\.\$,\'\"<>\[\]\(\)/]+(?:\)>>|\">>|\'>>|`>>|\]>>|>>)",
                 line,
             )
         )
@@ -2211,7 +2218,12 @@ class ParseTextTwee:
             return False
 
         """特殊的半拉"""
-        if line in {"<<print either(", "<<print ["}:
+        if line in {
+            "<<print either(",
+            "<<= either(",
+            "<<print ["
+            "<<= ["
+        }:
             return True
 
         widgets = {_ for _ in re.findall(r"(<<(?:[^<>]*?|run.*?|for.*?)>>)", line) if _}
@@ -2389,7 +2401,14 @@ class ParseTextJS:
                 results.append(False)
                 continue
 
-            if "T.text_output" in line:
+            if any(
+                _ in line for _ in {
+                    "T.text_output",
+                    "return '",
+                    'return "',
+                    "return `"
+                }
+            ):
                 results.append(True)
             else:
                 results.append(False)
@@ -2626,6 +2645,7 @@ class ParseTextJS:
                 or 'women = "' in line
                 or "men = " in line
                 or ".replace(/[^a-zA-Z" in line
+                or 'return "' in line
             ):
                 results.append(True)
             elif "<span" in line:

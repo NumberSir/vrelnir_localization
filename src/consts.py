@@ -247,19 +247,6 @@ class FileNamesJS(Enum):
     TOOLTIPS = "02-tooltips.js"
 
 
-HIGH_RATE_LINKS = {
-    r"Next\|": "继续",
-    r"Next \|": "继续",
-    r"Leave\|": "离开",
-    r"Refuse\|": "拒绝",
-    r"Return\|": "返回",
-    r"Resume\|": "返回",
-    r"Confirm\|": "确认",
-    r"Continue\|": "继续",
-    r"Stop\|": "停止",
-}
-
-
 __all__ = [
     "SYSTEM_ARGV",
     "GITHUB_ACTION_DEV",
@@ -305,7 +292,6 @@ __all__ = [
     "FileNamesTwee",
     "DirNamesJS",
     "FileNamesJS",
-    "HIGH_RATE_LINKS",
 
     "REPOSITORY_MODLOADER_ARTIFACTS",
     "GITHUB_ACCESS_TOKEN"
