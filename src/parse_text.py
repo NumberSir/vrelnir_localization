@@ -1067,6 +1067,7 @@ class ParseTextTwee:
                 "<<link",
                 "return `",
                 "result",
+                "<span"
             }
         )
 
