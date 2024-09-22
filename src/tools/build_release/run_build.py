@@ -131,11 +131,11 @@ class ReleaseBuild:
 
     def _build_compress(self, html_filepath: Path, polyfill_suffix: str = ""):
         """构建游戏本体压缩包"""
-        with ZipFile(DIR_BUILD_ASSETS / f"DoL-ModLoader-{self.game_version}-v{self.mod_loader_version}{polyfill_suffix}.zip", "w") as zfp:
-            zfp.write(filename=FILE_README, arcname=FILE_README.name)
-            zfp.write(filename=FILE_LICENSE, arcname=FILE_LICENSE.name)
-            zfp.write(filename=FILE_CREDITS, arcname=FILE_CREDITS.name)
-            zfp.write(filename=html_filepath, arcname=HTML_FILENAME)
+        with ZipFile(DIR_BUILD_ASSETS / f"DoL-ModLoader-{self.game_version}-v{self.mod_loader_version}{polyfill_suffix}.zip", mode="w", compression=zipfile.ZIP_DEFLATED) as zfp:
+            zfp.write(filename=FILE_README, arcname=FILE_README.name, compresslevel=9)
+            zfp.write(filename=FILE_LICENSE, arcname=FILE_LICENSE.name, compresslevel=9)
+            zfp.write(filename=FILE_CREDITS, arcname=FILE_CREDITS.name, compresslevel=9)
+            zfp.write(filename=html_filepath, arcname=HTML_FILENAME, compresslevel=9)
         logger.info(f"Zipfile{polyfill_suffix} built successfully")
 
     def build_compress_normal(self):
@@ -155,15 +155,17 @@ class ReleaseBuild:
         with ZipFile(FILE_CMDLINE, "r") as zfp:
             zfp.extractall(DIR_APK_BUILDER / "androidsdk" / "cmdline-tools" / "latest")
 
-        with open(DIR_APK_BUILDER / "setup_deps.bat", "r") as fp:
-            content = fp.read()
-        with open(DIR_APK_BUILDER / "setup_deps.bat", "w") as fp:
-            fp.write(content.replace("pause", ""))
+        def replace_special_texts(filepath: Path, old: str, new: str = ""):
+            with open(filepath, "r") as fp:
+                content = fp.read()
+            with open(filepath, "w") as fp:
+                fp.write(content.replace(old, new))
 
-        with open(DIR_APK_BUILDER / "build_app_debug.bat", "r") as fp:
-            content = fp.read()
-        with open(DIR_APK_BUILDER / "build_app_debug.bat", "w") as fp:
-            fp.write(content.replace("pause", ""))
+        replace_special_texts(DIR_APK_BUILDER / "setup_deps.bat", "pause")
+        replace_special_texts(DIR_APK_BUILDER / "build_app_debug.bat", "pause")
+        replace_special_texts(DIR_APK_BUILDER / "scripts" / "prepare_files.js", '["img"]', "[]")
+        replace_special_texts(DIR_APK_BUILDER / "scripts" / "prevent_unnecessary_deletes.js", '["img"]', "[]")
+        replace_special_texts(DIR_APK_BUILDER / "www" / "custom_cordova_additions.js", "Press BACK again to exit", "再次点击返回键退出")
 
     def _build_apk(self, html_filepath: Path, polyfill_suffix: str = ""):
         """构建游戏本体 apk"""
@@ -436,10 +438,7 @@ async def main():
             process.build_compress_polyfill()
             process.build_apk_normal()
             process.build_apk_polyfill()
-            process.rename_pre(flag=True)  # 预览版
-
-            """ 构建 """
-            process.generate_release_note()
+            process.rename_pre(flag=False)  # 预览版
 
             """ 发布 """  # TODO
             process.release(draft=True)
