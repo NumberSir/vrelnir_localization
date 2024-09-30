@@ -2,6 +2,9 @@
   "01-setup": [
     "weather-descriptions.js"
   ],
+  "02-Helpers": [
+    "macros.js"
+  ],
   "03-JavaScript": [
     "base.js",
     "bedroom-pills.js",

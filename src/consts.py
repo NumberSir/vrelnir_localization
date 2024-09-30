@@ -175,6 +175,7 @@ class DirNamesJS(Enum):
     """要抓的 JS 目录"""
 
     SETUP = "01-setup"
+    HELPERS = "02-Helpers"
     JAVASCRIPT = "03-JavaScript"
     VARIABLES = "04-Variables"
     SPECIAL_MASTURBATION = "special-masturbation"
@@ -191,6 +192,9 @@ class FileNamesJS(Enum):
     """要抓的 JS 文件"""
     """01-setup"""
     WEATHER_DESCRIPTION_FULL = "weather-descriptions.js"
+
+    """02-Helpers"""
+    MACROS_FULL = "macros.js"
 
     """ 03-JavaScript """
     BASE_FULL = "base.js"

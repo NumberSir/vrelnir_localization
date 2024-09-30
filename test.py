@@ -3,7 +3,7 @@ from pathlib import Path
 from src.parse_text import ParseTextTwee, ParseTextJS
 
 FILE_BASE = r"D:\Users\numbersir\Documents\GitHub\vrelnir_localization\degrees-of-lewdity-master\game"
-FILE_NAME = r"03-JavaScript/bedroom-pills.js"
+FILE_NAME = r"03-JavaScript/02-Helpers/macros.js"
 FILE_PATH = Path(rf"{FILE_BASE}/{FILE_NAME}")
 
 with open(FILE_PATH, "r", encoding="utf-8") as fp:

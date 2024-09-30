@@ -2285,6 +2285,8 @@ class ParseTextJS:
         """"""
         if DirNamesJS.SETUP.value == self._filedir.name:
             return self.parse_setup()
+        elif DirNamesJS.HELPERS.value == self._filedir.name:
+            return self.parse_helpers()
         elif DirNamesJS.JAVASCRIPT.value == self._filedir.name:
             return self.parse_javascript()
         elif DirNamesJS.VARIABLES.value == self._filedir.name:
@@ -2314,6 +2316,21 @@ class ParseTextJS:
 
     def _parse_weather_description(self):
         return self.parse_type_only({"'", '"', "`"})
+
+    """02-Helpers"""
+    def parse_helpers(self) -> list[bool]:
+        """02-Helpers"""
+        if FileNamesJS.MACROS_FULL.value == self._filename:
+            return self._parse_macros()
+        return self.parse_normal()
+
+    def _parse_macros(self):
+        return self.parse_type_only({
+            "return `",
+            "either(",
+            "return '",
+            'return "'
+        })
 
     """ 03-JavaScript """
     def parse_javascript(self) -> list[bool]:
