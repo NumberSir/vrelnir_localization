@@ -166,7 +166,7 @@ class FileNamesTwee(Enum):
     JOURNAL_FULL = "journal.twee"
 
     """ flavour-text-generators """
-    BODY_COMMENTS_FULL = "body-comments.csv"
+    BODY_COMMENTS_FULL = "body-comments.twee"
     EXHIBITIONISM_FULL = "exhibitionism.twee"
     EZ_THESAURUS_FULL = "ez-thesaurus.twee"
 

@@ -1666,6 +1666,7 @@ class ParseTextTwee:
             line = line.strip()
             if not line:
                 results.append(False)
+                continue
 
             if "<<set " in line and line.endswith("["):
                 json_flag = True
@@ -1673,7 +1674,10 @@ class ParseTextTwee:
             elif json_flag and "]>>" in line:
                 json_flag = False
                 results.append(False)
-            elif json_flag or "<<Penisremarkquote>>" in line:
+            elif json_flag or any({
+                "<<Penisremarkquote>>" in line,
+                "_output_line" in line
+            }):
                 results.append(True)
             else:
                 results.append(False)
@@ -1702,7 +1706,10 @@ class ParseTextTwee:
                 results.append(True)
                 continue
 
-            results.append(False)
+            if "_output_line" in line:
+                results.append(True)
+            else:
+                results.append(False)
         return results
 
     def _parse_thesaurus(self):

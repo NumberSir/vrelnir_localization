@@ -120,7 +120,7 @@ async def process_common(dol_common: ProjectDOL, pt: Paratranz, chs_version: str
     dol_common.replace_banner()  # 更换游戏头图
     dol_common.change_version(chs_version)  # 更换游戏版本号
 
-    # """ 编译成游戏 """
+    """ 编译成游戏 """
     dol_common.compile(chs_version)
     dol_common.package_zip(chs_version)  # 自动打包成 zip
     dol_common.run()  # 运行
@@ -146,4 +146,10 @@ async def main():
 
 if __name__ == "__main__":
     last = asyncio.run(main())
-    logger.info(f"===== 总耗时 {last or -1}s =====")
+    logger.info(f"===== 总耗时 {last or -1:.2f}s =====")
+    try:
+        from win10toast import ToastNotifier
+    except ImportError:
+        pass
+    else:
+        ToastNotifier().show_toast(title="dol脚本运行完啦", msg=f"总耗时 {last or -1:.2f}s")

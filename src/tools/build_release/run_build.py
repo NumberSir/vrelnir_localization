@@ -443,7 +443,17 @@ async def main():
             """ 发布 """  # TODO
             process.release(draft=True)
 
-    logger.info(f"cost {time.time() - start:.2f} seconds")
+    cost = time.time() - start
+    logger.info(f"cost {cost:.2f} seconds")
+    return cost
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    cost = asyncio.run(main())
+
+    try:
+        from win10toast import ToastNotifier
+    except ImportError:
+        pass
+    else:
+        ToastNotifier().show_toast(title="RELEASE SCRIPT RUN DONE", msg=f"cost {cost or -1:.2f}s")
+
