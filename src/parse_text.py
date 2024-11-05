@@ -1978,6 +1978,8 @@ class ParseTextTwee:
                 or self.is_widget_option(line)
                 or self.is_widget_button(line)
                 or self.is_widget_link(line)
+                or self.is_widget_textbox(line)
+                or self.is_widget_number_stepper(line)
             ):
                 if '.replaceAll("["' in line or ".replace(/\[/g" in line:
                     results.append(False)
@@ -2040,7 +2042,7 @@ class ParseTextTwee:
                 or "<<if _args[4] is" in line
                 or "<<if _args[5] is" in line
                 or 'tooltip=' in line
-                or "<<numberStepper" in line
+                or '$_tempObjClothing' in line
             ):
                 results.append(True)
             elif ("<" in line and self.is_only_widgets(line)) or (
@@ -2188,6 +2190,16 @@ class ParseTextTwee:
                 line,
             )
         )
+
+    @staticmethod
+    def is_widget_textbox(line: str) -> bool:
+        """<<textbox xxx>>"""
+        return any(re.findall(r"<<textbox\s\"", line))
+
+    @staticmethod
+    def is_widget_number_stepper(line: str) -> bool:
+        """<<numberStepper xxx>>"""
+        return any(re.findall(r"<<numberStepper\s\"", line))
 
     @staticmethod
     def is_widget_if(line: str) -> bool:
