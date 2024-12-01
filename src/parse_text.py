@@ -3314,6 +3314,7 @@ class ParseTextJS:
                 or "displayName:" in line
                 or "textMap:" in line
                 or 'const output = month' in line
+                or 'createElement("span"' in line
             ):
                 results.append(True)
             else:

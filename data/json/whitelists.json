@@ -48,6 +48,7 @@
   ],
   "base-system": [
     "effect.js",
+    "images.js",
     "text.js",
     "widgets.js",
     "stat-changes.js",
