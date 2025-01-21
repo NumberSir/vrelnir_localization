@@ -219,17 +219,33 @@ class ParseTextTwee:
         """variables-static.twee"""
         results = []
         multirow_set_flag = False
+        multirow_comment_flag = False
+
         for line in self._lines:
             line = line.strip()
             if not line:
                 results.append(False)
                 continue
 
-            if (
-                "<<set setup.npcPenisRemarks to {" in line
-                or "<<set setup.crimeNames to {" in line
-                or "<<set setup.crimeDescs to {" in line
+            """跨行注释，逆天"""
+            if line in ["/*", "<!--"] or (
+                    any(line.startswith(_) for _ in {"/*", "<!--"})
+                    and all(_ not in line for _ in {"*/", "-->"})
             ):
+                multirow_comment_flag = True
+                results.append(False)
+                continue
+            elif multirow_comment_flag and (
+                    line in ["*/", "-->"] or any(line.endswith(_) for _ in {"*/", "-->"})
+            ):
+                multirow_comment_flag = False
+                results.append(False)
+                continue
+            elif multirow_comment_flag:
+                results.append(False)
+                continue
+
+            if "<<set setup." in line:
                 multirow_set_flag = True
                 results.append(False)
                 continue
@@ -238,6 +254,9 @@ class ParseTextTwee:
                 results.append(False)
                 continue
             elif multirow_set_flag:
+                if self.is_comment(line):
+                    results.append(False)
+                    continue
                 results.append(True)
                 continue
 
@@ -1507,6 +1526,7 @@ class ParseTextTwee:
                 or self.is_widget_print(line)
                 or "<<set _args[0]" in line
                 or "<<if $_npc.penisdesc" in line
+                or "<<insufficientStat" in line
             ):
                 results.append(True)
             elif any(
@@ -2043,6 +2063,8 @@ class ParseTextTwee:
                 or "<<if _args[5] is" in line
                 or 'tooltip=' in line
                 or '$_tempObjClothing' in line
+                or "<<insufficientStat" in line
+                or "<<moneyStatsTitle" in line
             ):
                 results.append(True)
             elif ("<" in line and self.is_only_widgets(line)) or (
@@ -2849,6 +2871,8 @@ class ParseTextJS:
             return self._parse_colours()
         elif FileNamesJS.SHOP_FULL.value == self._filename:
             return self._parse_shop()
+        elif FileNamesJS.PLANT_SETUP_FULL.value == self._filename:
+            return self._parse_plant_setup()
         return self.parse_normal()
 
     def _parse_feats(self):
@@ -2862,6 +2886,10 @@ class ParseTextJS:
     def _parse_shop(self):
         """json"""
         return self.parse_type_only('"')
+
+    def _parse_plant_setup(self):
+        """json"""
+        return self.parse_type_only({"plural:", "singular:", "seed_name:"})
 
     """ special-masturbation """
 

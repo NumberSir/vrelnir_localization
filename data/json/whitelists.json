@@ -26,7 +26,8 @@
   "04-Variables": [
     "colours.js",
     "feats.js",
-    "shop.js"
+    "shop.js",
+    "plant-setup.js"
   ],
   "special-masturbation": [
     "actions.js",
