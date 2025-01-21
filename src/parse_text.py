@@ -1151,8 +1151,28 @@ class ParseTextTwee:
         return results
 
     def _parse_sex_stat(self):
-        """纯文本"""
-        return self.parse_type_pure_text()
+        """纯文本 和 span"""
+        results = []
+        for line in self._lines:
+            line = line.strip()
+            if not line:
+                results.append(False)
+                continue
+
+            if self.is_tag_span(line):
+                results.append(True)
+            elif line.startswith("<<"):
+                results.append(False)
+            elif "::" in line:
+                results.append(False)
+            elif self.is_comment(line):
+                results.append(False)
+            elif line.replace("<br>", "") == "":
+                results.append(False)
+            else:
+                results.append(True)
+
+        return results
 
     def _parse_fame(self):
         """set $_output to"""
