@@ -156,9 +156,9 @@ class ReleaseBuild:
             zfp.extractall(DIR_APK_BUILDER / "androidsdk" / "cmdline-tools" / "latest")
 
         def replace_special_texts(filepath: Path, old: str, new: str = ""):
-            with open(filepath, "r") as fp:
+            with open(filepath, "r", encoding="utf-8") as fp:
                 content = fp.read()
-            with open(filepath, "w") as fp:
+            with open(filepath, "w", encoding="utf-8") as fp:
                 fp.write(content.replace(old, new))
 
         replace_special_texts(DIR_APK_BUILDER / "setup_deps.bat", "pause")
