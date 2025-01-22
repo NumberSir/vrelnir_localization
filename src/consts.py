@@ -186,6 +186,7 @@ class DirNamesJS(Enum):
     BASE_SYSTEM = "base-system"
     BASE_CLOTHING = "base-clothing"
     MAIN = "01-main"
+    RENDERER = "05-renderer"
 
 
 class FileNamesJS(Enum):
@@ -250,6 +251,9 @@ class FileNamesJS(Enum):
 
     """ 01-main """
     TOOLTIPS = "02-tooltips.js"
+
+    """ 05-renderer """
+    CANVASMODEL_EDITOR_FULL = "30-canvasmodel-editor.js"
 
 
 __all__ = [

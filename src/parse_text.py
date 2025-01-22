@@ -1667,6 +1667,7 @@ class ParseTextTwee:
                 or ">>." in line
                 or self.is_widget_link(line)
                 or "if $earSlime.event" in line
+                or "_args[2].toLowerCase()" in line
             ):
                 results.append(True)
             elif "<" in line and self.is_only_widgets(line):
@@ -2366,6 +2367,8 @@ class ParseTextJS:
             return self.parse_system()
         elif DirNamesJS.MAIN.value == self._filedir.name:
             return self.parse_main()
+        elif DirNamesJS.RENDERER.value == self._filedir.name:
+            return self.parse_renderer()
         return self.parse_normal()
 
     """01-setup"""
@@ -2821,12 +2824,12 @@ class ParseTextJS:
         return self.parse_type_only({"const monthNames", "const daysOfWeek"})
 
     def _parse_time_macros(self):
-        """只有几句话"""
+        """只有几句话，byd越来越多了"""
         return self.parse_type_only(
             {
-                "School term finishes today.",
-                "School term finishes on ",
-                "School term starts on ",
+                "School term ",
+                "nextDate",
+                '"',
                 "ampm = hour",
                 "<span"
             }
@@ -3195,7 +3198,7 @@ class ParseTextJS:
     def _parse_clothing(self):
         """0.4.2.3 改动"""
         return self.parse_type_only(
-            {"name_cap:", "description:", "<<link `", "altDamage:", "name_simple:"}
+            {"name_cap:", "description:", "<<link `", "altDamage:", "name_simple:", "pattern_options:"}
         )
 
     """ base-system """
@@ -3276,6 +3279,19 @@ class ParseTextJS:
     def _parse_tooltips(self):
         return self.parse_type_only({
             '"', '`', "Description", "Output", "<span", "<br>"
+        })
+
+    """ 05-renderer """
+    def parse_renderer(self):
+        if FileNamesJS.CANVASMODEL_EDITOR_FULL.value == self._filename:
+            return self._parse_canvasmodel_editor()
+        return self.parse_normal()
+
+    def _parse_canvasmodel_editor(self):
+        return self.parse_type_only({
+            'CombatEditor.create',
+            'CombatEditor.Create',
+            'textContent',
         })
 
     """ 常规 """

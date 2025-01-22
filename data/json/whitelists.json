@@ -80,5 +80,8 @@
   ],
   "01-main": [
     "02-tooltips.js"
+  ],
+  "05-renderer": [
+    "30-canvasmodel-editor.js"
   ]
 }
