@@ -2,8 +2,8 @@ import asyncio
 from pathlib import Path
 from src.parse_text import ParseTextTwee, ParseTextJS
 
-FILE_BASE = r"D:\Users\numbersir\Documents\GitHub\vrelnir_localization\degrees-of-lewdity-master\game"
-FILE_NAME = r"03-JavaScript/02-Helpers/macros.js"
+FILE_BASE = r"E:\Users\numbersir\Documents\GitHub\vrelnir_localization\degrees-of-lewdity-master\game"
+FILE_NAME = r"base-clothing/clothing-handheld.js"
 FILE_PATH = Path(rf"{FILE_BASE}/{FILE_NAME}")
 
 with open(FILE_PATH, "r", encoding="utf-8") as fp:
@@ -23,7 +23,7 @@ async def test_fetch_lines():
     """抓了哪些行"""
     bl = PT.parse()
     if FILE_PATH.name.endswith("twee"):
-        pre_bool_list = PT.pre_parse_set_run(True)
+        pre_bool_list = PT.pre_parse_set_run(False)
         if not pre_bool_list:
             bl = [
                 bool(line)
@@ -38,6 +38,7 @@ async def test_fetch_lines():
     # print(f"bool: {len(bl)} - lines: {len(LINES)} - pre: {len(pre_bool_list)}")
     for idx, line in enumerate(LINES):
         if bl[idx]:
+            # ...
             print(f"{idx + 1}: {line}", end="")
 
 
