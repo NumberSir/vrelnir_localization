@@ -1668,6 +1668,7 @@ class ParseTextTwee:
                 or self.is_widget_link(line)
                 or "if $earSlime.event" in line
                 or "_args[2].toLowerCase()" in line
+                or "config.name" in line
             ):
                 results.append(True)
             elif "<" in line and self.is_only_widgets(line):
@@ -1801,7 +1802,7 @@ class ParseTextTwee:
             """还有跨行print"""
             if (line.endswith("<<print either(") or line.endswith("<<= either") or line.endswith("<<- either")):
                 multirow_print_flag = True
-                results.append(False)
+                results.append(True)
                 continue
             elif multirow_print_flag and (line.startswith(")>>") or line.endswith(')>></span>"')):
                 if line != ")>>":
@@ -3135,7 +3136,7 @@ class ParseTextJS:
 
             if line == "either(":
                 print_either_flag = True
-                results.append(False)
+                results.append(True)
                 continue
             elif print_either_flag and line == ")":
                 print_either_flag = False
