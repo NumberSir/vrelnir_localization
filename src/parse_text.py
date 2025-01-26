@@ -297,7 +297,7 @@ class ParseTextTwee:
 
             if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
                 results.append(False)
-            elif self.is_tag_span(line):
+            elif self.is_tag_span(line) or self.is_widget_print(line):
                 results.append(True)
             elif "<<run $_output " in line:
                 results.append(True)
@@ -2087,6 +2087,7 @@ class ParseTextTwee:
                 or '$_tempObjClothing' in line
                 or "<<insufficientStat" in line
                 or "<<moneyStatsTitle" in line
+                or "<td " in line
             ):
                 results.append(True)
             elif ("<" in line and self.is_only_widgets(line)) or (
