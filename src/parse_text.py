@@ -2015,6 +2015,7 @@ class ParseTextTwee:
                 self.is_tag_span(line)
                 or self.is_tag_label(line)
                 or self.is_tag_input(line)
+                or self.is_tag_td(line)
                 or self.is_widget_note(line)
                 or self.is_widget_print(line)
                 or self.is_widget_option(line)
@@ -2215,6 +2216,11 @@ class ParseTextTwee:
     def is_tag_input(line: str) -> bool:
         """<input"""
         return any(re.findall(r"<input.*?value=\"", line))
+
+    @staticmethod
+    def is_tag_td(line: str) -> bool:
+        """<td"""
+        return any(re.findall(r"<td data-label=", line))
 
     @staticmethod
     def is_widget_script(line: str) -> bool:
