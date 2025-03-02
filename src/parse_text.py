@@ -558,6 +558,7 @@ class ParseTextTwee:
                 or "<<takeKissVirginityNamed" in line
                 or "_smollertext.includes" in line
                 or "$NPCList[_j].breastsdesc." in line
+                or "$NPCList[_j].breastdesc." in line
             ):
                 results.append(True)
             elif self.is_only_widgets(line) or self.is_json_line(line):
@@ -2708,7 +2709,8 @@ class ParseTextJS:
                 'return i + "nd";',
                 'return i + "rd";',
                 'return i + "th";',
-                'names'
+                'names',
+                'Wikifier.wikifyEval'
             }
         )
 
@@ -3224,7 +3226,12 @@ class ParseTextJS:
 
     def _parse_widgets(self):
         return self.parse_type_only(
-            {".name_cap,", "addfemininityfromfactor(", "playerAwareTheyArePregnant()"}
+            {
+                ".name_cap,",
+                "addfemininityfromfactor(",
+                "playerAwareTheyArePregnant()",
+                "function formatList("
+            }
         )
 
     def _parse_text(self):
