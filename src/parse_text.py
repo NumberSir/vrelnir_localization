@@ -2090,6 +2090,7 @@ class ParseTextTwee:
                 or "<<insufficientStat" in line
                 or "<<moneyStatsTitle" in line
                 or "<td " in line
+                or "confirm(" in line
             ):
                 results.append(True)
             elif ("<" in line and self.is_only_widgets(line)) or (
