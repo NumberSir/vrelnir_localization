@@ -254,7 +254,7 @@ class ProjectDOL:
                     for idx_, char in enumerate(tmp_):
                         if char != "[":
                             continue
-                        passage_name = tmp_[:idx_-1].strip()
+                        passage_name = tmp_[:idx_].strip()
                         break
                     else:
                         raise
