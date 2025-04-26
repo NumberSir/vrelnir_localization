@@ -2,6 +2,9 @@
 <a href='https://gitee.com/Number_Sir/vrelnir_localization/stargazers'><img src='https://gitee.com/Number_Sir/vrelnir_localization/badge/star.svg?theme=dark' alt='star'></img></a>
 ![GitHub stars](https://img.shields.io/github/stars/NumberSir/vrelnir_localization?style=social)
 
+## 新项目（未完成）
+[Sugarcube2-Localization](https://github.com/NumberSir/Sugarcube2-Localization)
+
 ## 简介
 [黄油翻译小工具 0v0](https://github.com/NumberSir/vrelnir_localization)
 1. 获取原仓库最新内容下载到本地
