@@ -1858,6 +1858,29 @@ class ParseTextTwee:
                 results.append(False)
                 continue
 
+            """还有这个"""
+            if line.startswith("<<run $(`#${_id}") and (
+                '"Take" : ' in line or '"Present" : ' in line
+            ):
+                results.append(True)
+                continue
+
+            """以及这个"""
+            if line.startswith("<<run _linePool"):
+                if line.endswith(">>"):
+                    results.append(True)
+                else:
+                    multirow_run_line_pool_flag = True
+                    results.append(False)
+                continue
+            elif multirow_run_line_pool_flag and line.endswith(")>>"):
+                multirow_run_line_pool_flag = False
+                results.append(False)
+                continue
+            elif multirow_run_line_pool_flag:
+                results.append(True)
+                continue
+
             """跨行run，逆天"""
             if line.startswith("<<run ") and ">>" not in line:
                 multirow_run_flag = True
@@ -1984,29 +2007,6 @@ class ParseTextTwee:
                 or ("<<run " in line and "$worn." in line)
                 or "<<numberStepper" in line
             ):
-                results.append(True)
-                continue
-
-            """还有这个"""
-            if line.startswith("<<run $(`#${_id}") and (
-                '"Take" : ' in line or '"Present" : ' in line
-            ):
-                results.append(True)
-                continue
-
-            """以及这个"""
-            if line.startswith("<<run _linePool"):
-                if line.endswith(">>"):
-                    results.append(True)
-                else:
-                    multirow_run_line_pool_flag = True
-                    results.append(False)
-                continue
-            elif multirow_run_line_pool_flag and line.endswith(")>>"):
-                multirow_run_line_pool_flag = False
-                results.append(False)
-                continue
-            elif multirow_run_line_pool_flag:
                 results.append(True)
                 continue
 
