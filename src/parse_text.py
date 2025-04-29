@@ -1858,6 +1858,26 @@ class ParseTextTwee:
                 results.append(False)
                 continue
 
+            """跨行run，逆天"""
+            if line.startswith("<<run ") and ">>" not in line:
+                multirow_run_flag = True
+                results.append(False)
+                continue
+            elif multirow_run_flag and line in {"})>>", "}>>", ")>>", "]>>", "});>>"}:
+                multirow_run_flag = False
+                results.append(False)
+                continue
+            elif multirow_run_flag and ("Enable indexedDB" in line):
+                multirow_run_flag = False
+                results.append(True)
+                continue
+            elif multirow_run_flag and ("'Owl plushie'" in line):
+                results.append(True)
+                continue
+            elif multirow_run_flag:
+                results.append(False)
+                continue
+
             """就这个特殊"""
             if line == "<<set _specialClothesHint to {":
                 shop_clothes_hint_flag = True
@@ -1926,6 +1946,7 @@ class ParseTextTwee:
                 or "hint:" in line
                 or 'museum:' in line
                 or "journal:" in line
+                or "journalName:" in line
                 or 'name:' in line
                 or 'stolen:' in line
                 or 'recovered:' in line
@@ -1989,26 +2010,6 @@ class ParseTextTwee:
                 results.append(True)
                 continue
 
-            """跨行run，逆天"""
-            if line.startswith("<<run ") and ">>" not in line:
-                multirow_run_flag = True
-                results.append(False)
-                continue
-            elif multirow_run_flag and line in {"})>>", "}>>", ")>>", "]>>", "});>>"}:
-                multirow_run_flag = False
-                results.append(False)
-                continue
-            elif multirow_run_flag and ("Enable indexedDB" in line):
-                multirow_run_flag = False
-                results.append(True)
-                continue
-            elif multirow_run_flag and ("'Owl plushie'" in line):
-                results.append(True)
-                continue
-            elif multirow_run_flag:
-                results.append(False)
-                continue
-
             if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
                 results.append(False)
                 continue
@@ -2025,9 +2026,6 @@ class ParseTextTwee:
                 or self.is_widget_textbox(line)
                 or self.is_widget_number_stepper(line)
             ):
-                if '.replaceAll("["' in line or ".replace(/\[/g" in line:
-                    results.append(False)
-                    continue
                 results.append(True)
                 continue
             elif (
@@ -2181,8 +2179,10 @@ class ParseTextTwee:
         """注释"""
         if line.startswith("*") or line.startswith("*/") or line.startswith("-->"):
             return True
-        return any(line.startswith(_) for _ in {"/*", "<!--"}) and any(
-            line.endswith(_) for _ in {"*/", "-->"}
+        return (
+                any(line.startswith(_) for _ in {"/*", "<!--"})
+                and
+                any(line.endswith(_) for _ in {"*/", "-->"})
         )
 
     @staticmethod
@@ -2273,17 +2273,8 @@ class ParseTextTwee:
     def is_widget_link(line: str) -> bool:
         """<<link [[xxx|yyy]]>>, <<link "xxx">>"""
         return any(
+            # re.findall(r"<<link\s*(\[\[|\"\w|`\w|\'\w|\"\(|`\(|\'\(|_\w|`)", line)
             re.findall(r"<<link\s*(\[\[|\"\w|`\w|\'\w|\"\(|`\(|\'\(|_\w|`)", line)
-        )
-
-    @staticmethod
-    def is_widget_high_rate_link(line: str) -> bool:
-        """高频选项"""
-        return any(
-            re.findall(
-                r"<<link \[\[(Next\||Next\s\||Leave\||Refuse\||Return\||Resume\||Confirm\||Continue\||Stop\||Phase\|)",
-                line,
-            )
         )
 
     @staticmethod
