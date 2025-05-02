@@ -462,11 +462,11 @@ class ProjectDOL:
                 "f": data["original"], "t": data["translation"], "pos": data["pos"]
             }
 
-            filename = Path(data["filepath"]).name
-            result_data["fileName"] = filename
-            if filename.endswith(".js"):
+            filename = "game" / Path(data["filepath"])
+            result_data["fileName"] = filename.__str__()
+            if filename.name.endswith(".js"):
                 result_data["js"] = True
-            elif filename.endswith(".css"):
+            elif filename.name.endswith(".css"):
                 result_data["css"] = True
 
             if data["passage"]:
