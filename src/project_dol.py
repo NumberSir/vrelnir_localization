@@ -9,7 +9,7 @@ from typing import Any
 from urllib.parse import quote
 from zipfile import ZipFile as zf, ZIP_DEFLATED
 from aiofiles import open as aopen
-from pathlib import Path, PureWindowsPath
+from pathlib import Path, WindowsPath
 
 import asyncio
 import json
@@ -462,7 +462,7 @@ class ProjectDOL:
                 "f": data["original"], "t": data["translation"], "pos": data["pos"]
             }
 
-            filename = "game" / PureWindowsPath(data["filepath"])
+            filename = "game" / WindowsPath(data["filepath"])
             result_data["fileName"] = filename.__str__()
             if filename.name.endswith(".js"):
                 result_data["js"] = True
