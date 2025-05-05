@@ -1894,7 +1894,12 @@ class ParseTextTwee:
                 multirow_run_flag = False
                 results.append(True)
                 continue
-            elif multirow_run_flag and ("'Owl plushie'" in line):
+            elif multirow_run_flag and any((
+                "'Owl plushie'" in line,
+                "item.nameText" in line,
+                "$_item.name" in line,
+                "<span" in line
+            )):
                 results.append(True)
                 continue
             elif multirow_run_flag:
@@ -2089,6 +2094,8 @@ class ParseTextTwee:
                 or "<<moneyStatsTitle" in line
                 or "<td " in line
                 or "confirm(" in line
+                or "$_thing.name" in line
+                or "$_item.name" in line
             ):
                 results.append(True)
             elif ("<" in line and self.is_only_widgets(line)) or (
