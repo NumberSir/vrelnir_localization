@@ -83,5 +83,8 @@
   ],
   "05-renderer": [
     "30-canvasmodel-editor.js"
+  ],
+  "loc-museum": [
+    "paintings.js"
   ]
 }
