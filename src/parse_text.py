@@ -2096,6 +2096,7 @@ class ParseTextTwee:
                 or "confirm(" in line
                 or "$_thing.name" in line
                 or "$_item.name" in line
+                or "<<recipe_name" in line
             ):
                 results.append(True)
             elif ("<" in line and self.is_only_widgets(line)) or (
