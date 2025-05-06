@@ -1898,7 +1898,8 @@ class ParseTextTwee:
                 "'Owl plushie'" in line,
                 "item.nameText" in line,
                 "$_item.name" in line,
-                "<span" in line
+                "<span" in line,
+                ".nameText" in line
             )):
                 results.append(True)
                 continue
