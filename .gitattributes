@@ -1,2 +1,0 @@
-src/tools/build_release/apk-build-tools/cmdline-tools/latest.zip filter=lfs diff=lfs merge=lfs -text
-src/tools/build_release/apk-build-tools/gradle/gradle.zip filter=lfs diff=lfs merge=lfs -text
