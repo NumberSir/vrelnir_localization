@@ -2724,6 +2724,7 @@ class ParseTextJS:
                 'names',
                 'Wikifier.wikifyEval',
                 "group",
+                "Group"
             }
         )
 
