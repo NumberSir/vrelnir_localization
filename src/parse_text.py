@@ -1801,11 +1801,16 @@ class ParseTextTwee:
                 continue
 
             """还有跨行print"""
-            if (line.endswith("<<print either(") or line.endswith("<<= either") or line.endswith("<<- either")):
+            if any((
+                line.endswith("<<print either("),
+                line.endswith("<<= either"),
+                line.endswith("<<- either"),
+                line.startswith("<<print formatList") and line.endswith("{")
+            )):
                 multirow_print_flag = True
                 results.append(True)
                 continue
-            elif multirow_print_flag and (line.startswith(")>>") or line.endswith(')>></span>"')):
+            elif multirow_print_flag and (line.startswith(")>>") or line.endswith(')>></span>"') or line.endswith('")>>')):
                 if line != ")>>":
                     results.append(True)
                 else:
@@ -2099,6 +2104,7 @@ class ParseTextTwee:
                 or "$_thing.name" in line
                 or "$_item.name" in line
                 or "<<recipe_name" in line
+                or "<<print" in line
             ):
                 results.append(True)
             elif ("<" in line and self.is_only_widgets(line)) or (
