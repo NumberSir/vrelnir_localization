@@ -2936,7 +2936,7 @@ class ParseTextJS:
 
     def _parse_plant_setup(self):
         """json"""
-        return self.parse_type_only({"plural:", "singular:", "seed_name:", "ingredients:"})
+        return self.parse_type_only({"plural:", "singular:", "seed_name:", "ingredients:", "type:"})
 
     """ special-masturbation """
 
