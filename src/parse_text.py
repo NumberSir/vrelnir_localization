@@ -1906,7 +1906,8 @@ class ParseTextTwee:
                 "item.nameText" in line,
                 "$_item.name" in line,
                 "<span" in line,
-                ".nameText" in line
+                ".nameText" in line,
+                "pushUnique" in line
             )):
                 results.append(True)
                 continue
@@ -2107,6 +2108,7 @@ class ParseTextTwee:
                 or "$_item.name" in line
                 or "<<recipe_name" in line
                 or "<<print" in line
+                or "pushUnique" in line
             ):
                 results.append(True)
             elif ("<" in line and self.is_only_widgets(line)) or (
