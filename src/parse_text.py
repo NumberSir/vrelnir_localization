@@ -2026,6 +2026,7 @@ class ParseTextTwee:
                 or self.is_tag_td(line)
                 or self.is_widget_note(line)
                 or self.is_widget_print(line)
+                or self.is_widget_case(line)
                 or self.is_widget_option(line)
                 or self.is_widget_button(line)
                 or self.is_widget_link(line)
@@ -2249,6 +2250,16 @@ class ParseTextTwee:
         return any(
             re.findall(
                 r"<<(?:print|=|-)\s[^<]*[\"\'`\w]+[\-\?\s\w\.\$,\'\"<>\[\]\(\)/]+(?:\)>>|\">>|\'>>|`>>|\]>>|>>)",
+                line,
+            )
+        )
+
+    @staticmethod
+    def is_widget_case(line: str) -> bool:
+        """<<case xxx>>"""
+        return any(
+            re.findall(
+                r"<<(?:case|=|-)\s[^<]*[\"\'`\w]+[\-\?\s\w\.\$,\'\"<>\[\]\(\)/]+(?:\)>>|\">>|\'>>|`>>|\]>>|>>)",
                 line,
             )
         )
@@ -2711,7 +2722,8 @@ class ParseTextJS:
                 'return i + "rd";',
                 'return i + "th";',
                 'names',
-                'Wikifier.wikifyEval'
+                'Wikifier.wikifyEval',
+                "group",
             }
         )
 
@@ -2923,7 +2935,7 @@ class ParseTextJS:
 
     def _parse_plant_setup(self):
         """json"""
-        return self.parse_type_only({"plural:", "singular:", "seed_name:"})
+        return self.parse_type_only({"plural:", "singular:", "seed_name:", "ingredients:"})
 
     """ special-masturbation """
 
