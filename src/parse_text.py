@@ -1810,7 +1810,12 @@ class ParseTextTwee:
                 multirow_print_flag = True
                 results.append(True)
                 continue
-            elif multirow_print_flag and (line.startswith(")>>") or line.endswith(')>></span>"') or line.endswith('")>>')):
+            elif multirow_print_flag and any((
+                line.startswith(")>>"),
+                line.endswith(')>></span>"'),
+                line.endswith('")>>'),
+                line.endswith('")>>"')
+            )):
                 results.append(True)
                 multirow_print_flag = False
                 continue
@@ -2727,7 +2732,9 @@ class ParseTextJS:
                 'names',
                 'Wikifier.wikifyEval',
                 "group",
-                "Group"
+                "Group",
+                "Alternative",
+                "alternative"
             }
         )
 
