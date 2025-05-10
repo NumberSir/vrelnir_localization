@@ -1811,10 +1811,7 @@ class ParseTextTwee:
                 results.append(True)
                 continue
             elif multirow_print_flag and (line.startswith(")>>") or line.endswith(')>></span>"') or line.endswith('")>>')):
-                if line != ")>>":
-                    results.append(True)
-                else:
-                    results.append(False)
+                results.append(True)
                 multirow_print_flag = False
                 continue
             elif multirow_print_flag:
