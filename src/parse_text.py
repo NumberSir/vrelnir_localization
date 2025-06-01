@@ -3424,6 +3424,7 @@ class ParseTextJS:
                 or 'itemText' in line
                 or 'name: ' in line
                 or 'newItemProperties' in line
+                or 'item.name' in line
             ):
                 results.append(True)
             else:
