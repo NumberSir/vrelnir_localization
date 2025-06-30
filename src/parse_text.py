@@ -2110,6 +2110,7 @@ class ParseTextTwee:
                 or "<<print" in line
                 or "pushUnique" in line
                 or "<<run hcItemAdd({" in line
+                or "<<whitneyRoofRuleBreak" in line
             ):
                 results.append(True)
             elif ("<" in line and self.is_only_widgets(line)) or (
