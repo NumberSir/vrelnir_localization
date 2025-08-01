@@ -17,11 +17,26 @@
 8. 编译为 `html` 并用默认浏览器运行 (默认在 `degrees-of-lewdity-master`)
 
 ## 食用方法
-1. 需要 Python 3.10+
-2. 在根目录通过 `cmd` 或 `shell` 使用 `pip install -r requirements.txt` 安装依赖库
+1. 需要 [Python 3.10+](https://www.python.org/downloads/)
+2. 安装 [uv](https://docs.astral.sh/uv/#installation)
+   - Windows:
+   ```shell
+   powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+   ```
+   - macOS / Linux:
+   ```shell
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   ```
+2. 使用 uv 安装项目依赖
+   ```shell
+   uv sync
+   ```
 3. 在 `.env` 里填你的 `token` (`PARATRANZ_TOKEN`), 在 `https://paratranz.cn/users/my` 的设置里找
 4. 在 `.env` 里修改版本号 (`CHINESE_VERSION`)
-5. 运行 `main.py` (通过 `cmd` 或 `shell` 使用 `python -m main`)
+5. 运行 `main.py` 
+   ```shell
+   uv run main.py
+   ```
 
 ## 关于版本号
 汉化版本号的基本结构是 `chs-x.y.z`，如 `chs-alpha1.7.1`

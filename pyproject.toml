@@ -1,0 +1,20 @@
+[project]
+name = "vrelnir-localization"
+version = "0.1.0"
+description = "Degrees of Lewdity 简易汉化脚本。"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "aiofiles~=23.1.0",
+    "beautifulsoup4~=4.12.2",
+    "dukpy~=0.3.0",
+    "httpx~=0.24.0",
+    "loguru~=0.7.0",
+    "lxml~=4.9.3",
+    "numpy==1.25.1",
+    "orjson~=3.9.2",
+    "pandas==2.0.3",
+    "pygithub~=2.4.0",
+    "python-dotenv~=1.0.0",
+    "typing-extensions~=4.12.2",
+]
