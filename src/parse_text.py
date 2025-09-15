@@ -2378,7 +2378,9 @@ class ParseTextJS:
 
     def parse(self) -> list[bool]:
         """"""
-        if DirNamesJS.SETUP.value == self._filedir.name:
+        if DirNamesJS.CONFIG.value == self._filedir.name:
+            return self.parse_config()
+        elif DirNamesJS.SETUP.value == self._filedir.name:
             return self.parse_setup()
         elif DirNamesJS.HELPERS.value == self._filedir.name:
             return self.parse_helpers()
@@ -2403,6 +2405,15 @@ class ParseTextJS:
         elif DirNamesJS.RENDERER.value == self._filedir.name:
             return self.parse_renderer()
         return self.parse_normal()
+
+    """01-config"""
+    def parse_config(self) -> list[bool]:
+        if FileNamesJS.SUGARCUBE_CONFIG_FULL.value == self._filename:
+            return self._parse_sugarcube_config()
+        return self.parse_normal()
+
+    def _parse_sugarcube_config(self) -> list[bool]:
+        return self.parse_type_only({"versionName:", "<a"})
 
     """01-setup"""
     def parse_setup(self) -> list[bool]:

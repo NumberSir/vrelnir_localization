@@ -174,6 +174,7 @@ class FileNamesTwee(Enum):
 class DirNamesJS(Enum):
     """要抓的 JS 目录"""
 
+    CONFIG = "01-config"
     SETUP = "01-setup"
     HELPERS = "02-Helpers"
     JAVASCRIPT = "03-JavaScript"
@@ -191,6 +192,9 @@ class DirNamesJS(Enum):
 
 class FileNamesJS(Enum):
     """要抓的 JS 文件"""
+    """01-config"""
+    SUGARCUBE_CONFIG_FULL = "sugarcubeConfig.js"
+
     """01-setup"""
     WEATHER_DESCRIPTION_FULL = "weather-descriptions.js"
 

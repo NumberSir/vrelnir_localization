@@ -12,7 +12,10 @@ ECMA_VERSION = Literal[
     3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 'latest']
 REGISTER_FUNC = """
 function registerFunc(key) {
-        return function () { var param = Array.prototype.slice.call(arguments); return call_python.call.apply(call_python, [null, key].concat(param)); };
+    return function () { 
+        var param = Array.prototype.slice.call(arguments); 
+        return call_python.call.apply(call_python, [null, key].concat(param)); 
+    };
 }
 """
 
@@ -167,14 +170,28 @@ class Acorn:
         self.install_dep()
         arcon_option, func = AcornOption.parse_option(option)
         # print(arcon_option)
-        code = [REGISTER_FUNC, "var acorn = require('acorn')",
-                "function parseArcon() {var option = Object.assign({},dukpy['option']); try{"]
+        code = [
+            REGISTER_FUNC,
+            "var acorn = require('acorn')",
+            "function parseArcon() {"
+                "var option = Object.assign({},dukpy['option']); "
+                "try {"
+        ]
         for key, value in func.items():
             code.append(f"option['{key}'] = registerFunc('{key}')")
             self._jsi.export_function(key, value)
         code.extend((
-                    "var result =acorn.parse(dukpy['code_text'], option);return result}catch (e){if (!(e instanceof SyntaxError)) throw e;var err = Object.assign({}, e); err.name = e.name;err.message = e.message;return err;}}",
-                    "parseArcon()"))
+                    "var result = acorn.parse(dukpy['code_text'], option);"
+                    "return result"
+                "} catch (e) {"
+                    "if (!(e instanceof SyntaxError)) throw e;"
+                    "var err = Object.assign({}, e); "
+                    "err.name = e.name;"
+                    "err.message = e.message;"
+                    "return err;"
+                "}"
+            "}",
+            "parseArcon()"))
         result = self._jsi.evaljs(code, code_text=code_text, option=arcon_option)
         if "name" in result and result["name"] == 'SyntaxError':
             raise JSSyntaxError(**result)

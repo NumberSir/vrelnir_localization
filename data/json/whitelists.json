@@ -86,5 +86,8 @@
   ],
   "loc-museum": [
     "paintings.js"
+  ],
+  "01-config": [
+    "sugarcubeConfig.js"
   ]
 }
