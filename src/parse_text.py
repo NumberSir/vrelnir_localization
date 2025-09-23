@@ -1946,7 +1946,7 @@ class ParseTextTwee:
                 continue
             elif shop_clothes_hint_flag and line == "}>>":
                 shop_clothes_hint_flag = False
-                print(f"{idx + 1}, shop clothes hint")
+                # print(f"{idx+1}, shop clothes hint")
                 results.append(False)
                 continue
             elif shop_clothes_hint_flag:
@@ -1997,12 +1997,12 @@ class ParseTextTwee:
                 ):
                     results.append(True)
                     continue
-                print(f"{idx + 1}, maybe json")
+                # print(f"{idx+1}, maybe json")
                 results.append(False)
                 continue
             elif maybe_json_flag and line.endswith(">>") and self.is_only_marks(line):
                 maybe_json_flag = False
-                print(f"{idx + 1}, maybe json")
+                # print(f"{idx+1}, maybe json")
                 results.append(False)
                 continue
             elif maybe_json_flag and (
@@ -2052,7 +2052,7 @@ class ParseTextTwee:
                 continue
 
             if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
-                print(f"{idx + 1}, comment or event or only marks")
+                # print(f"{idx+1}, comment or event or only marks")
                 results.append(False)
                 continue
             elif "<" in line and (
@@ -2144,7 +2144,7 @@ class ParseTextTwee:
             elif ("<" in line and self.is_only_widgets(line)) or (
                 maybe_json_flag and self.is_json_line(line)
             ):
-                print(f"{idx + 1}, only widgets or maybe json and is json")
+                # print(f"{idx+1}, only widgets or maybe json and is json")
                 results.append(False)
                 continue
             else:
