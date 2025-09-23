@@ -85,7 +85,7 @@ class ReleaseBuild:
 
             tasks = {
                 chunk_download(asset.browser_download_url, self.client, start, end, DIR_TEMP / asset.name)
-                for idx, (start, end) in enumerate(chunks)
+                for start, end in chunks
             }
             await asyncio.gather(*tasks)
 
@@ -438,10 +438,10 @@ async def main():
             process.build_compress_polyfill()
             process.build_apk_normal()
             process.build_apk_polyfill()
-            process.rename_pre(flag=False)  # 预览版
+            process.rename_pre(flag=True)  # 预览版
 
             """ 发布 """  # TODO
-            process.release(draft=True)
+            # process.release(draft=True)
 
     cost = time.time() - start
     logger.info(f"cost {cost:.2f} seconds")

@@ -51,6 +51,7 @@ class VariablesProcess:
     def fetch_all_file_paths(self) -> set[Path]:
         """ 获取所有 .twee 文件绝对路径"""
         for root, dir_list, file_list in os.walk(DIR_GAME_TEXTS_COMMON):
+        # for root, dir_list, file_list in os.walk(DIR_GAME_TEXTS_DEV):
             for file in file_list:
                 if file.endswith(SUFFIX_TWEE):
                     self._all_file_paths.add(Path(root).absolute() / file)

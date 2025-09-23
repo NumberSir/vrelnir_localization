@@ -1778,9 +1778,10 @@ class ParseTextTwee:
         multirow_switch_material_flag = False
 
         shop_clothes_hint_flag = False  # 草
-        for line in self._lines:
+        for idx, line in enumerate(self._lines):
             line = line.strip()
             if not line:
+                # print(f"{idx+1}: not line")
                 results.append(False)
                 continue
 
@@ -1790,13 +1791,16 @@ class ParseTextTwee:
                 and all(_ not in line for _ in {"*/", "-->"})
             ):
                 multirow_comment_flag = True
+                # print(f"{idx+1}, multirow comment")
                 results.append(False)
                 continue
             elif multirow_comment_flag and (line in ["*/", "-->"] or any(line.endswith(_) for _ in {"*/", "-->"})):
                 multirow_comment_flag = False
+                # print(f"{idx+1}, multirow comment")
                 results.append(False)
                 continue
             elif multirow_comment_flag:
+                # print(f"{idx+1}, multirow comment")
                 results.append(False)
                 continue
 
@@ -1826,42 +1830,51 @@ class ParseTextTwee:
             """跨行script，逆天"""
             if line == "<<script>>":
                 multirow_script_flag = True
+                # print(f"{idx+1}, multirow script")
                 results.append(False)
                 continue
             elif multirow_script_flag and line == "<</script>>":
                 multirow_script_flag = False
+                # print(f"{idx+1}, multirow script")
                 results.append(False)
                 continue
             elif multirow_script_flag and any(_ in line for _ in {".replace(/[^a-zA-Z"}):
                 results.append(True)
                 continue
             elif multirow_script_flag:
+                # print(f"{idx+1}, multirow script")
                 results.append(False)
                 continue
 
             """跨行if，逆天"""
             if line.startswith("<<if ") and ">>" not in line:
                 multirow_if_flag = True
+                # print(f"{idx+1}, multirow if")
                 results.append(False)
                 continue
             elif multirow_if_flag and ">>" in line:
                 multirow_if_flag = False
+                # print(f"{idx+1}, multirow if")
                 results.append(False)
                 continue
             elif multirow_if_flag:
+                # print(f"{idx+1}, multirow if")
                 results.append(False)
                 continue
 
             """跨行error，逆天"""
             if line.startswith("<<error ") and ">>" not in line:
                 multirow_error_flag = True
+                # print(f"{idx+1}, multirow error")
                 results.append(False)
                 continue
             elif multirow_error_flag and ">>" in line:
                 multirow_error_flag = False
+                # print(f"{idx+1}, multirow error")
                 results.append(False)
                 continue
             elif multirow_error_flag:
+                # print(f"{idx+1}, multirow error")
                 results.append(False)
                 continue
 
@@ -1878,10 +1891,12 @@ class ParseTextTwee:
                     results.append(True)
                 else:
                     multirow_run_line_pool_flag = True
+                    # print(f"{idx+1}, multirow run linePool")
                     results.append(False)
                 continue
             elif multirow_run_line_pool_flag and line.endswith(")>>"):
                 multirow_run_line_pool_flag = False
+                # print(f"{idx+1}, multirow run linePool")
                 results.append(False)
                 continue
             elif multirow_run_line_pool_flag:
@@ -1891,10 +1906,17 @@ class ParseTextTwee:
             """跨行run，逆天"""
             if line.startswith("<<run ") and ">>" not in line:
                 multirow_run_flag = True
+                # print(f"{idx+1}, multirow run")
                 results.append(False)
                 continue
             elif multirow_run_flag and line in {"})>>", "}>>", ")>>", "]>>", "});>>"}:
                 multirow_run_flag = False
+                # print(f"{idx+1}, multirow run")
+                results.append(False)
+                continue
+            elif multirow_run_flag and any((line.endswith(_) for _ in {";>>"})):
+                multirow_run_flag = False
+                # print(f"{idx+1}, multirow run")
                 results.append(False)
                 continue
             elif multirow_run_flag and ("Enable indexedDB" in line):
@@ -1912,16 +1934,19 @@ class ParseTextTwee:
                 results.append(True)
                 continue
             elif multirow_run_flag:
+                # print(f"{idx+1}, multirow run")
                 results.append(False)
                 continue
 
             """就这个特殊"""
             if line == "<<set _specialClothesHint to {":
                 shop_clothes_hint_flag = True
+                # print(f"{idx+1}, shop clothes hint")
                 results.append(False)
                 continue
             elif shop_clothes_hint_flag and line == "}>>":
                 shop_clothes_hint_flag = False
+                print(f"{idx + 1}, shop clothes hint")
                 results.append(False)
                 continue
             elif shop_clothes_hint_flag:
@@ -1972,10 +1997,12 @@ class ParseTextTwee:
                 ):
                     results.append(True)
                     continue
+                print(f"{idx + 1}, maybe json")
                 results.append(False)
                 continue
             elif maybe_json_flag and line.endswith(">>") and self.is_only_marks(line):
                 maybe_json_flag = False
+                print(f"{idx + 1}, maybe json")
                 results.append(False)
                 continue
             elif maybe_json_flag and (
@@ -2025,6 +2052,7 @@ class ParseTextTwee:
                 continue
 
             if self.is_comment(line) or self.is_event(line) or self.is_only_marks(line):
+                print(f"{idx + 1}, comment or event or only marks")
                 results.append(False)
                 continue
             elif "<" in line and (
@@ -2116,6 +2144,7 @@ class ParseTextTwee:
             elif ("<" in line and self.is_only_widgets(line)) or (
                 maybe_json_flag and self.is_json_line(line)
             ):
+                print(f"{idx + 1}, only widgets or maybe json and is json")
                 results.append(False)
                 continue
             else:
