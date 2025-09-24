@@ -2570,7 +2570,8 @@ class ParseTextJS:
                     "T.text_output",
                     "return '",
                     'return "',
-                    "return `"
+                    "return `",
+                    "plural"
                 }
             ):
                 results.append(True)
@@ -2899,7 +2900,13 @@ class ParseTextJS:
 
     def _parse_time(self):
         """只有月份和星期"""
-        return self.parse_type_only({"const monthNames", "const daysOfWeek"})
+        return self.parse_type_only({
+            "const monthNames",
+            "const daysOfWeek",
+            "formattedDate",
+            "zh-CN",
+            "ordinalSuffixOf"
+        })
 
     def _parse_time_macros(self):
         """只有几句话，byd越来越多了"""
