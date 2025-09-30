@@ -3310,7 +3310,13 @@ class ParseTextJS:
         )
 
     def _parse_text(self):
-        return self.parse_type_only({".statChange", 'return "', "targetName"})
+        return self.parse_type_only({
+            ".statChange",
+            'return "',
+            "targetName",
+            '"',
+            "'"
+        })
 
     def _parse_effect(self):
         results = []
