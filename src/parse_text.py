@@ -2779,7 +2779,8 @@ class ParseTextJS:
                 "group",
                 "Group",
                 "Alternative",
-                "alternative"
+                "alternative",
+                "ordinals"
             }
         )
 
