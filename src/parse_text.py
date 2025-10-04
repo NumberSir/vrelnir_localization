@@ -1914,7 +1914,7 @@ class ParseTextTwee:
                 # print(f"{idx+1}, multirow run")
                 results.append(False)
                 continue
-            elif multirow_run_flag and any((line.endswith(_) for _ in {";>>"})):
+            elif multirow_run_flag and any(line.endswith(_) for _ in {";>>"}):
                 multirow_run_flag = False
                 # print(f"{idx+1}, multirow run")
                 results.append(False)
@@ -1923,14 +1923,17 @@ class ParseTextTwee:
                 multirow_run_flag = False
                 results.append(True)
                 continue
-            elif multirow_run_flag and any((
-                "'Owl plushie'" in line,
-                "item.nameText" in line,
-                "$_item.name" in line,
-                "<span" in line,
-                ".nameText" in line,
-                "pushUnique" in line
-            )):
+            elif multirow_run_flag and any(
+                _ in line for _ in {
+                    "'Owl plushie'",
+                    "item.nameText",
+                    "$_item.name",
+                    "<span",
+                    ".nameText",
+                    "pushUnique",
+                    '"'
+                }
+            ):
                 results.append(True)
                 continue
             elif multirow_run_flag:
