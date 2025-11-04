@@ -356,8 +356,8 @@ class ProjectDOL:
         :param old_file: 下载的汉化文件的绝对路径
         :param new_file: 本地新抓字典文件的绝对路径
         """
-        if not new_file.exists():
-            unavailable_file = DIR_RAW_DICTS / self._type / self._version / "csv" / "game" / "失效词条" / Path().joinpath(*old_file.parts[old_file.parts.index("utf8")+1:])
+        if not new_file.exists():   # 旧文件在新版本中删除/改名了
+            unavailable_file = DIR_RAW_DICTS / self._type / self._version / "csv" / "game" / "移除文件" / Path().joinpath(*old_file.parts[old_file.parts.index("utf8")+1:])
             os.makedirs(unavailable_file.parent, exist_ok=True)
             with open(old_file, "r", encoding="utf-8") as fp:
                 unavailables = list(csv.reader(fp))

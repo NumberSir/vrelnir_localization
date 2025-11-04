@@ -90,5 +90,8 @@
   ],
   "01-config": [
     "sugarcubeConfig.js"
+  ],
+  "loc-forestshop": [
+    "shop-hunt-functions.js"
   ]
 }
