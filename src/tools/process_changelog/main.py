@@ -22,7 +22,7 @@ def changelog2paratranz(version: str = None):
         line = line.strip()
         if not line:
             continue
-        if line[0].isnumeric() and line.strip(":")[-1].isnumeric() and ".".join(line.split(".")[:-1]) != current_version_main:
+        if line[0].isnumeric() and line.strip(":")[-1].split(',')[0].split()[0].isnumeric() and ".".join(line.split(".")[:-1]) != current_version_main:
             lines = lines[:idx]
             break
 

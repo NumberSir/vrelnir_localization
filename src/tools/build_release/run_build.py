@@ -197,9 +197,9 @@ class ReleaseBuild:
             return
         for file in os.listdir(DIR_BUILD_ASSETS):
             if file.endswith(".mod.zip"):
-                shutil.move(DIR_BUILD_ASSETS / file, DIR_BUILD_ASSETS / f"{file[:-8]}-pre{file[-8:]}")
+                shutil.move(DIR_BUILD_ASSETS / file, DIR_BUILD_ASSETS / f"{file[:-8]}-pre{file[-8:]}".replace("-pre-pre", "-pre"))
             else:
-                shutil.move(DIR_BUILD_ASSETS / file, DIR_BUILD_ASSETS / f"{file[:-4]}-pre{file[-4:]}")
+                shutil.move(DIR_BUILD_ASSETS / file, DIR_BUILD_ASSETS / f"{file[:-4]}-pre{file[-4:]}".replace("-pre-pre", "-pre"))
 
     """ BUILD RELEASE """
     @staticmethod
@@ -438,10 +438,10 @@ async def main():
             process.build_compress_polyfill()
             process.build_apk_normal()
             process.build_apk_polyfill()
-            process.rename_pre(flag=True)  # 预览版
+            process.rename_pre(flag=False)  # 预览版
 
             """ 发布 """  # TODO
-            # process.release(draft=True)
+            process.release(draft=True)
 
     cost = time.time() - start
     logger.info(f"cost {cost:.2f} seconds")

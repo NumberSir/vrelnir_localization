@@ -290,7 +290,7 @@ class ProjectDOL:
             raise Exception("不要对原版调用去重")
 
         for root, dir_list, file_list in os.walk(DIR_RAW_DICTS / self._type / self._version / "csv" / "game"):
-            if "失效词条" in root:
+            if "失效词条" in root or "移除文件" in root:
                 continue
 
             for file in file_list:
@@ -334,7 +334,7 @@ class ProjectDOL:
         logger.info(f"===== 开始更新{self._mention_name}字典 ...")
         file_mapping: dict = {}
         for root, dir_list, file_list in os.walk(DIR_PARATRANZ / self._type / "utf8"):  # 导出的旧字典
-            if "失效词条" in root:
+            if "失效词条" in root or "移除文件" in root:
                 continue
             for file in file_list:
                 file_mapping[Path(root).absolute() / file] = (
@@ -500,7 +500,7 @@ class ProjectDOL:
         for root, dir_list, file_list in os.walk(DIR_RAW_DICTS / type_manual / self._version / "csv"):
             if any(_ in Path(root).absolute().__str__() for _ in blacklist_dirs):
                 continue
-            if "失效词条" in root:
+            if "失效词条" in root or "移除文件" in root:
                 continue
             for file in file_list:
                 # logger.warning(f"替换文件：{file}")
