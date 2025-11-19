@@ -606,6 +606,7 @@ class ParseTextTwee:
 				or "<<print $NPCList[0].fullDescription>>" in line
 				or "<<= $NPCList[0].fullDescription>>" in line
 				or "<<- $NPCList[0].fullDescription>>" in line
+				or "<<hypnosisText" in line
 			):
 				results.append(True)
 			elif self.is_only_widgets(line) or self.is_json_line(line):
@@ -1181,26 +1182,12 @@ class ParseTextTwee:
 
 	def _parse_feats(self):
 		"""json"""
-		results = []
-		json_flag = False
-		for line in self._lines:
-			line = line.strip()
-			if not line:
-				results.append(False)
-				continue
-
-			if line in {"missing:{", "name:{"}:
-				json_flag = True
-				results.append(False)
-			elif line == "},":
-				json_flag = False
-				results.append(False)
-			elif json_flag:
-				results.append(True)
-			else:
-				results.append(False)
-
-		return results
+		return self.parse_type_only({
+			"missing:",
+			"missing :",
+			"name:",
+			"name :"
+		})
 
 	def _parse_system_images(self):
 		"""只有span"""
@@ -1306,6 +1293,12 @@ class ParseTextTwee:
 				results.append(True)
 				continue
 
+			if any(_ in line for _ in {
+				".includes(_text_output)",
+				"_text_output.includes"
+			}):
+				results.append(True)
+				continue
 			results.append(False)
 		return results
 
@@ -1907,39 +1900,29 @@ class ParseTextTwee:
 			if line.startswith("<<run ") and ">>" not in line:
 				multirow_run_flag = True
 				# print(f"{idx+1}, multirow run")
-				results.append(False)
+				results.append(True)
 				continue
 			elif multirow_run_flag and line in {"})>>", "}>>", ")>>", "]>>", "});>>"}:
 				multirow_run_flag = False
 				# print(f"{idx+1}, multirow run")
-				results.append(False)
+				results.append(True)
 				continue
 			elif multirow_run_flag and any(line.endswith(_) for _ in {";>>"}):
 				multirow_run_flag = False
 				# print(f"{idx+1}, multirow run")
-				results.append(False)
+				results.append(True)
 				continue
 			elif multirow_run_flag and ("Enable indexedDB" in line):
 				multirow_run_flag = False
 				results.append(True)
 				continue
-			elif multirow_run_flag and any(
-				_ in line for _ in {
-					"'Owl plushie'",
-					"item.nameText",
-					"$_item.name",
-					"<span",
-					".nameText",
-					"pushUnique",
-					'"'
-				}
-			):
+			elif multirow_run_flag:
 				results.append(True)
 				continue
-			elif multirow_run_flag:
-				# print(f"{idx+1}, multirow run")
-				results.append(False)
-				continue
+			# elif multirow_run_flag:
+			# 	# print(f"{idx+1}, multirow run")
+			# 	results.append(False)
+			# 	continue
 
 			"""就这个特殊"""
 			if line == "<<set _specialClothesHint to {":
@@ -2143,6 +2126,9 @@ class ParseTextTwee:
 				or "<<run hcItemAdd({" in line
 				or "<<whitneyRoofRuleBreak" in line
 				or "<<pluralise" in line
+				or ".includes(_text_output)" in line
+				or "_text_output.includes" in line
+				or "hypnosisText" in line
 			):
 				results.append(True)
 			elif ("<" in line and self.is_only_widgets(line)) or (
@@ -2774,21 +2760,27 @@ class ParseTextJS:
 
 	def _parse_ingame(self):
 		"""序数词词缀"""
-		return self.parse_type_only(
-			{
-				'return i + "st";',
-				'return i + "nd";',
-				'return i + "rd";',
-				'return i + "th";',
-				'names',
-				'Wikifier.wikifyEval',
-				"group",
-				"Group",
-				"Alternative",
-				"alternative",
-				"ordinals"
-			}
+		_parse_type_only = self.parse_type_only({
+			'return i + "st";',
+			'return i + "nd";',
+			'return i + "rd";',
+			'return i + "th";',
+			'names',
+			'Wikifier.wikifyEval',
+			"group",
+			"Group",
+			"Alternative",
+			"alternative",
+			"ordinals"
+		})
+
+		_parse_type_between = self.parse_type_between(
+			starts=['function hasSharpSenses(sense = "any") {'],
+			ends=['window.hasSharpSenses = hasSharpSenses;'],
+			contain=True
 		)
+
+		return [bool(_1 or _2) for _1, _2 in zip(_parse_type_only, _parse_type_between)]
 
 	def _parse_ui(self):
 		"""text"""
@@ -3289,9 +3281,26 @@ class ParseTextJS:
 
 	def _parse_clothing(self):
 		"""0.4.2.3 改动"""
-		return self.parse_type_only(
-			{"name_cap:", "description:", "<<link `", "altDamage:", "name_simple:", "pattern_options:"}
+		_type_only = self.parse_type_only({
+			"name_cap:",
+			"description:",
+			"<<link `",
+			"altDamage:",
+			"name_simple:",
+			"pattern_options:",
+			"text:",
+			"text :",
+			"hint:",
+			"hint :"
+		})
+
+		_type_between = self.parse_type_between(
+			starts=["function specialClothesUnlockText(toUnlock, group) {"],
+			ends=["function getSpecialSets(filterfn = null) {"],
+			contain=True
 		)
+
+		return [bool(_1 or _2) for _1, _2 in zip(_type_only, _type_between)]
 
 	""" base-system """
 
