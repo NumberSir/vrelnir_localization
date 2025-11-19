@@ -29,7 +29,6 @@
   ],
   "base-system": [
     "physicalAdjustments.twee",
-    "bdsm.twee",
     "clamp.twee",
     "disable.twee",
     "location.twee",
