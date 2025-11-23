@@ -3294,7 +3294,8 @@ class ParseTextJS:
 			"text:",
 			"text :",
 			"hint:",
-			"hint :"
+			"hint :",
+			".name"
 		})
 
 		_type_between = self.parse_type_between(
