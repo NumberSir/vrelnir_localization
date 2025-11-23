@@ -32,6 +32,7 @@ REPOSITORY_ZIP_URL_COMMON = "https://gitgud.io/Vrelnir/degrees-of-lewdity/-/arch
 REPOSITORY_COMMITS_URL_COMMON = "https://gitgud.io/api/v4/projects/8430/repository/commits"
 REPOSITORY_URL_DEV = "https://gitgud.io/Vrelnir/degrees-of-lewdity"
 REPOSITORY_ZIP_URL_DEV = "https://gitgud.io/Vrelnir/degrees-of-lewdity/-/archive/dev/degrees-of-lewdity-dev.zip"
+COOKIE = os.getenv("COOKIE") or ""  # 临时的，大概 2025.12 就不需要了
 
 """本地目录"""
 DIR_ROOT = Path(__file__).parent.parent
@@ -281,6 +282,7 @@ __all__ = [
 	"REPOSITORY_COMMITS_URL_COMMON",
 	"REPOSITORY_URL_DEV",
 	"REPOSITORY_ZIP_URL_DEV",
+	"COOKIE",
 	"DIR_ROOT",
 	"DIR_DATA_ROOT",
 	"DIR_JSON_ROOT",

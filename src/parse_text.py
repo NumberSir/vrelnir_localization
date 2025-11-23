@@ -2129,6 +2129,7 @@ class ParseTextTwee:
 				or ".includes(_text_output)" in line
 				or "_text_output.includes" in line
 				or "hypnosisText" in line
+				or "<<gwylanCommand" in line
 			):
 				results.append(True)
 			elif ("<" in line and self.is_only_widgets(line)) or (
@@ -2325,7 +2326,7 @@ class ParseTextTwee:
 		"""<<link [[xxx|yyy]]>>, <<link "xxx">>"""
 		return any(
 			# re.findall(r"<<link\s*(\[\[|\"\w|`\w|\'\w|\"\(|`\(|\'\(|_\w|`)", line)
-			re.findall(r"<<link\s*(\[\[|\"\w|`\w|\'\w|\"\(|`\(|\'\(|_\w|`)", line)
+			re.findall(r"<<link\s*(\[\[|\"\w|`\w|\'\w|\"\(|`\(|\'\(|_\w|`|\w)", line)
 		)
 
 	@staticmethod
@@ -2771,7 +2772,9 @@ class ParseTextJS:
 			"Group",
 			"Alternative",
 			"alternative",
-			"ordinals"
+			"ordinals",
+			"item.name",
+			"item.type"
 		})
 
 		_parse_type_between = self.parse_type_between(

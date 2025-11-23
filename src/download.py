@@ -2,6 +2,7 @@ from pathlib import Path
 from aiofiles import open as aopen
 import httpx
 
+from .consts import COOKIE
 from .log import logger
 
 
@@ -34,7 +35,7 @@ async def chunk_download(
         if headers_
         else {"Range": f"bytes={start}-{end}"}
     )
-    response = await client.get(url, headers=headers, follow_redirects=True, timeout=60)
+    response = await client.get(url, headers=headers | {"cookie": COOKIE}, follow_redirects=True, timeout=60)
     async with aopen(save_path, "rb+") as fp:
         await fp.seek(start)
         await fp.write(response.content)
