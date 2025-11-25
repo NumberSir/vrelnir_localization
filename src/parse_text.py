@@ -2707,6 +2707,8 @@ class ParseTextJS:
 				or "invItem.worn" in line
 				or "<span class=" in line
 				or "const itemStatus" in line
+				or "text:" in line
+				or "textContent" in line
 			):
 				results.append(True)
 			else:
@@ -3512,6 +3514,8 @@ class ParseTextJS:
 				or 'name: ' in line
 				or 'newItemProperties' in line
 				or 'item.name' in line
+				or "text:" in line
+				or "textContent" in line
 			):
 				results.append(True)
 			else:
