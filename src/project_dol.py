@@ -63,7 +63,7 @@ class ProjectDOL:
 				url = f"{REPOSITORY_URL_COMMON}/-/raw/master/version"
 			else:
 				url = f"{REPOSITORY_URL_DEV}/-/raw/dev/version"
-			response = await client.get(url, headers={"cookie": COOKIE})
+			response = await client.get(url)
 			if not is_quiet:
 				logger.info(f"当前{self._mention_name}仓库最新版本: {response.text}")
 			self._version = response.text
@@ -95,7 +95,7 @@ class ProjectDOL:
 			flag = False
 			for _ in range(3):
 				try:
-					response = await client.head(zip_url, timeout=60, follow_redirects=True, headers={"cookie": COOKIE})
+					response = await client.head(zip_url, timeout=60, follow_redirects=True)
 					filesize = int(response.headers["Content-Length"])
 					chunks = await chunk_split(filesize, 64)
 				except (httpx.ConnectError, KeyError) as e:
@@ -696,7 +696,7 @@ class ProjectDOL:
 	async def get_lastest_commit(self) -> None:
 		ref_name = self.get_type("master", "dev")
 		async with httpx.AsyncClient(verify=False) as client:
-			response = await client.get(REPOSITORY_COMMITS_URL_COMMON, params={"ref_name": ref_name}, headers={"cookie": COOKIE})
+			response = await client.get(REPOSITORY_COMMITS_URL_COMMON, params={"ref_name": ref_name})
 			if response.status_code != 200:
 				logger.error("获取源仓库 commit 出错！")
 				return None
