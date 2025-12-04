@@ -741,7 +741,7 @@ class ParseTextTwee:
 			elif self.is_tag_span(line) or self.is_widget_print(line):
 				results.append(True)
 			elif any(
-				_ in line for _ in {"<<wheeze", ">>.", "$worn.", "fullDescription"}
+				_ in line for _ in {"<<wheeze", ">>.", "$worn.", "fullDescription", "<<note"}
 			):
 				results.append(True)
 			elif (
