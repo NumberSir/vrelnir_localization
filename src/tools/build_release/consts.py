@@ -15,7 +15,7 @@ DIR_APK_BUILD_TOOLS = ROOT / "apk-build-tools"
 DIR_GAME = ROOT.parent.parent.parent / "degrees-of-lewdity-master"
 DIR_APK_BUILDER = DIR_GAME / "devTools" / "apkbuilder"
 DIR_DIST = DIR_GAME / "dist"
-DIR_REPO = Path("D:\\Users\\numbersir\\Documents\\GitHub\\Degrees-of-Lewdity-Chinese-Localization")
+DIR_REPO = Path("F:\\Users\\numbersir\\Documents\\GitHub\\Degrees-of-Lewdity-Chinese-Localization")
 
 FILE_LICENSE = DIR_GAME / "LICENSE"
 FILE_CREDITS = DIR_CREDITS / "CREDITS.md"
@@ -26,6 +26,10 @@ FILE_CMDLINE = DIR_APK_BUILD_TOOLS / "cmdline-tools" / "latest.zip"
 
 HTML_FILENAME = "Degrees of Lewdity.html"
 APK_DEFAULT_FILENAME_PREFIX = "Degrees-of-Lewdity"
+
+CORDOVA_ANDROID_KEYSTORE_PASSWORD = os.getenv("CORDOVA_ANDROID_KEYSTORE_PASSWORD")
+CORDOVA_ANDROID_KEYSTORE_FILENAME = os.getenv("CORDOVA_ANDROID_KEYSTORE_FILENAME") or "dol-chs.keystore"
+CORDOVA_ANDROID_KEYSTORE_ALIAS = os.getenv("CORDOVA_ANDROID_KEYSTORE_ALIAS") or "dol-chs"
 
 
 __all__ = [
@@ -51,5 +55,9 @@ __all__ = [
     "FILE_CMDLINE",
 
     "HTML_FILENAME",
-    "APK_DEFAULT_FILENAME_PREFIX"
+    "APK_DEFAULT_FILENAME_PREFIX",
+
+	"CORDOVA_ANDROID_KEYSTORE_PASSWORD",
+	"CORDOVA_ANDROID_KEYSTORE_FILENAME",
+	"CORDOVA_ANDROID_KEYSTORE_ALIAS",
 ]
