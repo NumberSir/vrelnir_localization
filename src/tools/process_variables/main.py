@@ -18,7 +18,7 @@ from aiofiles import open as aopen
 
 SELF_ROOT = Path(__file__).parent
 
-ALL_NEEDED_TRANSLATED_set_CONTENTS = None
+set_CONTENTS = None
 
 FREQ_FUNCTIONS = {
     ".push(",
@@ -117,37 +117,38 @@ class VariablesProcess:
 
     def fetch_all_set_content(self):
         """ 获取所有 <<set>> 内容，写入 setto 目录里，有了就不要再创建了"""
-        global ALL_NEEDED_TRANSLATED_set_CONTENTS
+        global set_CONTENTS
 
-        if ALL_NEEDED_TRANSLATED_set_CONTENTS:
-            return ALL_NEEDED_TRANSLATED_set_CONTENTS
+        if set_CONTENTS:
+            return set_CONTENTS
 
-        if (SELF_ROOT / "setto" / "_needed_translated_set_contents.json").exists():
-            with open(SELF_ROOT / "setto" / "_needed_translated_set_contents.json", "r", encoding="utf-8") as fp:
+        if (SELF_ROOT / "setto" / "_set_contents.json").exists():
+            with open(SELF_ROOT / "setto" / "_set_contents.json", "r", encoding="utf-8") as fp:
                 data = json.load(fp)
-            ALL_NEEDED_TRANSLATED_set_CONTENTS = data
+            set_CONTENTS = data
             return data
 
         for file in self._all_file_paths:
             self._fetch_all_set_content(file)
 
+        set_CONTENTS = self._categorize_all_set_contents
         os.makedirs(SELF_ROOT / "setto", exist_ok=True)
         with open(SELF_ROOT / "setto" / "_set_contents.json", "w", encoding="utf-8") as fp:
             json.dump(self._categorize_all_set_contents, fp, ensure_ascii=False, indent=2)
 
-        ALL_NEEDED_TRANSLATED_set_CONTENTS = self._categorize_all_needed_translated_set_contents
-        with open(SELF_ROOT / "setto" / "_needed_translated_set_contents.json", "w", encoding="utf-8") as fp:
-            json.dump(self._categorize_all_needed_translated_set_contents, fp, ensure_ascii=False, indent=2)
+        # ALL_NEEDED_TRANSLATED_set_CONTENTS = self._categorize_all_needed_translated_set_contents
+        # with open(SELF_ROOT / "setto" / "_needed_translated_set_contents.json", "w", encoding="utf-8") as fp:
+        #     json.dump(self._categorize_all_needed_translated_set_contents, fp, ensure_ascii=False, indent=2)
+		#
+        # self._all_set_contents = sorted(list(set(self._all_set_contents)))
+        # with open(SELF_ROOT / "setto" / "_all_set_contents.json", "w", encoding="utf-8") as fp:
+        #     json.dump(self._all_set_contents, fp, ensure_ascii=False, indent=2)
+		#
+        # self._all_needed_translated_set_contents = sorted(list(set(self._all_needed_translated_set_contents)))
+        # with open(SELF_ROOT / "setto" / "_all_needed_translated_set_contents.json", "w", encoding="utf-8") as fp:
+        #     json.dump(self._all_needed_translated_set_contents, fp, ensure_ascii=False, indent=2)
 
-        self._all_set_contents = sorted(list(set(self._all_set_contents)))
-        with open(SELF_ROOT / "setto" / "_all_set_contents.json", "w", encoding="utf-8") as fp:
-            json.dump(self._all_set_contents, fp, ensure_ascii=False, indent=2)
-
-        self._all_needed_translated_set_contents = sorted(list(set(self._all_needed_translated_set_contents)))
-        with open(SELF_ROOT / "setto" / "_all_needed_translated_set_contents.json", "w", encoding="utf-8") as fp:
-            json.dump(self._all_needed_translated_set_contents, fp, ensure_ascii=False, indent=2)
-
-        return self._categorize_all_needed_translated_set_contents
+        return self._categorize_all_set_contents
 
     def _fetch_all_set_content(self, file: Path):
         """ 异步任务用 """
@@ -175,73 +176,82 @@ class VariablesProcess:
         if len(all_set_contents) < 2:
             return
 
-        all_heads, all_set_contents = [_[0] for _ in all_set_contents], [_[1] for _ in all_set_contents]
-        var_targets_dict = {}
-        var_lines_dict = {}
-        for idx, content in enumerate(all_set_contents):
-            head = all_heads[idx]
-            var, target, line = self._process_content(head, content)
-            if not any({var, target, line}):
-                continue
-
-            if var in var_targets_dict:
-                var_targets_dict[var].append(target)
-            else:
-                var_targets_dict[var] = [target]
-
-            if var in var_lines_dict:
-                var_lines_dict[var].append(line)
-            else:
-                var_lines_dict[var] = [line]
-
+        # FIXME: 开摆，不分类了，全部提取出来。
         self._categorize_all_set_contents.append({
-            "path": file.__str__(),
-            "vars": [
-                {"var": var, "targets": targets, "lines": lines}
-                for (var, targets), (var_, lines) in zip(
-                    var_targets_dict.items(),
-                    var_lines_dict.items()
-                )
-            ]
+	        "path": file.__str__(),
+	        "lines": list({
+		        f"<<{head} {args}>>"
+		        for (head, args) in all_set_contents
+	        })
         })
 
-        all_set_contents = [
-            f"set {content}"
-            for content in all_set_contents
-        ]
-        self._all_set_contents.extend(list(set(all_set_contents)))
-
-        vars_ = []
-        for (var, targets), (var_, lines) in zip(
-            var_targets_dict.items(),
-            var_lines_dict.items()
-        ):
-            targets_ = [
-                target
-                for target in targets
-                if self.is_needed_translated(target)
-            ]
-            lines_ = [
-                lines[idx]
-                for idx, target in enumerate(targets)
-                if self.is_needed_translated(target)
-            ]
-            if not targets_:
-                continue
-            vars_.append({"var": var, "targets": targets_, "lines": lines_})
-
-        if vars_:
-            self._categorize_all_needed_translated_set_contents.append({
-                "path": file.__str__(),
-                "vars": vars_
-            })
-
-            vars_needed_translated = {var_item["var"] for var_item in vars_}
-            self._all_needed_translated_set_contents.extend(list(set([
-                content
-                for content in all_set_contents
-                if content.split(" ")[1] in vars_needed_translated
-            ])))
+        # all_heads, all_set_contents = [_[0] for _ in all_set_contents], [_[1] for _ in all_set_contents]
+        # var_targets_dict = {}
+        # var_lines_dict = {}
+        # for idx, content in enumerate(all_set_contents):
+        #     head = all_heads[idx]
+        #     var, target, line = self._process_content(head, content)
+        #     if not any({var, target, line}):
+        #         continue
+		#
+        #     if var in var_targets_dict:
+        #         var_targets_dict[var].append(target)
+        #     else:
+        #         var_targets_dict[var] = [target]
+		#
+        #     if var in var_lines_dict:
+        #         var_lines_dict[var].append(line)
+        #     else:
+        #         var_lines_dict[var] = [line]
+		#
+        # self._categorize_all_set_contents.append({
+        #     "path": file.__str__(),
+        #     "vars": [
+        #         {"var": var, "targets": targets, "lines": lines}
+        #         for (var, targets), (var_, lines) in zip(
+        #             var_targets_dict.items(),
+        #             var_lines_dict.items()
+        #         )
+        #     ]
+        # })
+		#
+        # all_set_contents = [
+        #     f"set {content}"
+        #     for content in all_set_contents
+        # ]
+        # self._all_set_contents.extend(list(set(all_set_contents)))
+		#
+        # vars_ = []
+        # for (var, targets), (var_, lines) in zip(
+        #     var_targets_dict.items(),
+        #     var_lines_dict.items()
+        # ):
+        #     targets_ = [
+        #         target
+        #         for target in targets
+        #         if self.is_needed_translated(target)
+        #     ]
+        #     lines_ = [
+        #         lines[idx]
+        #         for idx, target in enumerate(targets)
+        #         if self.is_needed_translated(target)
+        #     ]
+        #     # if not targets_:
+        #     #     continue
+        #     vars_.append({"var": var, "targets": targets_, "lines": lines_})
+		#
+        # if vars_:
+        #     self._categorize_all_needed_translated_set_contents.append({
+        #         "path": file.__str__(),
+        #         "vars": vars_
+        #     })
+		#
+        #     vars_needed_translated = {var_item["var"] for var_item in vars_}
+        #     self._all_needed_translated_set_contents.extend(list(set([
+        #         content
+        #         for content in all_set_contents
+        #         if content.split(" ")[1] in vars_needed_translated
+        #     ])))
 
     def _process_content(self, head: str,  content: str):
         """
