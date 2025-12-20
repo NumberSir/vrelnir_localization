@@ -133,6 +133,9 @@ class ParseTextTwee:
 			and (
 				"<span " in line.strip()
 				or "<<link [[" in line.strip()
+				or "checkbox" in line.strip()
+				or "button" in line.strip()
+				or "dialog" in line.strip()
 				or any(re.findall(r"^(\w|- )", line.strip()))
 			)
 			for line in self._lines
