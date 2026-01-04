@@ -1977,7 +1977,9 @@ class ParseTextTwee:
 						"<<set _hairColorByName",
 						"<<set _fringeColorByName",
 						"<<set $savedHairStyles",
-						"<<numberStepper"
+						"<<numberStepper",
+						"<<= either",
+						"<<- either"
 					}
 				):
 					results.append(True)
@@ -2129,8 +2131,11 @@ class ParseTextTwee:
 				or "_text_output.includes" in line
 				or "hypnosisText" in line
 				or "<<gwylanCommand" in line
+				or "<<= either" in line
+				or "<<- either" in line
 			):
 				results.append(True)
+				continue
 			elif ("<" in line and self.is_only_widgets(line)) or (
 				maybe_json_flag and self.is_json_line(line)
 			):
