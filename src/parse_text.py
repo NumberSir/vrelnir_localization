@@ -813,6 +813,7 @@ class ParseTextTwee:
 				or line.startswith("<<default>>")
 				or line.startswith("<<He>> ")
 				or line.startswith("<<bHe>> ")
+				or line.startswith("<<His>> ")
 				or "<span " in line
 				or any(re.findall(r"<<case \d", line))
 			):
