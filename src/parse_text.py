@@ -974,8 +974,8 @@ class ParseTextTwee:
 			return self._parse_sex_stat()
 		elif FileNamesTwee.FAME_FULL.value == self._filename:
 			return self._parse_fame()
-		elif FileNamesTwee.FEATS_FULL.value == self._filename:
-			return self._parse_feats()
+		# elif FileNamesTwee.FEATS_FULL.value == self._filename:
+		# 	return self._parse_feats()
 		elif FileNamesTwee.CLOTHING_IMAGES_FULL.value == self._filename:
 			return self._parse_system_images()
 		elif FileNamesTwee.MOBILE_STATS_FULL.value == self._filename:
@@ -1180,14 +1180,14 @@ class ParseTextTwee:
 		"""set $_output to"""
 		return self.parse_type_only({"<<set $_output"})
 
-	def _parse_feats(self):
-		"""json"""
-		return self.parse_type_only({
-			"missing:",
-			"missing :",
-			"name:",
-			"name :"
-		})
+	# def _parse_feats(self):
+	# 	"""json"""
+	# 	return self.parse_type_only({
+	# 		"missing:",
+	# 		"missing :",
+	# 		"name:",
+	# 		"name :"
+	# 	})
 
 	def _parse_system_images(self):
 		"""只有span"""
@@ -2994,7 +2994,12 @@ class ParseTextJS:
 
 	def _parse_feats(self):
 		"""json"""
-		return self.parse_type_only({"title: ", "desc: ", "hint: ", ".html"})
+		return self.parse_type_only(
+			{
+				"title: ", "desc: ", "hint: ", ".html",
+				"name", "missing"
+			}
+		)
 
 	def _parse_colours(self):
 		"""json"""
@@ -3324,6 +3329,8 @@ class ParseTextJS:
 			return self._parse_effect()
 		elif FileNamesJS.STAT_CHANGES_FULL.value == self._filename:
 			return self._parse_stat_changes()
+		elif FileNamesJS.QUESTMARKERS_FULL.value == self._filename:
+			return self._parse_questmarker()
 		return self.parse_normal()
 
 	def _parse_widgets(self):
@@ -3392,6 +3399,29 @@ class ParseTextJS:
 
 	def _parse_stat_changes(self):
 		return self.parse_type_only({"return '", 'return "', ".statChange"})
+
+	def _parse_questmarker(self) -> list[bool]:
+		results = []
+		for line in self._lines:
+			line = line.strip()
+			if not line:
+				results.append(False)
+				continue
+
+			if any((
+				_ in line
+				for _ in {
+					"name",
+					"text",
+					"fail"
+					'"',
+					"'"
+				}
+			)):
+				results.append(True)
+				continue
+			results.append(False)
+		return results
 
 	""" 01-main """
 	def parse_main(self):

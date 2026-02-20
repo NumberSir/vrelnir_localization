@@ -53,7 +53,8 @@
     "text.js",
     "widgets.js",
     "stat-changes.js",
-    "skin-color.js"
+    "skin-color.js",
+    "questmarker.js"
   ],
   "external": [
     "color-namer.js"
