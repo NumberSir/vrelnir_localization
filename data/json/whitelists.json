@@ -54,7 +54,7 @@
     "widgets.js",
     "stat-changes.js",
     "skin-color.js",
-    "questmarker.js"
+    "questmarkers.js"
   ],
   "external": [
     "color-namer.js"
