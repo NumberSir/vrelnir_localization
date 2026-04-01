@@ -1096,7 +1096,7 @@ async def generate_changelog():
 				break
 
 			if "issue" in line:
-				issues_dc = re.findall(r"(\[(@issue-dc/\d+)]\[(issue-dc\d+)])", line)
+				issues_dc = re.findall(r"(\[(@issue-dc/\d+)]\[(issue-dc/\d+)])", line)
 				for (replaced_, resulted_, matched_) in issues_dc:
 					for line_ in lines:
 						if not line_.startswith("[issue-dc"):
@@ -1109,7 +1109,7 @@ async def generate_changelog():
 							f'<a class="highlight" href="{link_}">{resulted_}</a>'
 						)
 						break
-				issues_gh = re.findall(r"(\[(@issue/\d+)]\[issue(\d+)])", line)
+				issues_gh = re.findall(r"(\[(@issue/\d+)]\[issue/(\d+)])", line)
 				for (replaced_, resulted_, number_) in issues_gh:
 					line = line.replace(
 						replaced_,
