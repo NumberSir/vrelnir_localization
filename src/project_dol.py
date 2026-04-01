@@ -112,10 +112,10 @@ class ProjectDOL:
 		# 		for idx, (start, end) in enumerate(chunks)
 		# 	]
 		# 	await asyncio.gather(*tasks)
-		save_path: Path = DIR_TEMP_ROOT / f"dol{self._mention_name}.zip"
-		response = await client.get(zip_url, timeout=60, follow_redirects=True)
-		async with aopen(save_path, "wb") as fp:
-			await fp.write(response.content)
+			save_path: Path = DIR_TEMP_ROOT / f"dol{self._mention_name}.zip"
+			response = await client.get(zip_url, timeout=60, follow_redirects=True)
+			async with aopen(save_path, "wb") as fp:
+				await fp.write(response.content)
 		logger.info(f"##### 最新{self._mention_name}仓库内容已获取! \n")
 
 	async def unzip_latest_repository(self):
