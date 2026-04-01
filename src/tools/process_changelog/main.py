@@ -71,5 +71,5 @@ def paratranz2changelog(version: str = None):
 
 
 if __name__ == "__main__":
-	changelog2paratranz("0.5.5.0")
-	paratranz2changelog("0.5.5.0")
+	changelog2paratranz()
+	paratranz2changelog()

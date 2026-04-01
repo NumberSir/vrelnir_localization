@@ -35,7 +35,8 @@ import httpx
 from github import Github, Auth
 from github.Repository import Repository
 
-from src.tools.build_release.download import *
+# from src.tools.build_release.download import *
+from aiofiles import open as aopen
 from src.tools.build_release.log import *
 from src.tools.build_release.consts import *
 
@@ -76,18 +77,23 @@ class ReleaseBuild:
 		release = repo.get_latest_release()
 		assets = release.get_assets()
 		for asset in assets:
-			response = await self.client.head(asset.browser_download_url, timeout=60, follow_redirects=True)
-			filesize = int(response.headers["Content-Length"])
-			chunks = await chunk_split(filesize, 64)
-
-			if (DIR_TEMP / asset.name).exists():
-				continue
-
-			tasks = {
-				chunk_download(asset.browser_download_url, self.client, start, end, DIR_TEMP / asset.name)
-				for start, end in chunks
-			}
-			await asyncio.gather(*tasks)
+			# FIXME 神经 GitGud，不知道在搞什么
+			# response = await self.client.head(asset.browser_download_url, timeout=60, follow_redirects=True)
+			# filesize = int(response.headers["Content-Length"])
+			# chunks = await chunk_split(filesize, 64)
+			#
+			# if (DIR_TEMP / asset.name).exists():
+			# 	continue
+			#
+			# tasks = {
+			# 	chunk_download(asset.browser_download_url, self.client, start, end, DIR_TEMP / asset.name)
+			# 	for start, end in chunks
+			# }
+			# await asyncio.gather(*tasks)
+			save_path: Path = DIR_TEMP / asset.name
+			response = await self.client.get(asset.browser_download_url, timeout=60, follow_redirects=True)
+			async with aopen(save_path, "wb") as fp:
+				await fp.write(response.content)
 
 	async def download_mod_loader(self):
 		"""下载 ModLoader 和 Imagepack"""
@@ -433,8 +439,8 @@ async def main():
 			process.clear()
 
 			""" 运行 """  # TODO
-			# process.trigger_mod_loader()
-			# process.trigger_i18n()
+			process.trigger_mod_loader()
+			process.trigger_i18n()
 
 			""" 下载 """
 			await process.download_mod_loader()
@@ -459,6 +465,7 @@ async def main():
 	cost = time.time() - start
 	logger.info(f"cost {cost:.2f} seconds")
 	return cost
+
 
 if __name__ == '__main__':
 	cost = asyncio.run(main())

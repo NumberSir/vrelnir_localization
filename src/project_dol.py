@@ -23,7 +23,7 @@ import stat
 from .consts import *
 from .log import logger
 from .parse_text import *
-from .download import *
+# from .download import *
 
 LOGGER_COLOR = logger.opt(colors=True)
 
@@ -92,25 +92,30 @@ class ProjectDOL:
 				zip_url = REPOSITORY_ZIP_URL_COMMON
 			else:
 				zip_url = REPOSITORY_ZIP_URL_DEV
-			flag = False
-			for _ in range(3):
-				try:
-					response = await client.head(zip_url, timeout=60, follow_redirects=True)
-					filesize = int(response.headers["Content-Length"])
-					chunks = await chunk_split(filesize, 64)
-				except (httpx.ConnectError, KeyError) as e:
-					continue
-				else:
-					flag = True
-					break
-
-			if not flag:
-				logger.error("***** 无法正常下载最新仓库源码！请检查你的网络连接是否正常！")
-			tasks = [
-				chunk_download(zip_url, client, start, end, idx, len(chunks), DIR_TEMP_ROOT / f"dol{self._mention_name}.zip")
-				for idx, (start, end) in enumerate(chunks)
-			]
-			await asyncio.gather(*tasks)
+		# FIXME 神经 GitGud，不知道在搞什么
+		# 	flag = False
+		# 	for _ in range(3):
+		# 		try:
+		# 			response = await client.head(zip_url, timeout=60, follow_redirects=True)
+		# 			filesize = int(response.headers["Content-Length"])
+		# 			chunks = await chunk_split(filesize, 64)
+		# 		except (httpx.ConnectError, KeyError) as e:
+		# 			continue
+		# 		else:
+		# 			flag = True
+		# 			break
+		#
+		# 	if not flag:
+		# 		logger.error("***** 无法正常下载最新仓库源码！请检查你的网络连接是否正常！")
+		# 	tasks = [
+		# 		chunk_download(zip_url, client, start, end, idx, len(chunks), DIR_TEMP_ROOT / f"dol{self._mention_name}.zip")
+		# 		for idx, (start, end) in enumerate(chunks)
+		# 	]
+		# 	await asyncio.gather(*tasks)
+		save_path: Path = DIR_TEMP_ROOT / f"dol{self._mention_name}.zip"
+		response = await client.get(zip_url, timeout=60, follow_redirects=True)
+		async with aopen(save_path, "wb") as fp:
+			await fp.write(response.content)
 		logger.info(f"##### 最新{self._mention_name}仓库内容已获取! \n")
 
 	async def unzip_latest_repository(self):
