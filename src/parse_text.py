@@ -3554,6 +3554,7 @@ class ParseTextJS:
 				or "textContent" in line
 				or "plural" in line
 				or "category" in line
+				or "singular" in line
 			):
 				results.append(True)
 			else:
