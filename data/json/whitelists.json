@@ -27,7 +27,8 @@
     "colours.js",
     "feats.js",
     "shop.js",
-    "plant-setup.js"
+    "plant-setup.js",
+    "foodstuff.js"
   ],
   "special-masturbation": [
     "actions.js",
