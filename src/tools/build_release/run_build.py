@@ -237,7 +237,7 @@ class ReleaseBuild:
 				result = f"{result}\n{line}"
 			flag = True
 
-		issues.extend(re.findall(r"\[(issue[\-dc]*\d+)*?]", result))
+		issues.extend(re.findall(r"\[(issue[\-dc]*/\d+)*?]", result))
 		result = f"{result}\n"
 		for line in lines:
 			if not line.startswith("[issue"):
@@ -436,28 +436,28 @@ async def main():
 		with Github(auth=Auth.Token(ACCESS_TOKEN)) as github:
 			process = ReleaseBuild(github, client)
 			""" 开始 """
-			process.clear()
-
-			""" 运行 """  # TODO
-			process.trigger_mod_loader()
-			process.trigger_i18n()
-
-			""" 下载 """
-			await process.download_mod_loader()
-			await process.download_i18n()
-
-			""" 解压 """
-			process.decompress_mod_loader()
-
-			""" 打包 """
-			process.rename_image_pack()
-			process.move_i18n()
-			process.move_image_pack()
-			process.build_compress_normal()
-			process.build_compress_polyfill()
-			process.build_apk_normal()
-			process.build_apk_polyfill()
-			process.rename_pre(flag=False)  # 预览版
+			# process.clear()
+            #
+			# """ 运行 """  # TODO
+			# process.trigger_mod_loader()
+			# process.trigger_i18n()
+            #
+			# """ 下载 """
+			# await process.download_mod_loader()
+			# await process.download_i18n()
+            #
+			# """ 解压 """
+			# process.decompress_mod_loader()
+            #
+			# """ 打包 """
+			# process.rename_image_pack()
+			# process.move_i18n()
+			# process.move_image_pack()
+			# process.build_compress_normal()
+			# process.build_compress_polyfill()
+			# process.build_apk_normal()
+			# process.build_apk_polyfill()
+			# process.rename_pre(flag=False)  # 预览版
 
 			""" 发布 """  # TODO
 			process.release(draft=True)
