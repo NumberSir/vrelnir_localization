@@ -15,6 +15,11 @@ class Paratranz:
         self._project_id = PARATRANZ_PROJECT_DOL_ID
         self._mention_name = "" if self._type == "common" else "dev"
 
+    def get_current_version(self) -> str:
+        url = f"{PARATRANZ_BASE_URL}/projects/{self._project_id}"
+        response = httpx.get(url, headers=PARATRANZ_HEADERS, verify=False)
+        return response.json()['extra']['version']  # 0.5.10.12
+
     async def download_from_paratranz(self) -> bool:
         """从 paratranz 下载汉化包"""
         os.makedirs(DIR_PARATRANZ, exist_ok=True)
