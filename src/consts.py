@@ -223,7 +223,6 @@ class FileNamesJS(Enum):
 	COLOURS_FULL = "colours.js"
 	FEATS_FULL = "feats.js"
 	SHOP_FULL = "shop.js"
-	PLANT_SETUP_FULL = "plant-setup.js"
 
 	""" special-masturbation """
 	ACTIONS_FULL = "actions.js"
@@ -232,9 +231,7 @@ class FileNamesJS(Enum):
 
 	""" 04-Pregnancy """
 	CHILDREN_STORY_FUNCTIONS_FULL = "children-story-functions.js"
-	PREGNANCY_FULL = "pregnancy.js"
 	STORY_FUNCTIONS_FULL = "story-functions.js"
-	PREGNANCY_TYPES_FULL = "pregnancy-types.js"
 
 	""" 03-Templates """
 	T_MISC_FULL = "t-misc.js"

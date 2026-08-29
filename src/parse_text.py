@@ -843,6 +843,13 @@ class ParseTextTwee:
 				results.append(False)
 			elif self.is_widget_print(line):
 				results.append(True)
+			elif any(_ in line for _ in {
+                "motion:",
+                "legs:",
+                "name:",
+                "description:",
+            }):
+				results.append(True)
 			elif self.is_only_widgets(line):
 				results.append(False)
 			else:
@@ -1994,49 +2001,49 @@ class ParseTextTwee:
 				# print(f"{idx+1}, maybe json")
 				results.append(False)
 				continue
-			elif maybe_json_flag and (
-				'"Orphan":"orphan"' in line
-				or "hint:" in line
-				or 'museum:' in line
-				or "journal:" in line
-				or "journalName:" in line
-				or 'name:' in line
-				or 'stolen:' in line
-				or 'recovered:' in line
-				or '"Rest":' in line
-				or '"Stroke":' in line
-				or '"Vines"' in line
-				or '"Tentacles"' in line
-				or '"Plainwhite"' in line
-				or '"Wavywhite"' in line
-				or '"Cowgirls"' in line
-				or '"Hearts"' in line
-				or '"Trees"' in line
-				or '"Crosses"' in line
-				or '"Cowgirl"' in line
-				or '"Cat"' in line
-				or '"Puppy"' in line
-				or "'Owl plushie'" in line
-				or '"Loose"' in line
-				or '"Messy"' in line
-				or '"Pigtails"' in line
-				or '"Ponytail"' in line
-				or '"Short"' in line
-				or '"Straight"' in line
-				or '"Twintails"' in line
-				or '"Curl"' in line
-				or '"Neat"' in line
-				or '"Dreads"' in line
-				or '"Ruffled"' in line
-				or '"Shaved"' in line
-				or '"Sidecut"' in line
-				or '":"' in line
-				or '": "' in line
-				or '" : "' in line
-				or 'Default: {' in line
-				or ("<<run " in line and "$worn." in line)
-				or "<<numberStepper" in line
-			):
+			elif maybe_json_flag and any(_ in line for _ in {
+				'"Orphan":"orphan"',
+				"hint:",
+				'museum:',
+				"journal:",
+				"journalName:",
+				'name:',
+				'stolen:',
+				'recovered:',
+				'"Rest":',
+				'"Stroke":',
+				'"Vines"',
+				'"Tentacles"',
+				'"Plainwhite"',
+				'"Wavywhite"',
+				'"Cowgirls"',
+				'"Hearts"',
+				'"Trees"',
+				'"Crosses"',
+				'"Cowgirl"',
+				'"Cat"',
+				'"Puppy"',
+				"'Owl plushie'",
+				'"Loose"',
+				'"Messy"',
+				'"Pigtails"',
+				'"Ponytail"',
+				'"Short"',
+				'"Straight"',
+				'"Twintails"',
+				'"Curl"',
+				'"Neat"',
+				'"Dreads"',
+				'"Ruffled"',
+				'"Shaved"',
+				'"Sidecut"',
+				'":"',
+				'": "',
+				'" : "',
+				'Default: {',
+				"$worn.",
+				"<<numberStepper"
+            }):
 				results.append(True)
 				continue
 
@@ -2060,82 +2067,83 @@ class ParseTextTwee:
 			):
 				results.append(True)
 				continue
-			elif (
-				'<<if $tentacles[$tentacleindex].desc.includes("pale")>>' in line
-				or "<<if $_mirror is 'mirror'>>" in line
-				or "<<run _bodyPartOptions.delete($featsBoosts.tattoos[_l].bodypart)>>" in line
-				or "$_examine" in line
-				or "<<if $pubtask is" in line
-				or "<<run _featsTattooOptions.push(" in line
-				or "<<if $NPCList[_nn].penis" in line
-				or '<<if $watersportsdisable is "f" and $consensual is 0 and $enemyanger gte random(20, 200) and ($NPCList[_nn].penis is "none" or !$NPCList[_nn].penisdesc.includes("strap-on")) and _condomResult isnot "contained" and _args[0] isnot "short">>' in line
-				or "<<if $NPCList[0].penisdesc" in line
-				or "<<if $NPCList[_n].condom" in line
-				or "<<takeKissVirginityNamed" in line
-				or "<<cheatBodyliquidOnPart" in line
-				or "<<generateRole" in line
-				or "<<takeVirginity" in line
-				or "<<recordSperm " in line
-				or "<<NPCVirginityTakenByOther" in line
-				or "<<run $rebuy_" in line
-				or "<<swarminit" in line
-				or "<<set _buy = Time.dayState" in line
-				or "<<set _naked" in line
-				or "<<optionsfrom " in line
-				or "<<run _options" in line
-				or "<<listbox " in line
-				or "<<run _potentialLoveInterests.delete" in line
-				or "<<run _selectedToy.colour_options.forEach" in line
-				or "$worn.upper.name." in line
-				or "$worn.lower.name." in line
-				or "$worn.over_upper.name." in line
-				or "$worn.under_upper.name." in line
-				or "<<girlfriend>>?" in line
-				or "$_slaps" in line
-				or '? "' in line
-				or "<<gagged_speech" in line
-				or "<<mirror" in line
-				or ">>." in line
-				or "<<skill_difficulty " in line
-				or ".replace(/[^a-zA-Z" in line
-				or "$earSlime.event" in line
-				or "if $slimePoundTask" in line
-				or '<<case "Sweep">>' in line
-				or '<<case "Feed">>' in line
-				or '<<case "Brush">>' in line
-				or '<<case "Wash">>' in line
-				or '<<case "Walk">>' in line
-				or '<<case "' in line
-				or "<<case `" in line
-				or "<<case '" in line
-				or "<span" in line
-				or "<<if _args[0] is" in line
-				or "<<if _args[1] is" in line
-				or "<<if _args[2] is" in line
-				or "<<if _args[3] is" in line
-				or "<<if _args[4] is" in line
-				or "<<if _args[5] is" in line
-				or 'tooltip=' in line
-				or '$_tempObjClothing' in line
-				or "<<insufficientStat" in line
-				or "<<moneyStatsTitle" in line
-				or "<td " in line
-				or "confirm(" in line
-				or "$_thing.name" in line
-				or "$_item.name" in line
-				or "<<recipe_name" in line
-				or "<<print" in line
-				or "pushUnique" in line
-				or "<<run hcItemAdd({" in line
-				or "<<whitneyRoofRuleBreak" in line
-				or "<<pluralise" in line
-				or ".includes(_text_output)" in line
-				or "_text_output.includes" in line
-				or "hypnosisText" in line
-				or "<<gwylanCommand" in line
-				or "<<= either" in line
-				or "<<- either" in line
-			):
+			elif any(_ in line for _ in {
+				'<<if $tentacles[$tentacleindex].desc.includes("pale")>>',
+				"<<if $_mirror is 'mirror'>>",
+				"<<run _bodyPartOptions.delete($featsBoosts.tattoos[_l].bodypart)>>",
+				"$_examine",
+				"<<if $pubtask is",
+				"<<run _featsTattooOptions.push(",
+				"<<if $NPCList[_nn].penis",
+				'<<if $watersportsdisable is "f" and $consensual is 0 and $enemyanger gte random(20, 200) and ($NPCList[_nn].penis is "none" or !$NPCList[_nn].penisdesc.includes("strap-on")) and _condomResult isnot "contained" and _args[0] isnot "short">>',
+				"<<if $NPCList[0].penisdesc",
+				"<<if $NPCList[_n].condom",
+				"<<takeKissVirginityNamed",
+				"<<cheatBodyliquidOnPart",
+				"<<generateRole",
+				"<<takeVirginity",
+				"<<recordSperm ",
+				"<<NPCVirginityTakenByOther",
+				"<<run $rebuy_",
+				"<<swarminit",
+				"<<set _buy = Time.dayState",
+				"<<set _naked",
+				"<<optionsfrom ",
+				"<<run _options",
+				"<<listbox ",
+				"<<run _potentialLoveInterests.delete",
+				"<<run _selectedToy.colour_options.forEach",
+				"$worn.upper.name.",
+				"$worn.lower.name.",
+				"$worn.over_upper.name.",
+				"$worn.under_upper.name.",
+				"<<girlfriend>>?",
+				"$_slaps",
+				'? "',
+				"<<gagged_speech",
+				"<<mirror",
+				">>.",
+				"<<skill_difficulty ",
+				".replace(/[^a-zA-Z",
+				"$earSlime.event",
+				"if $slimePoundTask",
+				'<<case "Sweep">>',
+				'<<case "Feed">>',
+				'<<case "Brush">>',
+				'<<case "Wash">>',
+				'<<case "Walk">>',
+				'<<case "',
+				"<<case `",
+				"<<case '",
+				"<span",
+				"<<if _args[0] is",
+				"<<if _args[1] is",
+				"<<if _args[2] is",
+				"<<if _args[3] is",
+				"<<if _args[4] is",
+				"<<if _args[5] is",
+				'tooltip=',
+				'$_tempObjClothing',
+				"<<insufficientStat",
+				"<<moneyStatsTitle",
+				"<td ",
+				"confirm(",
+				"$_thing.name",
+				"$_item.name",
+				"<<recipe_name",
+				"<<print",
+				"pushUnique",
+				"<<run hcItemAdd({",
+				"<<whitneyRoofRuleBreak",
+				"<<pluralise",
+				".includes(_text_output)",
+				"_text_output.includes",
+				"hypnosisText",
+				"<<gwylanCommand",
+				"<<= either",
+				"<<- either",
+                "<<insufficientQuantity",
+            }):
 				results.append(True)
 				continue
 			elif ("<" in line and self.is_only_widgets(line)) or (
@@ -2989,8 +2997,6 @@ class ParseTextJS:
 			return self._parse_colours()
 		elif FileNamesJS.SHOP_FULL.value == self._filename:
 			return self._parse_shop()
-		elif FileNamesJS.PLANT_SETUP_FULL.value == self._filename:
-			return self._parse_plant_setup()
 		return self.parse_normal()
 
 	def _parse_feats(self):
@@ -3009,10 +3015,6 @@ class ParseTextJS:
 	def _parse_shop(self):
 		"""json"""
 		return self.parse_type_only('"')
-
-	def _parse_plant_setup(self):
-		"""json"""
-		return self.parse_type_only({"plural:", "singular:", "seed_name:", "ingredients:", "type:"})
 
 	""" special-masturbation """
 
@@ -3173,43 +3175,17 @@ class ParseTextJS:
 		"""04-pregnancy"""
 		if FileNamesJS.CHILDREN_STORY_FUNCTIONS_FULL.value == self._filename:
 			return self._parse_children_story_functions()
-		elif FileNamesJS.PREGNANCY_FULL.value == self._filename:
-			return self._parse_pregnancy()
 		elif FileNamesJS.STORY_FUNCTIONS_FULL.value == self._filename:
 			return self._parse_story_functions()
-		elif FileNamesJS.PREGNANCY_TYPES_FULL.value == self._filename:
-			return self._parse_pregnancy_types()
 		return self.parse_normal()
 
 	def _parse_children_story_functions(self):
 		"""就一个 wordList"""
 		return self.parse_type_only({"const wordList", "wordList.push"})
 
-	def _parse_pregnancy(self):
-		return self.parse_type_only(
-			{
-				"names = ['",
-				"names.pushUnique",
-				"spermOwner.name +",
-				"spermOwner.fullDescription +",
-				".replace(/[^a-zA-Z",
-			}
-		)
-
 	def _parse_story_functions(self):
 		return self.parse_type_only(
 			{"name = (caps ?", "name = caps ?", "name = name[0]"}
-		)
-
-	def _parse_pregnancy_types(self):
-		return self.parse_type_only(
-			{
-				'return "tiny";',
-				'return "small";',
-				'return "normal";',
-				'return "large";',
-				'return ["tiny",',
-			}
 		)
 
 	""" 03-Templates """
@@ -3532,30 +3508,30 @@ class ParseTextJS:
 				results.append(True)
 			elif ("addfemininityfromfactor(" in line and line.endswith(");")) or '"Pregnant Looking Belly"' in line:
 				results.append(True)
-			elif (
-				"altText.toys = " in line
-				or "altText.start = " in line
-				or "<span" in line
-				or "sWikifier(" in line
-				or "span(" in line
-				or "resultArray.push" in line
-				or "statChange" in line
-				or "<span" in line
-				or "reasons.push" in line
-				or "displayName:" in line
-				or "textMap:" in line
-				or 'const output = month' in line
-				or 'createElement("span"' in line
-				or 'itemText' in line
-				or 'name: ' in line
-				or 'newItemProperties' in line
-				or 'item.name' in line
-				or "text:" in line
-				or "textContent" in line
-				or "plural" in line
-				or "category" in line
-				or "singular" in line
-			):
+			elif any(_ in line for _ in {
+				"altText.toys = ",
+				"altText.start = ",
+				"<span",
+				"sWikifier(",
+				"span(",
+				"resultArray.push",
+				"statChange",
+				"<span",
+				"reasons.push",
+				"displayName:",
+				"textMap:",
+				'const output = month',
+				'createElement("span"',
+				'itemText',
+				'name: ',
+				'newItemProperties',
+				'item.name',
+				"text:",
+				"textContent",
+				"plural",
+				"category",
+				"singular",
+            }):
 				results.append(True)
 			else:
 				results.append(False)

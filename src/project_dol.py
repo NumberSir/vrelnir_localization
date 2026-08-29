@@ -33,12 +33,6 @@ LOGGER_COLOR = logger.opt(colors=True)
 class ProjectDOL:
     """本地化主类"""
     def __init__(self, type_: str = "common"):
-        with open(DIR_JSON_ROOT / "blacklists.json", "r", encoding="utf-8") as fp:
-            self._blacklists: dict[str, list] = json.load(fp)
-
-        with open(DIR_JSON_ROOT / "whitelists.json", "r", encoding="utf-8") as fp:
-            self._whitelists: dict[str, list] = json.load(fp)
-
         self._type: str = type_
         self._version: str = None
         self._mention_name = "" if self._type == "common" else "dev"
@@ -68,7 +62,7 @@ class ProjectDOL:
             response = await client.get(url)
             if not is_quiet:
                 logger.info(f"当前{self._mention_name}仓库最新版本: {response.text}")
-            self._version = response.text
+            self._version = response.text.strip()
         self._init_dirs(self._version)
 
     """ 下载源码 """
@@ -158,19 +152,10 @@ class ProjectDOL:
                     if not file.endswith(SUFFIX_JS):
                         continue
 
-                    if dir_name in self._whitelists and file in self._whitelists[dir_name]:
-                        self._game_texts_file_lists.append(Path(root).absolute() / file)
+                    self._game_texts_file_lists.append(Path(root).absolute() / file)
                     continue
 
-                if dir_name not in self._blacklists:
-                    self._game_texts_file_lists.append(Path(root).absolute() / file)
-                elif (
-                    not self._blacklists[dir_name]
-                    or file in self._blacklists[dir_name]
-                ):
-                    continue
-                else:
-                    self._game_texts_file_lists.append(Path(root).absolute() / file)
+                self._game_texts_file_lists.append(Path(root).absolute() / file)
 
         logger.info(f"##### {self._mention_name}所有文本文件位置已获取 !\n")
 
