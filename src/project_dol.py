@@ -501,9 +501,9 @@ class ProjectDOL:
                 if any(_ in file for _ in blacklist_files):
                     continue
                 if file.endswith(".js.csv"):
-                    file_mapping[Path(root).absolute() / file] = DIR_GAME_TEXTS / Path(root).relative_to(DIR_RAW_DICTS / type_manual / self._version / "csv" / "game") / f"{file.rsplit('.', 1)[0]}.js".replace("utf8\\", "")
+                    file_mapping[Path(root).absolute() / file] = DIR_GAME_TEXTS / Path(root).relative_to(DIR_RAW_DICTS / type_manual / self._version / "csv" / "game") / f"{file.rsplit('.', 2)[0]}.js".replace("utf8\\", "")
                 else:
-                    file_mapping[Path(root).absolute() / file] = DIR_GAME_TEXTS / Path(root).relative_to(DIR_RAW_DICTS / type_manual / self._version / "csv" / "game") / f"{file.rsplit('.', 1)[0]}.twee".replace("utf8\\", "")
+                    file_mapping[Path(root).absolute() / file] = DIR_GAME_TEXTS / Path(root).relative_to(DIR_RAW_DICTS / type_manual / self._version / "csv" / "game") / f"{file.rsplit('.', 2)[0]}.twee".replace("utf8\\", "")
 
         tasks = [
             self._apply_for_gather(csv_file, twee_file, debug_flag=debug_flag)
