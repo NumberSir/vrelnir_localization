@@ -844,11 +844,11 @@ class ParseTextTwee:
 			elif self.is_widget_print(line):
 				results.append(True)
 			elif any(_ in line for _ in {
-                "motion:",
-                "legs:",
-                "name:",
-                "description:",
-            }):
+				"motion:",
+				"legs:",
+				"name:",
+				"description:",
+			}):
 				results.append(True)
 			elif self.is_only_widgets(line):
 				results.append(False)
@@ -2043,7 +2043,7 @@ class ParseTextTwee:
 				'Default: {',
 				"$worn.",
 				"<<numberStepper"
-            }):
+			}):
 				results.append(True)
 				continue
 
@@ -2142,8 +2142,8 @@ class ParseTextTwee:
 				"<<gwylanCommand",
 				"<<= either",
 				"<<- either",
-                "<<insufficientQuantity",
-            }):
+				"<<insufficientQuantity",
+			}):
 				results.append(True)
 				continue
 			elif ("<" in line and self.is_only_widgets(line)) or (
@@ -3445,6 +3445,7 @@ class ParseTextJS:
 		multi_swikifier_flag = False
 		multi_result_array_flag = False
 		multi_return_flag = False
+		multi_ingredient_flag = False
 		for line in self._lines:
 			line = line.strip()
 			if not line:
@@ -3504,6 +3505,18 @@ class ParseTextJS:
 				results.append(True)
 				continue
 
+			if line == "ingredients: [":
+				multi_ingredient_flag = True
+				results.append(True)
+				continue
+			elif multi_ingredient_flag and line.endswith("],"):
+				multi_ingredient_flag = False
+				results.append(False)
+				continue
+			elif multi_ingredient_flag:
+				results.append(True)
+				continue
+
 			if "fragment.append(" in line and any(_ not in line for _ in {"''", "' '", '""', '" "', "``", "` `", "br()"}):
 				results.append(True)
 			elif ("addfemininityfromfactor(" in line and line.endswith(");")) or '"Pregnant Looking Belly"' in line:
@@ -3531,7 +3544,8 @@ class ParseTextJS:
 				"plural",
 				"category",
 				"singular",
-            }):
+				"ingredients",
+			}):
 				results.append(True)
 			else:
 				results.append(False)
