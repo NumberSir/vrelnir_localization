@@ -703,6 +703,8 @@ class ProjectDOL:
         if self._is_latest:
             return None
         logger.info(f"===== 开始写入{self._mention_name}最新 commit ...")
+
+        os.makedirs(FILE_COMMITS.parent, exist_ok=True)
         with open(FILE_COMMITS, "w") as fp:
             json.dump(latest_commit, fp, ensure_ascii=False, indent=2)
             logger.info(f"#### {self._mention_name}最新 commit 已写入！")
