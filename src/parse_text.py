@@ -3185,7 +3185,11 @@ class ParseTextJS:
 
 	def _parse_story_functions(self):
 		return self.parse_type_only(
-			{"name = (caps ?", "name = caps ?", "name = name[0]"}
+			{
+                "name = ",
+                ".text",
+                "today:"
+            }
 		)
 
 	""" 03-Templates """
